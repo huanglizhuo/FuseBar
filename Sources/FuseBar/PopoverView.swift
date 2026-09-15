@@ -22,7 +22,7 @@ struct PopoverView: View {
                 OrbView(snapshot: store.snapshot, preferences: store.preferences).frame(width: 38, height: 38)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("MergeBar").font(.system(size: 17, weight: .semibold))
+                    Text("FuseBar").font(.system(size: 17, weight: .semibold))
                     Text(store.snapshot.headline(store.preferences)).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
@@ -150,7 +150,9 @@ struct PopoverView: View {
             }
             Divider()
             Button("如何隐藏原生菜单栏图标") { page = .guide }
-            Text("MergeBar 0.1 · 开发预览\n状态约每 3 秒更新；网络名称可能受系统保护。")
+            Link("隐私政策", destination: URL(string: "https://github.com/huanglizhuo/MergeBar/blob/main/docs/PRIVACY.md")!)
+            Link("帮助与反馈", destination: URL(string: "https://github.com/huanglizhuo/MergeBar/issues")!)
+            Text("FuseBar 1.0 · 免费\n状态约每 3 秒更新；网络名称可能受系统保护。")
                 .font(.caption2).foregroundStyle(.secondary)
         }.toggleStyle(.checkbox).font(.system(size: 12)).padding(18)
     }
@@ -179,7 +181,7 @@ struct PopoverView: View {
 struct OrbGallery: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text("MergeBar / 状态图谱").font(.system(size: 24, weight: .semibold))
+            Text("FuseBar / 状态图谱").font(.system(size: 24, weight: .semibold))
             Text("相同几何，真实尺寸与放大视图。图谱使用模拟状态，不读取或改变系统设置。")
                 .font(.system(size: 12)).foregroundStyle(.secondary)
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(140)), count: 4), spacing: 24) {
@@ -199,7 +201,7 @@ struct InterfaceGallery: View {
     @ObservedObject var store: StatusStore
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text("MergeBar / 按需展开").font(.system(size: 26, weight: .semibold))
+            Text("FuseBar / 按需展开").font(.system(size: 26, weight: .semibold))
             Text("首次使用 → 状态详情 → 偏好设置 · 以下均为模拟状态预览")
                 .font(.system(size: 13)).foregroundStyle(.secondary)
             HStack(alignment: .top, spacing: 24) {

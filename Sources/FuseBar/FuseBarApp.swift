@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 @main
-struct MergeBarApp: App {
+struct FuseBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     var body: some Scene { Settings { EmptyView() } }
 }

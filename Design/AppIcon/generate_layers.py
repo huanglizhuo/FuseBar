@@ -1,4 +1,4 @@
-"""Original MergeBar vector artwork. No system symbols or baked lighting effects."""
+"""Original FuseBar vector artwork. No system symbols or baked lighting effects."""
 import math
 import shutil
 from pathlib import Path
@@ -28,7 +28,7 @@ svg('01-orbit.svg', f'<path fill="#FFFFFF" d="{ribbon(512,500,278,80,130,410)}"/
 svg('02-converging-signals.svg', '\n'.join(f'<path fill="#FFFFFF" d="{ribbon(512,586,r,w,218,322)}"/>' for r,w in [(190,53),(108,49)]))
 svg('03-merged-core.svg', '<circle fill="#FFFFFF" cx="512" cy="584" r="30"/>')
 
-assets = ROOT.parent.parent / 'Sources/MergeBar/AppIcon.icon/Assets'
+assets = ROOT.parent.parent / 'Sources/FuseBar/AppIcon.icon/Assets'
 assets.mkdir(parents=True, exist_ok=True)
 for source in ROOT.glob('*.svg'):
     shutil.copy2(source, assets / source.name)

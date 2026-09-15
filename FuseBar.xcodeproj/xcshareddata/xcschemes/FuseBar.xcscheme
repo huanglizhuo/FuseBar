@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8BCDE61AE78A56D4B7A334A8"
-               BuildableName = "MergeBar.app"
-               BlueprintName = "MergeBar"
-               ReferencedContainer = "container:MergeBar.xcodeproj">
+               BlueprintIdentifier = "D9FFF92C7DE6A8970044EB8F"
+               BuildableName = "FuseBar.app"
+               BlueprintName = "FuseBar"
+               ReferencedContainer = "container:FuseBar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BCDE61AE78A56D4B7A334A8"
-            BuildableName = "MergeBar.app"
-            BlueprintName = "MergeBar"
-            ReferencedContainer = "container:MergeBar.xcodeproj">
+            BlueprintIdentifier = "D9FFF92C7DE6A8970044EB8F"
+            BuildableName = "FuseBar.app"
+            BlueprintName = "FuseBar"
+            ReferencedContainer = "container:FuseBar.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -44,10 +44,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "5BE0AFEB1741461518B451D1"
-               BuildableName = "MergeBarTests.xctest"
-               BlueprintName = "MergeBarTests"
-               ReferencedContainer = "container:MergeBar.xcodeproj">
+               BlueprintIdentifier = "166B889740222BBB4FC6807E"
+               BuildableName = "FuseBarTests.xctest"
+               BlueprintName = "FuseBarTests"
+               ReferencedContainer = "container:FuseBar.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -68,10 +68,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BCDE61AE78A56D4B7A334A8"
-            BuildableName = "MergeBar.app"
-            BlueprintName = "MergeBar"
-            ReferencedContainer = "container:MergeBar.xcodeproj">
+            BlueprintIdentifier = "D9FFF92C7DE6A8970044EB8F"
+            BuildableName = "FuseBar.app"
+            BlueprintName = "FuseBar"
+            ReferencedContainer = "container:FuseBar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -85,10 +85,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8BCDE61AE78A56D4B7A334A8"
-            BuildableName = "MergeBar.app"
-            BlueprintName = "MergeBar"
-            ReferencedContainer = "container:MergeBar.xcodeproj">
+            BlueprintIdentifier = "D9FFF92C7DE6A8970044EB8F"
+            BuildableName = "FuseBar.app"
+            BlueprintName = "FuseBar"
+            ReferencedContainer = "container:FuseBar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

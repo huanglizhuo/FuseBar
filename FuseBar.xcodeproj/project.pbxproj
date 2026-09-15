@@ -1,0 +1,464 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5190FAC3406107DBC4B27F02 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */; };
+		5E7FD50000EBB435D24D649A /* FuseBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB14C694B03324F4BFD1D82 /* FuseBarApp.swift */; };
+		6FD7970697785201735C41ED /* StatusModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6E8267342B1F615FDDDD33 /* StatusModelTests.swift */; };
+		9433E35A13CA6C83210232BE /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D3028E7FEB4239CB540A0FB8 /* AppIcon.icon */; };
+		A805B2A1696C996B324EE2DF /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469583F7A7F18B35D8487E20 /* PopoverView.swift */; };
+		C0199EF0252C405DC9EC66F3 /* StatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B36A3F013F304EA79CAA7BA /* StatusStore.swift */; };
+		D064D3060EFF05BA9CC2610A /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8342ADFA93E77F0CD39B268D /* OrbView.swift */; };
+		F6992968F3FA9F66BEC8B8B2 /* SystemReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FFBDEA575A07CE397E8A2F /* SystemReader.swift */; };
+		FA279CC00530C0E3E7DF4E9C /* StatusModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DFA0F69787C1A46032EA337 /* StatusModel.swift */; };
+		FC3A42253F8D1B205C8FCA36 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80A7A30FF1E399B5609AB7B /* AudioDevice.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C05992AA4E042C3E88946696 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 48A71820AB367C395FD9DCC7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D9FFF92C7DE6A8970044EB8F;
+			remoteInfo = FuseBar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0DFA0F69787C1A46032EA337 /* StatusModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusModel.swift; sourceTree = "<group>"; };
+		27FFBDEA575A07CE397E8A2F /* SystemReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemReader.swift; sourceTree = "<group>"; };
+		469583F7A7F18B35D8487E20 /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
+		5B36A3F013F304EA79CAA7BA /* StatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusStore.swift; sourceTree = "<group>"; };
+		8342ADFA93E77F0CD39B268D /* OrbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbView.swift; sourceTree = "<group>"; };
+		8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BDE6F386B57CFFABFD5D70BC /* FuseBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FuseBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA6E8267342B1F615FDDDD33 /* StatusModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusModelTests.swift; sourceTree = "<group>"; };
+		D3028E7FEB4239CB540A0FB8 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		DA306224F04FF7F74550BA4D /* FuseBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FuseBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F80A7A30FF1E399B5609AB7B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
+		FBB14C694B03324F4BFD1D82 /* FuseBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuseBarApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		10DA35D01C905C35542A7A97 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BDE6F386B57CFFABFD5D70BC /* FuseBar.app */,
+				DA306224F04FF7F74550BA4D /* FuseBarTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D05BC49DFFCB81001639059B = {
+			isa = PBXGroup;
+			children = (
+				EE812303B067321177424170 /* FuseBar */,
+				D987CBC6515941B29BEE0F14 /* FuseBarTests */,
+				10DA35D01C905C35542A7A97 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D987CBC6515941B29BEE0F14 /* FuseBarTests */ = {
+			isa = PBXGroup;
+			children = (
+				CA6E8267342B1F615FDDDD33 /* StatusModelTests.swift */,
+			);
+			name = FuseBarTests;
+			path = Tests/FuseBarTests;
+			sourceTree = "<group>";
+		};
+		EE812303B067321177424170 /* FuseBar */ = {
+			isa = PBXGroup;
+			children = (
+				D3028E7FEB4239CB540A0FB8 /* AppIcon.icon */,
+				F80A7A30FF1E399B5609AB7B /* AudioDevice.swift */,
+				FBB14C694B03324F4BFD1D82 /* FuseBarApp.swift */,
+				8342ADFA93E77F0CD39B268D /* OrbView.swift */,
+				469583F7A7F18B35D8487E20 /* PopoverView.swift */,
+				8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */,
+				0DFA0F69787C1A46032EA337 /* StatusModel.swift */,
+				5B36A3F013F304EA79CAA7BA /* StatusStore.swift */,
+				27FFBDEA575A07CE397E8A2F /* SystemReader.swift */,
+			);
+			name = FuseBar;
+			path = Sources/FuseBar;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		166B889740222BBB4FC6807E /* FuseBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F38B94CE32BA18625C174132 /* Build configuration list for PBXNativeTarget "FuseBarTests" */;
+			buildPhases = (
+				613F4CBE1D80ABC9FCD5E2D0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A31745800150FA1031906DA2 /* PBXTargetDependency */,
+			);
+			name = FuseBarTests;
+			packageProductDependencies = (
+			);
+			productName = FuseBarTests;
+			productReference = DA306224F04FF7F74550BA4D /* FuseBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D9FFF92C7DE6A8970044EB8F /* FuseBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E67320E4ADCB0566005C2B02 /* Build configuration list for PBXNativeTarget "FuseBar" */;
+			buildPhases = (
+				3401E8E4622EBD30D9F081E0 /* Sources */,
+				7BED99BE42E096CF124EC8F9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FuseBar;
+			packageProductDependencies = (
+			);
+			productName = FuseBar;
+			productReference = BDE6F386B57CFFABFD5D70BC /* FuseBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		48A71820AB367C395FD9DCC7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					166B889740222BBB4FC6807E = {
+						DevelopmentTeam = N9Q47Y2LQ4;
+						ProvisioningStyle = Automatic;
+					};
+					D9FFF92C7DE6A8970044EB8F = {
+						DevelopmentTeam = N9Q47Y2LQ4;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = E5B8C785901F1ACC292AE51E /* Build configuration list for PBXProject "FuseBar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D05BC49DFFCB81001639059B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 10DA35D01C905C35542A7A97 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D9FFF92C7DE6A8970044EB8F /* FuseBar */,
+				166B889740222BBB4FC6807E /* FuseBarTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7BED99BE42E096CF124EC8F9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9433E35A13CA6C83210232BE /* AppIcon.icon in Resources */,
+				5190FAC3406107DBC4B27F02 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3401E8E4622EBD30D9F081E0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC3A42253F8D1B205C8FCA36 /* AudioDevice.swift in Sources */,
+				5E7FD50000EBB435D24D649A /* FuseBarApp.swift in Sources */,
+				D064D3060EFF05BA9CC2610A /* OrbView.swift in Sources */,
+				A805B2A1696C996B324EE2DF /* PopoverView.swift in Sources */,
+				FA279CC00530C0E3E7DF4E9C /* StatusModel.swift in Sources */,
+				C0199EF0252C405DC9EC66F3 /* StatusStore.swift in Sources */,
+				F6992968F3FA9F66BEC8B8B2 /* SystemReader.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		613F4CBE1D80ABC9FCD5E2D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FD7970697785201735C41ED /* StatusModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A31745800150FA1031906DA2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D9FFF92C7DE6A8970044EB8F /* FuseBar */;
+			targetProxy = C05992AA4E042C3E88946696 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		21EE16AC36D6E3CDB02140C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "FuseBar 仅在本机读取蓝牙开关及已配对设备的连接状态。";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSLocationUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		26C72F47CF6056A08595C97D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = N9Q47Y2LQ4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		27A64A7F471E12BEDDF1C287 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FuseBar.app/Contents/MacOS/FuseBar";
+			};
+			name = Release;
+		};
+		AAE2D79D91E0CAB65589486B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FuseBar.app/Contents/MacOS/FuseBar";
+			};
+			name = Debug;
+		};
+		B2A557F2D932E7238F02A9B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = N9Q47Y2LQ4;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		D9669B4C3C065679470E7ED7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "FuseBar 仅在本机读取蓝牙开关及已配对设备的连接状态。";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSLocationUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E5B8C785901F1ACC292AE51E /* Build configuration list for PBXProject "FuseBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				26C72F47CF6056A08595C97D /* Debug */,
+				B2A557F2D932E7238F02A9B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E67320E4ADCB0566005C2B02 /* Build configuration list for PBXNativeTarget "FuseBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21EE16AC36D6E3CDB02140C8 /* Debug */,
+				D9669B4C3C065679470E7ED7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F38B94CE32BA18625C174132 /* Build configuration list for PBXNativeTarget "FuseBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAE2D79D91E0CAB65589486B /* Debug */,
+				27A64A7F471E12BEDDF1C287 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 48A71820AB367C395FD9DCC7 /* Project object */;
+}

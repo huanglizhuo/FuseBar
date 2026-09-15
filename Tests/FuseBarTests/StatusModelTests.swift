@@ -1,5 +1,5 @@
 import XCTest
-@testable import MergeBar
+@testable import FuseBar
 
 final class StatusModelTests: XCTestCase {
     func testLowBatteryBoundariesAndExternalPower() {
@@ -101,7 +101,7 @@ final class StatusModelTests: XCTestCase {
 
     func testAllIndicatorsCanBeHiddenWithoutFalseHealthyClaim() {
         let preferences = IndicatorPreferences(battery: false, wifi: false, bluetooth: false, sound: false)
-        XCTAssertEqual(StatusSnapshot.normal.accessibilitySummary(preferences), "MergeBar")
+        XCTAssertEqual(StatusSnapshot.normal.accessibilitySummary(preferences), "FuseBar")
         XCTAssertEqual(StatusSnapshot.normal.headline(preferences), "所有图标指标已隐藏")
     }
 
@@ -124,7 +124,7 @@ final class StatusModelTests: XCTestCase {
     }
 
     @MainActor func testPreferencesSurviveStoreRecreation() {
-        let suite = "MergeBarTests.\(UUID().uuidString)"
+        let suite = "FuseBarTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let first = StatusStore(defaults: defaults, demo: true)

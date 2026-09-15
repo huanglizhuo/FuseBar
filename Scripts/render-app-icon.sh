@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "${0:A:h:h}"
 composer_tool="$(xcode-select -p)/../Applications/Icon Composer.app/Contents/Executables/ictool"
-icon_source="$PWD/Sources/MergeBar/AppIcon.icon"
+icon_source="$PWD/Sources/FuseBar/AppIcon.icon"
 icon_output="$PWD/docs/previews/app-icon"
 mkdir -p "$icon_output"
 for pair in Default:default Dark:dark ClearLight:clear-light ClearDark:clear-dark TintedLight:tinted-light TintedDark:tinted-dark; do

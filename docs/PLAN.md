@@ -1,10 +1,10 @@
-# MergeBar · 产品与实施计划
+# FuseBar · 产品与实施计划
 
 ## 产品决策
 
 面向 macOS 14+ 的原生菜单栏应用。用一个固定 28 pt 宽的入口承载 18 pt 状态圆环。用户手动隐藏系统图标；应用不移动或注入其他菜单栏项目。无账号、后端、分析埋点、屏幕录制或辅助功能权限。
 
-参考 [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar) 的最终形态：开口圆环、居中的 Wi-Fi、底部连接点。已查看 comparison-sheet.jpg 和 WiFiGlyph 源码。参考项目是动画研究，不能直接提供电池或无线连接数据；MergeBar 独立实现绘制，不复制参考媒体或代码。
+参考 [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar) 的最终形态：开口圆环、居中的 Wi-Fi、底部连接点。已查看 comparison-sheet.jpg 和 WiFiGlyph 源码。参考项目是动画研究，不能直接提供电池或无线连接数据；FuseBar 独立实现绘制，不复制参考媒体或代码。
 
 ## 视觉与交互规格
 
@@ -82,3 +82,7 @@
 ## 应用图标
 
 应用身份采用“汇聚之环”：蓝绿色背景、玻璃状态环、两段汇聚信号和中心节点。使用 1024 px 原创矢量分层及原生 Icon Composer `.icon` 文档；Xcode 编译分层资源和兼容 `.icns`。见 [设计源文件说明](../Design/AppIcon/DESIGN.md)。菜单栏动态图标保持单色，以免 Liquid Glass 材质影响 18 pt 状态读取。
+
+## FuseBar 1.0 双渠道发行
+
+2026-09-16：产品改名 FuseBar，完全免费，无订阅或内购。README 默认英文，当前应用 UI 仍为简体中文，商店文案明确说明。保留用户已注册的 `com.clothpath.mergebar` 与 Team `N9Q47Y2LQ4`，仓库 URL 保持不变。商店与 GitHub 版共享沙箱配置和源码，以不同发行签名导出；补充 UserDefaults required-reason 隐私清单及隐私政策入口。

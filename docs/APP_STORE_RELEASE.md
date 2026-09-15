@@ -1,4 +1,4 @@
-# MergeBar — Mac App Store 发布清单
+# FuseBar — Mac App Store 发布清单
 
 核对日期：2026-09-15。本文是发布计划，不代表已完成签名、沙箱验证或 App Review。
 
@@ -42,7 +42,7 @@
 
 ## 审核备注草稿（提交前以最终行为核对）
 
-MergeBar is a macOS menu bar utility. After launch, click the MergeBar status icon in the menu bar to open its panel. It does not display a Dock icon. No account is required. Bluetooth details and the Wi-Fi network name are optional; the basic status display remains usable without those permissions. Users can optionally hide their original system status icons in System Settings. MergeBar does not automatically hide or modify other apps' menu bar items. Launch at login is enabled only by the user.
+FuseBar is a macOS menu bar utility. After launch, click the FuseBar status icon in the menu bar to open its panel. It does not display a Dock icon. No account is required. Bluetooth details and the Wi-Fi network name are optional; the basic status display remains usable without those permissions. Users can optionally hide their original system status icons in System Settings. FuseBar does not automatically hide or modify other apps' menu bar items. Launch at login is enabled only by the user.
 
 ## Apple 官方参考
 

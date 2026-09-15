@@ -1,4 +1,4 @@
-# MergeBar · 汇聚之环
+# FuseBar · 汇聚之环
 
 ## 视觉概念
 
@@ -10,7 +10,7 @@
 
 交付的是原生 Icon Composer 文档，不是玻璃质感的概念效果图：
 
-- `Sources/MergeBar/AppIcon.icon`：Xcode 使用的可编辑源文件。
+- `Sources/FuseBar/AppIcon.icon`：Xcode 使用的可编辑源文件。
 - `01-orbit.svg`：外部状态环，半径 278、实体宽 80。
 - `02-converging-signals.svg`：两段汇聚弧，共用一组材质。
 - `03-merged-core.svg`：核心节点。
@@ -38,6 +38,6 @@ zsh Scripts/build.sh
 
 预览位于 `docs/previews/app-icon`：六种外观的 1024 px PNG，以及默认外观 16、32、64、128、256 px。透明/染色预览使用官方渲染器的默认环境，实际系统背景与用户染色选项会改变呈现。
 
-`ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` 已配置。Xcode 自动生成 `AppIcon.icns` 和 `Assets.car`，供旧版系统与 Liquid Glass 系统使用。设计目录中的 `MergeBar.icns` 是本次构建的独立导出，需要在重新构建后从应用包复制更新。
+`ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` 已配置。Xcode 自动生成 `AppIcon.icns` 和 `Assets.car`，供旧版系统与 Liquid Glass 系统使用。设计目录中的 `FuseBar.icns` 是本次构建的独立导出，需要在重新构建后从应用包复制更新。
 
 应用仍为无 Dock 图标的菜单栏工具；Finder、系统设置等场景会显示新应用图标。18 pt 菜单栏绘制继续使用原有单色 template 图像，以维持动态状态可读性。

@@ -78,7 +78,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         manager.delegate = self
         switch manager.authorizationStatus {
         case .denied, .restricted:
-            errorMessage = "网络名称需要定位授权。可在系统设置 → 隐私与安全性 → 定位服务中允许 MergeBar。"
+            errorMessage = "网络名称需要定位授权。可在系统设置 → 隐私与安全性 → 定位服务中允许 FuseBar。"
         default:
             manager.requestWhenInUseAuthorization()
         }

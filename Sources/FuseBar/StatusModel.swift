@@ -109,7 +109,7 @@ struct StatusSnapshot: Equatable {
     }
 
     func accessibilitySummary(_ p: IndicatorPreferences) -> String {
-        var parts = ["MergeBar"]
+        var parts = ["FuseBar"]
         if p.battery { parts.append(battery.detail) }
         if p.wifi { parts.append("Wi-Fi：" + wifi.detail) }
         if p.bluetooth { parts.append("蓝牙：" + bluetooth.detail) }
