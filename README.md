@@ -4,7 +4,7 @@
 
 ![状态图谱](docs/previews/orb-gallery-light.png)
 
-电池外环、Wi-Fi 中心、蓝牙连接点、静音角标。点击查看完整状态、调整支持设备的音量、前往系统设置。默认没有 Dock 图标。
+电池外环、Wi-Fi 中心、底部居中的单一状态提示。底部按严重低电、断网、低电、充电、静音的优先级显示，正常时留空；蓝牙连接状态移至详情与悬停摘要。点击查看完整状态、调整支持设备的音量、前往系统设置。默认没有 Dock 图标。
 
 ## 运行
 
@@ -25,7 +25,7 @@ open build/Build/Products/Debug/MergeBar.app
 - CoreWLAN Wi-Fi 开关、关联状态、信号档位；可选定位授权后显示 SSID。
 - 用户授权后读取蓝牙电源与已连接的配对设备；不扫描或配对设备。
 - CoreAudio 默认输出音量与静音；主音量或双声道音量控制，不能写入时禁用滑块。
-- 单色圆环、完整 tooltip/VoiceOver 描述、原生 Popover、引导、四项显示偏好持久化、SMAppService 登录启动。
+- 单色圆环、完整 tooltip/VoiceOver 描述、原生 Popover、引导、图标及蓝牙悬停摘要偏好持久化、SMAppService 登录启动。
 - 后台串行读取，约 3 秒刷新；休眠停止计时，唤醒刷新；模拟状态图谱。
 
 ## 验证

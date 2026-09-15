@@ -47,10 +47,51 @@ final class StatusModelTests: XCTestCase {
         XCTAssertEqual(status.badge(preferences), .critical)
         XCTAssertTrue(status.headline(preferences).contains("10%"))
         preferences.battery = false
-        XCTAssertEqual(status.badge(preferences), .none)
+        XCTAssertEqual(status.badge(preferences), .networkWarning)
         XCTAssertEqual(status.headline(preferences), "Wi-Fi 尚未连接")
         preferences.wifi = false
+        XCTAssertEqual(status.badge(preferences), .muted)
         XCTAssertEqual(status.headline(preferences), "声音已静音")
+    }
+
+    func testBottomSlotSelectsOneStatusAndRevealsTheNextWhenResolved() {
+        var status = StatusSnapshot.normal
+        let preferences = IndicatorPreferences()
+        status.battery.level = 7
+        status.wifi.connection = .disconnected
+        status.sound.muted = true
+        XCTAssertEqual(status.badge(preferences), .critical)
+        status.battery.level = 16
+        XCTAssertEqual(status.badge(preferences), .networkWarning)
+        status.wifi.connection = .connected
+        XCTAssertEqual(status.badge(preferences), .lowBattery)
+        status.battery.externalPower = true
+        status.battery.charging = true
+        XCTAssertEqual(status.badge(preferences), .charging)
+        status.battery.charging = false
+        XCTAssertEqual(status.badge(preferences), .muted)
+        status.sound.muted = false
+        XCTAssertEqual(status.badge(preferences), .none)
+    }
+
+    func testBluetoothDoesNotOccupyBottomSlotOrCountAsVisibleIndicator() {
+        let status = StatusSnapshot.normal
+        let preferences = IndicatorPreferences(battery: false, wifi: false, bluetooth: true, sound: false)
+        XCTAssertEqual(status.badge(preferences), .none)
+        XCTAssertFalse(preferences.anyEnabled)
+        XCTAssertTrue(status.accessibilitySummary(preferences).contains("AirPods Pro"))
+    }
+
+    func testDisabledSoundDoesNotTakeBottomSlotAndHiddenStatusesStayInSnapshot() {
+        var status = StatusSnapshot.normal
+        status.battery.charging = true
+        status.battery.externalPower = true
+        status.sound.muted = true
+        XCTAssertEqual(status.badge(IndicatorPreferences()), .charging)
+        XCTAssertTrue(status.accessibilitySummary(IndicatorPreferences()).contains("静音"))
+        let preferences = IndicatorPreferences(battery: false, wifi: false, sound: false)
+        XCTAssertEqual(status.badge(preferences), .none)
+        XCTAssertTrue(status.sound.effectivelyMuted)
     }
 
     func testZeroVolumeAndUnknownMute() {

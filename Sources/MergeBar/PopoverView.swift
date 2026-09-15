@@ -64,9 +64,9 @@ struct PopoverView: View {
 
     private var status: some View {
         VStack(spacing: 0) {
-            statusRow("电池", detail: store.snapshot.battery.detail, symbol: "battery.75percent", destination: .battery)
+            statusRow("电池", detail: store.snapshot.battery.detail, symbol: StatusSymbols.battery(store.snapshot.battery), destination: .battery)
             Divider().padding(.leading, 48)
-            statusRow("Wi-Fi", detail: store.snapshot.wifi.detail, symbol: "wifi", destination: .wifi)
+            statusRow("Wi-Fi", detail: store.snapshot.wifi.detail, symbol: StatusSymbols.wifi(store.snapshot.wifi), destination: .wifi)
             if store.snapshot.wifi.connection == .connected && store.snapshot.wifi.name == nil {
                 VStack(alignment: .leading, spacing: 5) {
                     Button("显示网络名称…") { store.requestNetworkName() }.font(.caption)
@@ -76,7 +76,9 @@ struct PopoverView: View {
             }
             Divider().padding(.leading, 48)
             VStack(alignment: .leading, spacing: 0) {
-                statusRow("蓝牙", detail: store.snapshot.bluetooth.detail, symbol: "wave.3.right", destination: .bluetooth)
+                statusRow("蓝牙", detail: store.snapshot.bluetooth.detail,
+                          symbol: store.snapshot.bluetooth.state == .off ? "antenna.radiowaves.left.and.right.slash" : StatusSymbols.bluetooth,
+                          destination: .bluetooth)
                 if store.snapshot.bluetooth.state == .permissionRequired {
                     Button("允许读取蓝牙状态") { store.enableBluetooth() }
                         .font(.caption).padding(.leading, 48).padding(.bottom, 12)
@@ -87,7 +89,7 @@ struct PopoverView: View {
             }
             Divider().padding(.leading, 48)
             statusRow("声音", detail: store.snapshot.sound.detail,
-                      symbol: store.snapshot.sound.effectivelyMuted ? "speaker.slash" : "speaker.wave.2", destination: .sound)
+                      symbol: StatusSymbols.sound(store.snapshot.sound), destination: .sound)
             HStack(spacing: 8) {
                 Image(systemName: "speaker.fill").font(.caption2).foregroundStyle(.secondary)
                 Slider(value: $volume, in: 0...1, onEditingChanged: { editing in
@@ -136,11 +138,11 @@ struct PopoverView: View {
             Text("在圆环中显示").font(.system(size: 13, weight: .semibold))
             Toggle("电池 · 外环", isOn: $store.preferences.battery)
             Toggle("Wi-Fi · 中心", isOn: $store.preferences.wifi)
-            Toggle("蓝牙 · 底部连接点", isOn: $store.preferences.bluetooth)
-            Toggle("静音 · 右下角标", isOn: $store.preferences.sound)
-            Text("这些开关只调整 MergeBar 图标。详情始终可查看。")
+            Toggle("静音 · 底部提示", isOn: $store.preferences.sound)
+            Text("底部只显示最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。")
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
+            Toggle("悬停摘要包含蓝牙状态", isOn: $store.preferences.bluetooth)
             HStack { Text("外观"); Spacer(); Text("Compact Orb").foregroundStyle(.secondary) }
             Toggle("登录时启动", isOn: Binding(get: { store.loginEnabled }, set: { store.setLoginEnabled($0) }))
             if store.loginNeedsApproval {
@@ -157,11 +159,11 @@ struct PopoverView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("四个图标，一个入口。").font(.system(size: 21, weight: .semibold))
             HStack(spacing: 13) {
-                ForEach(["wifi", "wave.3.right", "speaker.wave.2", "battery.75percent"], id: \.self) { Image(systemName: $0) }
+                ForEach(["wifi", StatusSymbols.bluetooth, "speaker.wave.2.fill", "battery.75percent"], id: \.self) { Image(systemName: $0) }
                 Image(systemName: "arrow.right").foregroundStyle(.tertiary)
                 OrbView(snapshot: .normal).frame(width: 32, height: 32)
             }.frame(maxWidth: .infinity).padding(.vertical, 8).accessibilityHidden(true)
-            Text("外环读电量，中心看 Wi-Fi。底部实点表示蓝牙设备已连接；右下叉号表示静音。")
+            Text("外环读电量，中心看 Wi-Fi。底部居中显示警告、充电或静音；正常时留空。蓝牙连接状态可在详情中查看。")
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Text("保留重要状态，收起重复图标。")
                 .font(.system(size: 13, weight: .medium))
@@ -180,7 +182,7 @@ struct OrbGallery: View {
             Text("MergeBar / 状态图谱").font(.system(size: 24, weight: .semibold))
             Text("相同几何，真实尺寸与放大视图。图谱使用模拟状态，不读取或改变系统设置。")
                 .font(.system(size: 12)).foregroundStyle(.secondary)
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(140)), count: 5), spacing: 24) {
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(140)), count: 4), spacing: 24) {
                 ForEach(StatusSnapshot.scenarios, id: \.0) { title, snapshot in
                     VStack(spacing: 12) {
                         OrbView(snapshot: snapshot).frame(width: 66, height: 66)

@@ -77,10 +77,10 @@ struct IndicatorPreferences: Equatable {
     var wifi = true
     var bluetooth = true
     var sound = true
-    var anyEnabled: Bool { battery || wifi || bluetooth || sound }
+    var anyEnabled: Bool { battery || wifi || sound }
 }
 
-enum OrbBadge: Equatable { case none, critical, charging }
+enum OrbBadge: Equatable { case none, critical, networkWarning, lowBattery, charging, muted }
 
 struct StatusSnapshot: Equatable {
     var battery = BatteryStatus()
@@ -89,19 +89,23 @@ struct StatusSnapshot: Equatable {
     var sound = SoundStatus()
 
     func badge(_ preferences: IndicatorPreferences) -> OrbBadge {
-        guard preferences.battery else { return .none }
-        if battery.critical { return .critical }
-        if battery.availability == .available && battery.charging { return .charging }
+        if preferences.battery && battery.critical { return .critical }
+        if preferences.wifi && wifi.connection == .disconnected { return .networkWarning }
+        if preferences.battery && battery.low { return .lowBattery }
+        if preferences.battery && battery.availability == .available && battery.charging { return .charging }
+        if preferences.sound && sound.effectivelyMuted { return .muted }
         return .none
     }
 
     func headline(_ preferences: IndicatorPreferences) -> String {
-        if preferences.battery && battery.critical { return "电量不足 10%，请连接电源" }
-        if preferences.wifi && wifi.connection == .disconnected { return "Wi-Fi 尚未连接" }
-        if preferences.battery && battery.low { return "电量较低" }
-        if preferences.battery && battery.charging { return "正在为下一程充电" }
-        if preferences.sound && sound.effectivelyMuted { return "声音已静音" }
-        return preferences.anyEnabled ? "常用状态，一眼可见" : "所有图标指标已隐藏"
+        switch badge(preferences) {
+        case .critical: return "电量不足 10%，请连接电源"
+        case .networkWarning: return "Wi-Fi 尚未连接"
+        case .lowBattery: return "电量较低"
+        case .charging: return "正在为下一程充电"
+        case .muted: return "声音已静音"
+        case .none: return preferences.anyEnabled ? "常用状态，一眼可见" : "所有图标指标已隐藏"
+        }
     }
 
     func accessibilitySummary(_ p: IndicatorPreferences) -> String {
@@ -129,8 +133,11 @@ struct StatusSnapshot: Equatable {
         var mute = normal; mute.sound.muted = true
         var combined = critical; combined.wifi.connection = .disconnected; combined.sound.muted = true
         var desktop = normal; desktop.battery.availability = .unavailable
+        var mediumSignal = normal; mediumSignal.wifi.rssi = -68
+        var weakSignal = normal; weakSignal.wifi.rssi = -82
         return [("日常", normal), ("充电", charging), ("低电量", low), ("严重低电", critical),
                 ("Wi-Fi 断开", disconnected), ("无线关闭", off), ("静音", mute),
-                ("多重异常", combined), ("桌面 Mac", desktop), ("尚未读取", StatusSnapshot())]
+                ("多重异常", combined), ("桌面 Mac", desktop), ("尚未读取", StatusSnapshot()),
+                ("Wi-Fi 中等", mediumSignal), ("Wi-Fi 较弱", weakSignal)]
     }
 }
