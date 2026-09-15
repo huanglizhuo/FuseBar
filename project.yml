@@ -1,0 +1,45 @@
+name: MergeBar
+options:
+  deploymentTarget:
+    macOS: '14.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MACOSX_DEPLOYMENT_TARGET: '14.0'
+    CODE_SIGN_IDENTITY: '-'
+    CODE_SIGN_STYLE: Manual
+    ENABLE_HARDENED_RUNTIME: YES
+targets:
+  MergeBar:
+    type: application
+    platform: macOS
+    sources: [Sources/MergeBar]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mergebar.app
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        INFOPLIST_KEY_NSHighResolutionCapable: YES
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: 'MergeBar 仅在本机读取蓝牙开关及已配对设备的连接状态。'
+        INFOPLIST_KEY_NSLocationUsageDescription: 'macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。'
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。'
+        MARKETING_VERSION: '0.1.0'
+        CURRENT_PROJECT_VERSION: '1'
+  MergeBarTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests/MergeBarTests]
+    dependencies:
+      - target: MergeBar
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mergebar.tests
+schemes:
+  MergeBar:
+    build:
+      targets:
+        MergeBar: all
+    test:
+      targets: [MergeBarTests]

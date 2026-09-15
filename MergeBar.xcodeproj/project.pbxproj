@@ -1,0 +1,433 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0EE88AB24CF29DA0E6DFF912 /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7A38EAC41F4EECC9714CEB /* OrbView.swift */; };
+		30F9463538A2EB87881F6CF5 /* StatusModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9B3E847A272E8EB319FDB1 /* StatusModelTests.swift */; };
+		52D78BDFB8A4C65863356A40 /* MergeBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C97F6C05039386D223593E /* MergeBarApp.swift */; };
+		8757305E71FB6F8FA47DA11A /* StatusModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD0EA1EDEC0299AFD89127 /* StatusModel.swift */; };
+		9854103325F2D8A8074AD276 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FDFB0AEC53CD4DCE83E6579 /* AudioDevice.swift */; };
+		9B5BDE0C72755029F40236CF /* StatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BDDD04D06B72C3E880D4E93 /* StatusStore.swift */; };
+		ADEE94EF4D00E6D5C7407310 /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1163883268D88094BC074FCB /* PopoverView.swift */; };
+		F454947124058BDF77BC7C39 /* SystemReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8864FAC574B75305C318DF85 /* SystemReader.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		71A6DE0B7C28C12113AEE791 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 186FCADA0EEB5024D9A04AC6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8BCDE61AE78A56D4B7A334A8;
+			remoteInfo = MergeBar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0D7A38EAC41F4EECC9714CEB /* OrbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbView.swift; sourceTree = "<group>"; };
+		1163883268D88094BC074FCB /* PopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverView.swift; sourceTree = "<group>"; };
+		21C97F6C05039386D223593E /* MergeBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MergeBarApp.swift; sourceTree = "<group>"; };
+		5FDFB0AEC53CD4DCE83E6579 /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
+		65FD0EA1EDEC0299AFD89127 /* StatusModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusModel.swift; sourceTree = "<group>"; };
+		68A712F2F2AC8B0DC1860013 /* MergeBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergeBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8864FAC574B75305C318DF85 /* SystemReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemReader.swift; sourceTree = "<group>"; };
+		8BDDD04D06B72C3E880D4E93 /* StatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusStore.swift; sourceTree = "<group>"; };
+		D70F80F993270A1DFFDED770 /* MergeBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MergeBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF9B3E847A272E8EB319FDB1 /* StatusModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusModelTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0C5BF38BD29AC768272F6D60 /* MergeBarTests */ = {
+			isa = PBXGroup;
+			children = (
+				DF9B3E847A272E8EB319FDB1 /* StatusModelTests.swift */,
+			);
+			name = MergeBarTests;
+			path = Tests/MergeBarTests;
+			sourceTree = "<group>";
+		};
+		75D13519A7BD7242A7214115 /* MergeBar */ = {
+			isa = PBXGroup;
+			children = (
+				5FDFB0AEC53CD4DCE83E6579 /* AudioDevice.swift */,
+				21C97F6C05039386D223593E /* MergeBarApp.swift */,
+				0D7A38EAC41F4EECC9714CEB /* OrbView.swift */,
+				1163883268D88094BC074FCB /* PopoverView.swift */,
+				65FD0EA1EDEC0299AFD89127 /* StatusModel.swift */,
+				8BDDD04D06B72C3E880D4E93 /* StatusStore.swift */,
+				8864FAC574B75305C318DF85 /* SystemReader.swift */,
+			);
+			name = MergeBar;
+			path = Sources/MergeBar;
+			sourceTree = "<group>";
+		};
+		990CAF5C5641143CDE5C9D39 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				68A712F2F2AC8B0DC1860013 /* MergeBar.app */,
+				D70F80F993270A1DFFDED770 /* MergeBarTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		EDEC87CF20AB59C7AEC4EFF1 = {
+			isa = PBXGroup;
+			children = (
+				75D13519A7BD7242A7214115 /* MergeBar */,
+				0C5BF38BD29AC768272F6D60 /* MergeBarTests */,
+				990CAF5C5641143CDE5C9D39 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5BE0AFEB1741461518B451D1 /* MergeBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F24914A5F6CBB95BF1D8D629 /* Build configuration list for PBXNativeTarget "MergeBarTests" */;
+			buildPhases = (
+				6090919F6FB0AF298BF74535 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				57E47071A114559381ACF3D2 /* PBXTargetDependency */,
+			);
+			name = MergeBarTests;
+			packageProductDependencies = (
+			);
+			productName = MergeBarTests;
+			productReference = D70F80F993270A1DFFDED770 /* MergeBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8BCDE61AE78A56D4B7A334A8 /* MergeBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1010B6C6CF923E6D82ED591A /* Build configuration list for PBXNativeTarget "MergeBar" */;
+			buildPhases = (
+				ED6595FF572DE870861A3741 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MergeBar;
+			packageProductDependencies = (
+			);
+			productName = MergeBar;
+			productReference = 68A712F2F2AC8B0DC1860013 /* MergeBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		186FCADA0EEB5024D9A04AC6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					5BE0AFEB1741461518B451D1 = {
+						ProvisioningStyle = Manual;
+					};
+					8BCDE61AE78A56D4B7A334A8 = {
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = BE911C2040ECA7DF0DA6EC6B /* Build configuration list for PBXProject "MergeBar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = EDEC87CF20AB59C7AEC4EFF1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 990CAF5C5641143CDE5C9D39 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8BCDE61AE78A56D4B7A334A8 /* MergeBar */,
+				5BE0AFEB1741461518B451D1 /* MergeBarTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		6090919F6FB0AF298BF74535 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30F9463538A2EB87881F6CF5 /* StatusModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ED6595FF572DE870861A3741 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9854103325F2D8A8074AD276 /* AudioDevice.swift in Sources */,
+				52D78BDFB8A4C65863356A40 /* MergeBarApp.swift in Sources */,
+				0EE88AB24CF29DA0E6DFF912 /* OrbView.swift in Sources */,
+				ADEE94EF4D00E6D5C7407310 /* PopoverView.swift in Sources */,
+				8757305E71FB6F8FA47DA11A /* StatusModel.swift in Sources */,
+				9B5BDE0C72755029F40236CF /* StatusStore.swift in Sources */,
+				F454947124058BDF77BC7C39 /* SystemReader.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		57E47071A114559381ACF3D2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8BCDE61AE78A56D4B7A334A8 /* MergeBar */;
+			targetProxy = 71A6DE0B7C28C12113AEE791 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		24328BC82E8EB4103B2F6075 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		44D61A8866854D3B10FE5443 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "MergeBar 仅在本机读取蓝牙开关及已配对设备的连接状态。";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSLocationUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mergebar.app;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		736A6E6EA56B3B14F6438B10 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mergebar.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MergeBar.app/Contents/MacOS/MergeBar";
+			};
+			name = Debug;
+		};
+		95F88B6B41742417C4F4C0D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "MergeBar 仅在本机读取蓝牙开关及已配对设备的连接状态。";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				INFOPLIST_KEY_NSLocationUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。MergeBar 不采集位置，也不上传网络名称。";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mergebar.app;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		962283D71118CD89A7BC21CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mergebar.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MergeBar.app/Contents/MacOS/MergeBar";
+			};
+			name = Release;
+		};
+		F63381FAB0A37EE8F17E1D7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1010B6C6CF923E6D82ED591A /* Build configuration list for PBXNativeTarget "MergeBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				44D61A8866854D3B10FE5443 /* Debug */,
+				95F88B6B41742417C4F4C0D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BE911C2040ECA7DF0DA6EC6B /* Build configuration list for PBXProject "MergeBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24328BC82E8EB4103B2F6075 /* Debug */,
+				F63381FAB0A37EE8F17E1D7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F24914A5F6CBB95BF1D8D629 /* Build configuration list for PBXNativeTarget "MergeBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				736A6E6EA56B3B14F6438B10 /* Debug */,
+				962283D71118CD89A7BC21CE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 186FCADA0EEB5024D9A04AC6 /* Project object */;
+}

@@ -1,0 +1,97 @@
+import XCTest
+@testable import MergeBar
+
+final class StatusModelTests: XCTestCase {
+    func testLowBatteryBoundariesAndExternalPower() {
+        for (level, low, critical) in [(0, true, true), (9, true, true), (10, true, false), (19, true, false), (20, false, false)] {
+            var battery = BatteryStatus(availability: .available, level: level)
+            XCTAssertEqual(battery.low, low, "level \(level)")
+            XCTAssertEqual(battery.critical, critical, "level \(level)")
+            battery.externalPower = true
+            XCTAssertFalse(battery.low)
+            XCTAssertFalse(battery.critical)
+        }
+    }
+
+    func testUnknownAndDesktopBatteryAreNotLowBattery() {
+        XCTAssertFalse(BatteryStatus().critical)
+        XCTAssertFalse(BatteryStatus(availability: .unavailable).low)
+        XCTAssertEqual(BatteryStatus(availability: .unavailable).detail, "无内置电池")
+    }
+
+    func testBatteryFractionClampsInvalidHardwareValues() {
+        XCTAssertEqual(BatteryStatus(level: -3).fraction, 0)
+        XCTAssertEqual(BatteryStatus(level: 130).fraction, 1)
+    }
+
+    func testSSIDRedactionDoesNotImplyDisconnection() {
+        let wifi = WiFiStatus(connection: .connected, rssi: -65)
+        XCTAssertTrue(wifi.detail.hasPrefix("已连接"))
+        XCTAssertEqual(wifi.bars, 2)
+    }
+
+    func testRSSIBoundariesAndMissingValue() {
+        XCTAssertEqual(WiFiStatus(rssi: -60).bars, 3)
+        XCTAssertEqual(WiFiStatus(rssi: -61).bars, 2)
+        XCTAssertEqual(WiFiStatus(rssi: -75).bars, 2)
+        XCTAssertEqual(WiFiStatus(rssi: -76).bars, 1)
+        XCTAssertEqual(WiFiStatus().bars, 0)
+    }
+
+    func testAlertPriorityRespectsDisabledIndicators() {
+        var status = StatusSnapshot.normal
+        status.battery.level = 7
+        status.wifi.connection = .disconnected
+        status.sound.muted = true
+        var preferences = IndicatorPreferences()
+        XCTAssertEqual(status.badge(preferences), .critical)
+        XCTAssertTrue(status.headline(preferences).contains("10%"))
+        preferences.battery = false
+        XCTAssertEqual(status.badge(preferences), .none)
+        XCTAssertEqual(status.headline(preferences), "Wi-Fi 尚未连接")
+        preferences.wifi = false
+        XCTAssertEqual(status.headline(preferences), "声音已静音")
+    }
+
+    func testZeroVolumeAndUnknownMute() {
+        XCTAssertTrue(SoundStatus(available: true, volume: 0).effectivelyMuted)
+        XCTAssertFalse(SoundStatus().effectivelyMuted)
+    }
+
+    func testAllIndicatorsCanBeHiddenWithoutFalseHealthyClaim() {
+        let preferences = IndicatorPreferences(battery: false, wifi: false, bluetooth: false, sound: false)
+        XCTAssertEqual(StatusSnapshot.normal.accessibilitySummary(preferences), "MergeBar")
+        XCTAssertEqual(StatusSnapshot.normal.headline(preferences), "所有图标指标已隐藏")
+    }
+
+    func testChargingBadgeIsNotCriticalWhilePluggedIn() {
+        var status = StatusSnapshot.normal
+        status.battery = BatteryStatus(availability: .available, level: 5, charging: true, externalPower: true)
+        XCTAssertEqual(status.badge(IndicatorPreferences()), .charging)
+    }
+
+    func testReadOnlySystemAdaptersReturnBoundedValues() {
+        // Exercise real framework bridging, including CoreAudio CF ownership, without writing settings.
+        for _ in 0..<5 {
+            let status = SystemReader.read(bluetoothState: .permissionRequired)
+            XCTAssertTrue((0...1).contains(status.battery.fraction))
+            XCTAssertTrue((0...3).contains(status.wifi.bars))
+            if let volume = status.sound.volume { XCTAssertTrue((0...1).contains(volume)) }
+            XCTAssertEqual(status.bluetooth.state, .permissionRequired)
+            XCTAssertTrue(status.bluetooth.devices.isEmpty)
+        }
+    }
+
+    @MainActor func testPreferencesSurviveStoreRecreation() {
+        let suite = "MergeBarTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let first = StatusStore(defaults: defaults, demo: true)
+        first.preferences.wifi = false
+        first.preferences.sound = false
+        let second = StatusStore(defaults: defaults, demo: true)
+        XCTAssertFalse(second.preferences.wifi)
+        XCTAssertFalse(second.preferences.sound)
+        XCTAssertTrue(second.preferences.battery)
+    }
+}
