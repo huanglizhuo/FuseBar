@@ -8,7 +8,7 @@ FuseBar combines battery level, Wi-Fi status, and a centered priority indicator 
 
 ## Download and use
 
-Download a packaged build from [GitHub Releases](https://github.com/huanglizhuo/MergeBar/releases). Release availability and signing details are listed with each version. The Mac App Store version is being prepared.
+Download [FuseBar 1.0 for macOS](https://github.com/huanglizhuo/MergeBar/releases/download/v1.0/FuseBar-1.0-macOS.zip), signed with Developer ID and notarized by Apple. See [release notes and checksums](https://github.com/huanglizhuo/MergeBar/releases/tag/v1.0). The Mac App Store version has been added for review (Ready for Review); it is not yet available on the store.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. The current app interface is Simplified Chinese.
 
@@ -58,6 +58,7 @@ See [validation notes](docs/VALIDATION.md) for observed results and remaining co
 ## Project notes
 
 - [Product and implementation plan](docs/PLAN.md)
+- [Release workflow](Distribution/README.md)
 - [Distribution checklist](docs/APP_STORE_RELEASE.md)
 - [App icon source and design](Design/AppIcon/DESIGN.md)
 - [Original PRD](docs/Original-PRD.md)
