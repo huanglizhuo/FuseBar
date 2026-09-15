@@ -36,7 +36,8 @@
 - [ ] 登录启动的系统批准流程、注销再登录验证；当前测试不更改用户登录项。
 - [ ] Mac mini/无电池、Intel、macOS 14/15/26、刘海与多显示器。
 - [ ] VoiceOver、键盘、增强对比度、睡眠恢复和 8 小时能耗/内存采样。
-- [ ] Developer ID 签名、公证、发行图标与分发包。
+- [x] 原生分层应用图标、兼容 ICNS 与外观预览。
+- [ ] Developer ID 签名、公证与分发包。
 
 结论：可构建、可运行的开发预览；尚未达到正式发行验收标准。约 3 秒轮询已实现，事件级更新与长期能耗优化是下一阶段。
 
@@ -56,3 +57,12 @@
 - XCTest 14 项通过，0 失败。新增覆盖逐步解除多个异常后下一提示显现、蓝牙不占位、禁用指标及未展示状态仍保留详情。
 - 已检查浅/深色 12 状态图谱与三页面模拟预览：没有右侧角标、底部符号居中、正常状态无蓝牙点，静音符号不碰撞圆环。构建及图谱导出成功。
 - 本次仍是模拟 UI 验证，不替代菜单栏实机交互与硬件切换验收。
+
+## 2026-09-15 · 原生 Liquid Glass 应用图标
+
+- 制作 `AppIcon.icon`：系统背景 + 三组原创 SVG 前景，启用原生 glass。图层保持未裁切的 1024 × 1024 画布，不含烘焙光影、位图纹理或 SF Symbols 导出图像。
+- 本机 Icon Composer 1.6 的官方 ictool 成功渲染 Default、Dark、ClearLight、ClearDark、TintedLight、TintedDark 六种外观，均已目视检查；另导出 16/32/64/128/256 px 默认外观，检查 32/64 px 辨识度。
+- Xcode 26.6 成功执行 CompileAssetCatalogVariant，应用包包含 `Assets.car` 和 `AppIcon.icns`。Info.plist 的 CFBundleIconName 与 CFBundleIconFile 实际值均为 AppIcon。
+- 已导出独立 `Design/AppIcon/MergeBar.icns`，与本次编译产物一致。
+- XCTest 14 项通过，0 失败。未修改菜单栏 template 状态图形和系统状态读取代码。
+- 尚未在旧版 macOS 真机检查回退效果，也未完成多背景下系统动态照明的实机验收；工具渲染和资源编译成功不代表 Apple 审核认证。

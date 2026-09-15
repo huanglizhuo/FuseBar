@@ -1,0 +1,64 @@
+{
+  "fill": {
+    "automatic-gradient": "srgb:0.03529,0.42745,0.54902,1.00000"
+  },
+  "groups": [
+    {
+      "name": "Unified orbit",
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "01-orbit.svg",
+          "name": "Unified orbit"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.32
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.38
+      }
+    },
+    {
+      "name": "Converging signals",
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "02-converging-signals.svg",
+          "name": "Converging signals"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.32
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.16
+      }
+    },
+    {
+      "name": "One status",
+      "layers": [
+        {
+          "glass": true,
+          "image-name": "03-merged-core.svg",
+          "name": "One status"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.32
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.08
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  }
+}

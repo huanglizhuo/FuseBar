@@ -13,10 +13,17 @@ targets:
   MergeBar:
     type: application
     platform: macOS
-    sources: [Sources/MergeBar]
+    sources:
+      - path: Sources/MergeBar
+        excludes: [AppIcon.icon]
+      - path: Sources/MergeBar/AppIcon.icon
+        type: file
+        buildPhase: resources
+        explicitFileType: folder.iconcomposer.icon
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mergebar.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_NSPrincipalClass: NSApplication

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0EE88AB24CF29DA0E6DFF912 /* OrbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D7A38EAC41F4EECC9714CEB /* OrbView.swift */; };
 		30F9463538A2EB87881F6CF5 /* StatusModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9B3E847A272E8EB319FDB1 /* StatusModelTests.swift */; };
+		33484EF40D6E0B3050C71861 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B790D2E98FC1083E2507A68F /* AppIcon.icon */; };
 		52D78BDFB8A4C65863356A40 /* MergeBarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C97F6C05039386D223593E /* MergeBarApp.swift */; };
 		8757305E71FB6F8FA47DA11A /* StatusModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65FD0EA1EDEC0299AFD89127 /* StatusModel.swift */; };
 		9854103325F2D8A8074AD276 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FDFB0AEC53CD4DCE83E6579 /* AudioDevice.swift */; };
@@ -36,6 +37,7 @@
 		68A712F2F2AC8B0DC1860013 /* MergeBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MergeBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8864FAC574B75305C318DF85 /* SystemReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemReader.swift; sourceTree = "<group>"; };
 		8BDDD04D06B72C3E880D4E93 /* StatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusStore.swift; sourceTree = "<group>"; };
+		B790D2E98FC1083E2507A68F /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		D70F80F993270A1DFFDED770 /* MergeBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MergeBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF9B3E847A272E8EB319FDB1 /* StatusModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -53,6 +55,7 @@
 		75D13519A7BD7242A7214115 /* MergeBar */ = {
 			isa = PBXGroup;
 			children = (
+				B790D2E98FC1083E2507A68F /* AppIcon.icon */,
 				5FDFB0AEC53CD4DCE83E6579 /* AudioDevice.swift */,
 				21C97F6C05039386D223593E /* MergeBarApp.swift */,
 				0D7A38EAC41F4EECC9714CEB /* OrbView.swift */,
@@ -109,6 +112,7 @@
 			buildConfigurationList = 1010B6C6CF923E6D82ED591A /* Build configuration list for PBXNativeTarget "MergeBar" */;
 			buildPhases = (
 				ED6595FF572DE870861A3741 /* Sources */,
+				08B9B22AB2108BD78F717BD0 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -157,6 +161,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		08B9B22AB2108BD78F717BD0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				33484EF40D6E0B3050C71861 /* AppIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		6090919F6FB0AF298BF74535 /* Sources */ = {

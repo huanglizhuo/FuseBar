@@ -2,6 +2,10 @@
 
 **四个菜单栏图标，一个状态入口。** 原生 macOS 14+ 开发预览，SwiftUI + AppKit，无运行依赖。
 
+![MergeBar 应用图标](docs/previews/app-icon/default-256.png)
+
+应用图标使用原生 Icon Composer 分层 Liquid Glass 资源，支持系统外观适配；[设计与重建说明](Design/AppIcon/DESIGN.md)。
+
 ![状态图谱](docs/previews/orb-gallery-light.png)
 
 电池外环、Wi-Fi 中心、底部居中的单一状态提示。底部按严重低电、断网、低电、充电、静音的优先级显示，正常时留空；蓝牙连接状态移至详情与悬停摘要。点击查看完整状态、调整支持设备的音量、前往系统设置。默认没有 Dock 图标。
@@ -47,7 +51,7 @@ build/Build/Products/Debug/MergeBar.app/Contents/MacOS/MergeBar --render-gallery
 - 系统静音独立于音量。调音量不会强行解除静音；复杂多声道、聚合或外置设备需要进一步验证。
 - 设置 URL 是兼容性便利入口；不同 macOS 版本可能只打开系统设置首页，届时搜索相应面板。
 - 登录启动需要真实 app bundle，系统可能要求批准；正式使用建议将应用放入 `/Applications` 后开启。程序不会自行启用登录启动。
-- 正式对外分发前需要 Developer ID 签名、公证、图标资源和完整兼容性验收。
+- 正式对外分发前需要 Developer ID 签名、公证和完整兼容性验收。
 
 ## 规划与出处
 
