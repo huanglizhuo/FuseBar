@@ -1,0 +1,55 @@
+name: Verify and publish release
+run-name: Publish ${{ inputs.tag }}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag and prepared draft release (e.g. v1.0)
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Validate draft and download signed asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || exit 1
+          gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" > /dev/null
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          mkdir -p payload
+          gh release download "$RELEASE_TAG" --pattern "FuseBar-${RELEASE_TAG#v}-macOS.zip" --dir payload
+      - name: Verify Apple signature, notarization and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset="payload/FuseBar-${RELEASE_TAG#v}-macOS.zip"
+          ditto -x -k "$asset" unpacked
+          app="unpacked/FuseBar.app"
+          test -d "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign --verify -R='anchor apple generic and certificate leaf[subject.OU] = "N9Q47Y2LQ4" and certificate leaf[field.1.2.840.113635.100.6.1.13] exists' "$app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")" = com.clothpath.mergebar
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = "${RELEASE_TAG#v}"
+          xcrun stapler validate "$app"
+          spctl --assess --type execute --verbose=4 "$app"
+          lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/FuseBar"
+          (cd payload && shasum -a 256 *.zip > SHA256SUMS.txt)
+          gh release upload "$RELEASE_TAG" payload/SHA256SUMS.txt --clobber
+      - name: Publish verified release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release edit "$RELEASE_TAG" --draft=false --latest --verify-tag
+          gh release view "$RELEASE_TAG" --json url --jq .url >> "$GITHUB_STEP_SUMMARY"
