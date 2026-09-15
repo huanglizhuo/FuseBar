@@ -44,7 +44,7 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = "${RELEASE_TAG#v}"
           xcrun stapler validate "$app"
           spctl --assess --type execute --verbose=4 "$app"
-          lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/FuseBar"
+          lipo "$app/Contents/MacOS/FuseBar" -verify_arch arm64 x86_64
           (cd payload && shasum -a 256 *.zip > SHA256SUMS.txt)
           gh release upload "$RELEASE_TAG" payload/SHA256SUMS.txt --clobber
       - name: Publish verified release
