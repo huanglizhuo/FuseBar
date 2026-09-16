@@ -2,9 +2,22 @@
 
 **Essential Mac status, together in one menu bar icon.** Free, native, and local. Requires macOS 14 or later.
 
-![FuseBar app icon](docs/previews/app-icon/default-256.png)
+<img src="docs/previews/app-icon/default-256.png" alt="FuseBar app icon" width="96" height="96">
 
 FuseBar combines battery level, Wi-Fi status, and a centered priority indicator in a compact menu bar entry. Click it to see battery, Wi-Fi, Bluetooth, and audio details or adjust supported output devices' volume. No account, ads, subscription, or analytics.
+
+## Preview
+
+![FuseBar status panel showing battery, Wi-Fi, Bluetooth, and volume controls](docs/store-screenshots/01-status.png)
+
+<details>
+<summary>Preferences and first-use guide</summary>
+
+![FuseBar preferences](docs/store-screenshots/02-preferences.png)
+
+![FuseBar first-use guide](docs/store-screenshots/03-guide.png)
+
+</details>
 
 ## Download and use
 
