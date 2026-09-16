@@ -8,6 +8,8 @@ FuseBar combines battery level, Wi-Fi/hotspot status, and four volume dots that 
 
 ## Preview
 
+[Watch the 34-second FuseBar film](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-launch-v2.mp4).
+
 ![FuseBar status panel showing battery, Wi-Fi, Bluetooth, and volume controls](docs/store-screenshots/01-status.png)
 
 <details>
@@ -21,7 +23,7 @@ FuseBar combines battery level, Wi-Fi/hotspot status, and four volume dots that 
 
 ## Download and use
 
-Download [FuseBar 1.0 for macOS](https://github.com/huanglizhuo/MergeBar/releases/download/v1.0/FuseBar-1.0-macOS.zip), signed with Developer ID and notarized by Apple. See [release notes and checksums](https://github.com/huanglizhuo/MergeBar/releases/tag/v1.0). The Mac App Store version has been added for review (Ready for Review); it is not yet available on the store.
+Download [FuseBar 1.0.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-1.0.1-macOS.zip), signed with Developer ID and notarized by Apple. See [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1). The original Mac App Store build 1.0 (1) was last verified at Ready for Review. The fixed 1.0.1 (2) build has not been uploaded yet; installer signing requires local Keychain authorization. It is not yet available on the store.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. The current app interface is Simplified Chinese.
 
@@ -29,7 +31,7 @@ You can manually hide redundant system icons in System Settings → Menu Bar (Co
 
 ## Features
 
-The volume dots and hotspot fix below are in the current development build; the existing 1.0 download predates these changes.
+Version 1.0.1 includes the volume dots and Personal Hotspot connection fix.
 
 - Battery ring with charging, low-battery, unknown, and no-internal-battery states.
 - Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon.
@@ -43,7 +45,7 @@ The volume dots and hotspot fix below are in the current development build; the 
 
 Status information stays on your Mac. Bluetooth permission is optional. macOS location permission is only requested when you choose to show the Wi-Fi network name; FuseBar does not request location coordinates or start location updates. Basic features remain available when optional permissions are declined.
 
-Read the [privacy policy](docs/PRIVACY.md). Report issues through [GitHub Issues](https://github.com/huanglizhuo/MergeBar/issues).
+Read the [privacy policy](docs/PRIVACY.md). Report issues through [GitHub Issues](https://github.com/huanglizhuo/FuseBar/issues).
 
 ## Build
 
@@ -78,4 +80,4 @@ See [validation notes](docs/VALIDATION.md) for observed results and remaining co
 - [App icon source and design](Design/AppIcon/DESIGN.md)
 - [Original PRD](docs/Original-PRD.md)
 
-Previously named MergeBar; the GitHub repository URL and registered bundle identifier are retained for continuity. The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's native drawing and system integration are independently implemented. The promotional video's adapted animation is credited in [third-party notices](videos/fusebar-launch/THIRD_PARTY_NOTICES.md).
+Previously named MergeBar; the registered bundle identifier is retained for continuity. The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's native drawing and system integration are independently implemented. The promotional video's adapted animation is credited in [third-party notices](videos/fusebar-launch/THIRD_PARTY_NOTICES.md).

@@ -5,7 +5,7 @@
 ## 当前状态
 
 - 已实现菜单栏状态合并、详情面板、可选权限、登录启动设置和原生分层 AppIcon。
-- 最近一次 Debug 构建成功，14 项 XCTest 通过；不等同于发行环境或完整硬件测试。
+- 最近一次 Debug 构建成功，17 项 XCTest 通过；不等同于发行环境或完整硬件测试。
 - 已启用 App Sandbox 并上传商店签名构建；Developer ID 版已完成公证和 Gatekeeper 验证。完整多系统硬件回归仍待补充。
 - 已添加隐私清单、隐私政策及支持链接，商店已保存三张实际 UI 组成的产品图片。
 
@@ -53,3 +53,7 @@ FuseBar is a macOS menu bar utility. After launch, click the FuseBar status icon
 - [Required-reason API 类型与理由](https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitype)
 - [截图规格](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)
 - [提交审核](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app)
+
+## 1.0.1 (2) 更新
+
+已构建修复版、完成 Developer ID 公证并发布 GitHub1.0.1。App Store 导出在 productbuild 安装包签名阶段被钥匙串取消授权，尚未上传新版。需要允许使用现有 Mac Developer Installer 签名私钥，再重试 Distribution/AppStore.plist 导出。随后在 App Store Connect 将待提交版本更新至1.0.1、选择构建2并重新 Add for Review；原1.0(1)的 Ready for Review 状态不代表修复版已加入审核。电脑控制连接当前超时，商店页面尚未改动。

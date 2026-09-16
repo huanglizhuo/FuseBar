@@ -107,3 +107,5 @@
 ## 2026-09-16 — 1.0.1 distribution preparation
 
 Release archive 1.0.1 (2) succeeded. Developer ID export and Apple notarization succeeded; stapler validation and Gatekeeper assessment passed (`source=Notarized Developer ID`). Executable contains x86_64 and arm64. ZIP prepared for hosted verification. App Store export failed at productbuild with userCanceledErr (-128), before upload; installer-key signing authorization needs to be completed locally. Computer-use calls currently time out, so App Store Connect and X cannot be changed through that connection.
+
+GitHub 1.0.1 published successfully: https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1 . Verification Action35063495541 completed successfully, checking Apple Team, Developer ID, bundle/version, arm64+x86_64, stapled ticket and Gatekeeper. Source/tag commit af059f2. ZIP SHA256 f64d313f7ea7312235910b2f2490e0ee4ddd5ef4ac6639c97b5e97fd9ecb9513. Video v2 is attached as a release asset.
