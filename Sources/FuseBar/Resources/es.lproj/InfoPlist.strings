@@ -1,0 +1,3 @@
+"NSBluetoothAlwaysUsageDescription" = "FuseBar lee localmente el estado de Bluetooth y de los dispositivos enlazados.";
+"NSLocationUsageDescription" = "macOS requiere permiso de ubicación para leer nombres Wi-Fi y buscar redes cuando lo solicitas. FuseBar no recopila tu ubicación ni sube nombres de red.";
+"NSLocationWhenInUseUsageDescription" = "macOS requiere permiso de ubicación para leer nombres Wi-Fi y buscar redes cuando lo solicitas. FuseBar no recopila tu ubicación ni sube nombres de red.";

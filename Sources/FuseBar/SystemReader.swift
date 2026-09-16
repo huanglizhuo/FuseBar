@@ -48,7 +48,7 @@ enum SystemReader {
         guard let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
             return BluetoothStatus(state: .unknown)
         }
-        let names = paired.filter { $0.isConnected() }.map { $0.name ?? "已连接的蓝牙设备" }.sorted()
+        let names = paired.filter { $0.isConnected() }.map { $0.name ?? L("已连接的蓝牙设备") }.sorted()
         return BluetoothStatus(state: .on, devices: names)
     }
 

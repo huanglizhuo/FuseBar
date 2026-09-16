@@ -39,6 +39,8 @@ enum StatusSymbols {
 struct OrbView: View {
     let snapshot: StatusSnapshot
     var preferences = IndicatorPreferences()
+    // Menu-bar templates need opaque mask ink; content views retain semantic color.
+    var ink: Color = .primary
 
     var body: some View {
         Canvas { context, size in
@@ -46,8 +48,8 @@ struct OrbView: View {
             context.scaleBy(x: scale, y: scale)
             func symbol(_ name: String, x: CGFloat, y: CGFloat, size: CGFloat,
                         value: Double? = nil, weight: Font.Weight = .semibold) {
-                let glyph = Text(Image(systemName: name, variableValue: value))
-                    .font(.system(size: size, weight: weight)).foregroundStyle(.primary)
+                let glyph = Text(Image(systemName: name, variableValue: value).symbolRenderingMode(.monochrome))
+                    .font(.system(size: size, weight: weight)).foregroundStyle(ink)
                 context.draw(glyph, at: CGPoint(x: x, y: y))
             }
             func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
@@ -55,7 +57,7 @@ struct OrbView: View {
                 // A symmetric 80° gap holds exactly one status symbol on the vertical axis.
                 path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
                             startAngle: .degrees(130), endAngle: .degrees(130 + 280 * fraction), clockwise: false)
-                context.stroke(path, with: .color(.primary.opacity(opacity)),
+                context.stroke(path, with: .color(ink.opacity(opacity)),
                                style: StrokeStyle(lineWidth: 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
             }
             if preferences.battery {
@@ -70,7 +72,7 @@ struct OrbView: View {
             if preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
-                    symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: 8,
+                    symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: snapshot.wifi.hotspotStyle ? 6.5 : 8,
                            value: snapshot.wifi.hotspotStyle || snapshot.wifi.bars == 0 ? nil : Double(snapshot.wifi.bars) / 3)
                 case .disconnected:
                     // The full wifi.exclamationmark is reserved for the larger popover row.
@@ -92,7 +94,7 @@ struct OrbView: View {
                         let angle = Double(117 - index * 18) * .pi / 180
                         let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
                         let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
-                        context.fill(dot, with: .color(.primary.opacity(index < filled ? 1 : 0.22)))
+                        context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : 0.22)))
                     }
                 }
             }

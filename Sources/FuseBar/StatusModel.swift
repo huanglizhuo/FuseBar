@@ -14,10 +14,10 @@ struct BatteryStatus: Equatable {
     var low: Bool { availability == .available && level < 20 && !externalPower }
     var detail: String {
         switch availability {
-        case .unknown: return "电池状态未知"
-        case .unavailable: return "无内置电池"
+        case .unknown: return L("电池状态未知")
+        case .unavailable: return L("无内置电池")
         case .available:
-            let power = charging ? "正在充电" : externalPower ? (level >= 100 ? "已充满 · 已接电源" : "已接电源 · 未充电") : "电池供电"
+            let power = charging ? L("正在充电") : externalPower ? (level >= 100 ? L("已充满 · 已接电源") : L("已接电源 · 未充电")) : L("电池供电")
             return "\(min(100, max(0, level)))% · \(power)"
         }
     }
@@ -36,13 +36,13 @@ struct WiFiStatus: Equatable {
     }
     var detail: String {
         switch connection {
-        case .unknown: return "连接状态未知"
-        case .unavailable: return "无 Wi-Fi 接口"
-        case .off: return "Wi-Fi 已关闭"
-        case .disconnected: return "未连接无线网络"
+        case .unknown: return L("连接状态未知")
+        case .unavailable: return L("无 Wi-Fi 接口")
+        case .off: return L("Wi-Fi 已关闭")
+        case .disconnected: return L("未连接无线网络")
         case .connected:
-            if hotspotStyle { return (name.map { "\($0) · " } ?? "") + "热点 / 按流量计费网络 · 已连接" }
-            return name.map { "\($0) · 已连接" } ?? "已连接 · 网络名称受系统保护"
+            if hotspotStyle { return (name.map { "\($0) · " } ?? "") + L("热点 / 按流量计费网络 · 已连接") }
+            return name.map { L("%@ · 已连接", $0) } ?? L("已连接 · 网络名称暂不可用")
         }
     }
 }
@@ -52,32 +52,34 @@ struct BluetoothStatus: Equatable {
     var devices: [String] = []
     var detail: String {
         switch state {
-        case .unknown: return "蓝牙状态未知"
-        case .permissionRequired: return "需要授权读取连接状态"
-        case .denied: return "蓝牙访问未获授权"
-        case .unavailable: return "蓝牙不可用"
-        case .off: return "蓝牙已关闭"
-        case .on: return devices.isEmpty ? "已开启 · 未发现已连接的配对设备" : devices.joined(separator: "、")
+        case .unknown: return L("蓝牙状态未知")
+        case .permissionRequired: return L("需要授权读取连接状态")
+        case .denied: return L("蓝牙访问未获授权")
+        case .unavailable: return L("蓝牙不可用")
+        case .off: return L("蓝牙已关闭")
+        case .on: return devices.isEmpty ? L("已开启 · 未发现已连接的配对设备") : ListFormatter.localizedString(byJoining: devices)
         }
     }
 }
 
 struct SoundStatus: Equatable {
     var available = false
-    var deviceName = "声音输出"
+    var deviceName = L("声音输出")
     var volume: Float?
     var muted: Bool?
     var canSetVolume = false
+    var canSetMute = false
+    var deviceUID: String?
     var effectivelyMuted: Bool { muted == true || volume == 0 }
     var volumeDots: Int? {
         guard available, let volume, volume.isFinite else { return nil }
         return Int(ceil(Double(min(1, max(0, volume))) * 4))
     }
     var detail: String {
-        guard available else { return "无可用输出设备" }
-        if effectivelyMuted { return "\(deviceName) · 静音" }
+        guard available else { return L("无可用输出设备") }
+        if effectivelyMuted { return L("%@ · 静音", deviceName) }
         if let volume, volume.isFinite { return "\(deviceName) · \(Int((volume * 100).rounded()))%" }
-        return "\(deviceName) · 设备控制音量"
+        return L("%@ · 设备控制音量", deviceName)
     }
 }
 
@@ -113,29 +115,29 @@ struct StatusSnapshot: Equatable {
 
     func headline(_ preferences: IndicatorPreferences) -> String {
         switch badge(preferences) {
-        case .critical: return "电量不足 10%，请连接电源"
-        case .networkWarning: return "Wi-Fi 尚未连接"
-        case .lowBattery: return "电量较低"
-        case .charging: return "正在为下一程充电"
-        case .muted: return "声音已静音"
-        case .none: return preferences.anyEnabled ? "常用状态，一眼可见" : "所有图标指标已隐藏"
+        case .critical: return L("电量不足 10%，请连接电源")
+        case .networkWarning: return L("Wi-Fi 尚未连接")
+        case .lowBattery: return L("电量较低")
+        case .charging: return L("正在为下一程充电")
+        case .muted: return L("声音已静音")
+        case .none: return preferences.anyEnabled ? L("常用状态，一眼可见") : L("所有图标指标已隐藏")
         }
     }
 
     func accessibilitySummary(_ p: IndicatorPreferences) -> String {
         var parts = ["FuseBar"]
         if p.battery { parts.append(battery.detail) }
-        if p.wifi { parts.append("Wi-Fi：" + wifi.detail) }
-        if p.bluetooth { parts.append("蓝牙：" + bluetooth.detail) }
+        if p.wifi { parts.append("Wi-Fi: " + wifi.detail) }
+        if p.bluetooth { parts.append(L("蓝牙：") + bluetooth.detail) }
         if p.sound { parts.append(sound.detail) }
-        return parts.joined(separator: "。")
+        return parts.joined(separator: ". ")
     }
 
     static let normal = StatusSnapshot(
         battery: BatteryStatus(availability: .available, level: 82),
         wifi: WiFiStatus(connection: .connected, name: "Home Wi-Fi", rssi: -52),
         bluetooth: BluetoothStatus(state: .on, devices: ["AirPods Pro"]),
-        sound: SoundStatus(available: true, deviceName: "MacBook 扬声器", volume: 0.42, muted: false, canSetVolume: true)
+        sound: SoundStatus(available: true, deviceName: L("MacBook 扬声器"), volume: 0.42, muted: false, canSetVolume: true)
     )
 
     static var scenarios: [(String, StatusSnapshot)] {
@@ -150,9 +152,21 @@ struct StatusSnapshot: Equatable {
         var mediumSignal = normal; mediumSignal.wifi.rssi = -68
         var hotspot = normal; hotspot.wifi.hotspotStyle = true; hotspot.wifi.name = "Personal Hotspot"
         var weakSignal = normal; weakSignal.wifi.rssi = -82
-        return [("日常", normal), ("充电", charging), ("低电量", low), ("严重低电", critical),
-                ("Wi-Fi 断开", disconnected), ("无线关闭", off), ("静音", mute),
-                ("多重异常", combined), ("桌面 Mac", desktop), ("尚未读取", StatusSnapshot()),
-                ("Wi-Fi 中等", mediumSignal), ("Wi-Fi 较弱", weakSignal), ("个人热点", hotspot)]
+        return [(L("日常"), normal), (L("充电"), charging), (L("低电量"), low), (L("严重低电"), critical),
+                (L("Wi-Fi 断开"), disconnected), (L("无线关闭"), off), (L("静音"), mute),
+                (L("多重异常"), combined), (L("桌面 Mac"), desktop), (L("尚未读取"), StatusSnapshot()),
+                (L("Wi-Fi 中等"), mediumSignal), (L("Wi-Fi 较弱"), weakSignal), (L("个人热点"), hotspot)]
+    }
+}
+
+
+/// Authorization and an unavailable SSID are independent states.
+enum NetworkNameAccess: Equatable {
+    case notRequested, allowed, blocked, unknown
+}
+
+extension WiFiStatus {
+    func shouldOfferNameAuthorization(_ access: NetworkNameAccess) -> Bool {
+        connection == .connected && name == nil && (access == .notRequested || access == .blocked)
     }
 }

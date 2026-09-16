@@ -45,6 +45,10 @@ jobs:
           xcrun stapler validate "$app"
           spctl --assess --type execute --verbose=4 "$app"
           lipo "$app/Contents/MacOS/FuseBar" -verify_arch arm64 x86_64
+          for language in en zh-Hans ja fr es; do
+            test -f "$app/Contents/Resources/$language.lproj/Localizable.strings"
+            test -f "$app/Contents/Resources/$language.lproj/InfoPlist.strings"
+          done
           (cd payload && shasum -a 256 *.zip > SHA256SUMS.txt)
           gh release upload "$RELEASE_TAG" payload/SHA256SUMS.txt --clobber
       - name: Publish verified release

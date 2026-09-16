@@ -62,7 +62,7 @@ final class StatusModelTests: XCTestCase {
     func testUnknownAndDesktopBatteryAreNotLowBattery() {
         XCTAssertFalse(BatteryStatus().critical)
         XCTAssertFalse(BatteryStatus(availability: .unavailable).low)
-        XCTAssertEqual(BatteryStatus(availability: .unavailable).detail, "无内置电池")
+        XCTAssertEqual(BatteryStatus(availability: .unavailable).detail, L("无内置电池"))
     }
 
     func testBatteryFractionClampsInvalidHardwareValues() {
@@ -72,7 +72,7 @@ final class StatusModelTests: XCTestCase {
 
     func testSSIDRedactionDoesNotImplyDisconnection() {
         let wifi = WiFiStatus(connection: .connected, rssi: -65)
-        XCTAssertTrue(wifi.detail.hasPrefix("已连接"))
+        XCTAssertEqual(wifi.detail, L("已连接 · 网络名称暂不可用"))
         XCTAssertEqual(wifi.bars, 2)
     }
 
@@ -91,13 +91,13 @@ final class StatusModelTests: XCTestCase {
         status.sound.muted = true
         var preferences = IndicatorPreferences()
         XCTAssertEqual(status.badge(preferences), .critical)
-        XCTAssertTrue(status.headline(preferences).contains("10%"))
+        XCTAssertEqual(status.headline(preferences), L("电量不足 10%，请连接电源"))
         preferences.battery = false
         XCTAssertEqual(status.badge(preferences), .networkWarning)
-        XCTAssertEqual(status.headline(preferences), "Wi-Fi 尚未连接")
+        XCTAssertEqual(status.headline(preferences), L("Wi-Fi 尚未连接"))
         preferences.wifi = false
         XCTAssertEqual(status.badge(preferences), .muted)
-        XCTAssertEqual(status.headline(preferences), "声音已静音")
+        XCTAssertEqual(status.headline(preferences), L("声音已静音"))
     }
 
     func testBottomSlotSelectsOneStatusAndRevealsTheNextWhenResolved() {
@@ -134,7 +134,7 @@ final class StatusModelTests: XCTestCase {
         status.battery.externalPower = true
         status.sound.muted = true
         XCTAssertEqual(status.badge(IndicatorPreferences()), .charging)
-        XCTAssertTrue(status.accessibilitySummary(IndicatorPreferences()).contains("静音"))
+        XCTAssertTrue(status.accessibilitySummary(IndicatorPreferences()).contains(status.sound.detail))
         let preferences = IndicatorPreferences(battery: false, wifi: false, sound: false)
         XCTAssertEqual(status.badge(preferences), .none)
         XCTAssertTrue(status.sound.effectivelyMuted)
@@ -148,7 +148,7 @@ final class StatusModelTests: XCTestCase {
     func testAllIndicatorsCanBeHiddenWithoutFalseHealthyClaim() {
         let preferences = IndicatorPreferences(battery: false, wifi: false, bluetooth: false, sound: false)
         XCTAssertEqual(StatusSnapshot.normal.accessibilitySummary(preferences), "FuseBar")
-        XCTAssertEqual(StatusSnapshot.normal.headline(preferences), "所有图标指标已隐藏")
+        XCTAssertEqual(StatusSnapshot.normal.headline(preferences), L("所有图标指标已隐藏"))
     }
 
     func testChargingBadgeIsNotCriticalWhilePluggedIn() {

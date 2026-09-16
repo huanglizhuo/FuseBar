@@ -1,0 +1,3 @@
+"NSBluetoothAlwaysUsageDescription" = "FuseBar lit localement l’état de Bluetooth et des appareils jumelés.";
+"NSLocationUsageDescription" = "macOS exige la localisation pour lire les noms Wi-Fi et rechercher les réseaux à votre demande. FuseBar ne collecte pas votre position et n’envoie pas les noms de réseau.";
+"NSLocationWhenInUseUsageDescription" = "macOS exige la localisation pour lire les noms Wi-Fi et rechercher les réseaux à votre demande. FuseBar ne collecte pas votre position et n’envoie pas les noms de réseau.";

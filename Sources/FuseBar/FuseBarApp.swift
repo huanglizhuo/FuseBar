@@ -9,11 +9,14 @@ struct FuseBarApp: App {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var item: NSStatusItem?
     private let popover = NSPopover()
     private var store: StatusStore?
     private var subscriptions = Set<AnyCancellable>()
+    private var outsideClickMonitor: Any?
+    private var localEventMonitor: Any?
+    private var deactivateObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -29,18 +32,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.item = item
         item.button?.target = self
         item.button?.action = #selector(togglePopover)
-        popover.behavior = .transient
+        // Use one mouse-down action, rather than combining transient auto-dismiss with mouse-up toggle.
+        item.button?.sendAction(on: .leftMouseDown)
+        popover.behavior = .applicationDefined
+        popover.delegate = self
         popover.animates = false
-        popover.contentViewController = NSHostingController(rootView: PopoverView(store: store))
         store.$snapshot.combineLatest(store.$preferences)
             .sink { [weak self] snapshot, preferences in self?.updateIcon(snapshot, preferences) }
             .store(in: &subscriptions)
     }
 
-    func applicationWillTerminate(_ notification: Notification) { store?.stop() }
+    func applicationWillTerminate(_ notification: Notification) {
+        removeDismissalMonitors()
+        store?.stop()
+    }
+
+    func popoverDidClose(_ notification: Notification) { removeDismissalMonitors() }
+
+    private func installDismissalMonitors() {
+        removeDismissalMonitors()
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            // AppKit invokes event monitors on the main thread. No deferred stale close action.
+            MainActor.assumeIsolated {
+                guard let self, !self.mouseIsOverStatusButton else { return }
+                self.popover.performClose(nil)
+            }
+        }
+        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown]) { [weak self] event in
+            let consume = MainActor.assumeIsolated {
+                guard let self else { return false }
+                if event.type == .keyDown {
+                    if event.keyCode == 53, NSApp.modalWindow == nil {
+                        self.popover.performClose(nil)
+                        return true
+                    }
+                    return false
+                }
+                // The status button owns its own toggle. Never dismiss it in this monitor first.
+                if self.mouseIsOverStatusButton { return false }
+                if event.window !== self.popover.contentViewController?.view.window, NSApp.modalWindow == nil {
+                    self.popover.performClose(nil)
+                }
+                return false
+            }
+            return consume ? nil : event
+        }
+        deactivateObserver = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification,
+                                                                     object: NSApp, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.popover.performClose(nil) }
+        }
+    }
+
+    private var mouseIsOverStatusButton: Bool {
+        guard let button = item?.button, let window = button.window else { return false }
+        return window.convertToScreen(button.convert(button.bounds, to: nil)).contains(NSEvent.mouseLocation)
+    }
+
+    private func removeDismissalMonitors() {
+        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
+        if let localEventMonitor { NSEvent.removeMonitor(localEventMonitor) }
+        if let deactivateObserver { NotificationCenter.default.removeObserver(deactivateObserver) }
+        outsideClickMonitor = nil
+        localEventMonitor = nil
+        deactivateObserver = nil
+    }
 
     private func updateIcon(_ snapshot: StatusSnapshot, _ preferences: IndicatorPreferences) {
-        let renderer = ImageRenderer(content: OrbView(snapshot: snapshot, preferences: preferences)
+        let renderer = ImageRenderer(content: OrbView(snapshot: snapshot, preferences: preferences, ink: .black)
             .frame(width: 22, height: 22).environment(\.colorScheme, .light))
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
         if let image = renderer.nsImage {
@@ -50,18 +108,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let summary = snapshot.accessibilitySummary(preferences)
         item?.button?.toolTip = summary
         item?.button?.setAccessibilityLabel(summary)
-        item?.button?.setAccessibilityHelp("点击查看状态详情和设置")
+        item?.button?.setAccessibilityHelp(L("点击查看状态详情和设置"))
+    }
+
+    private func resetPopoverContent() {
+        guard let store else { return }
+        // Each presentation owns fresh navigation/form state; system data and preferences persist.
+        popover.contentViewController = NSHostingController(rootView: PopoverView(store: store, onQuickAction: { [weak self] action in
+            self?.performQuickAction(action)
+        }, onOpenApplication: { [weak self] url in
+            self?.openApplication(url, title: url.deletingPathExtension().lastPathComponent)
+        }))
     }
 
     @objc private func togglePopover() {
         guard let button = item?.button else { return }
         if popover.isShown { popover.performClose(nil) }
         else {
+            resetPopoverContent()
             store?.refresh()
             store?.refreshLoginStatus()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
+            if popover.isShown { installDismissalMonitors() }
+        }
+    }
+
+    private func performQuickAction(_ action: QuickAction) {
+        guard let url = action.applicationURL else {
+            store?.errorMessage = L("当前系统找不到%@。", action.title)
+            return
+        }
+        openApplication(url, title: action.title)
+    }
+
+    private func openApplication(_ url: URL, title: String) {
+        popover.performClose(nil)
+        Task { @MainActor [weak self] in
+            do {
+                let configuration = NSWorkspace.OpenConfiguration()
+                configuration.activates = true
+                _ = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+            } catch {
+                guard let self else { return }
+                self.store?.errorMessage = L("无法打开%@：%@", title, error.localizedDescription)
+                if !self.popover.isShown { self.togglePopover() }
+            }
         }
     }
 

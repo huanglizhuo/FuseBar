@@ -16,12 +16,20 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
             defaults.set(preferences.sound, forKey: "showSound")
         }
     }
+    @Published private(set) var networkNameAccess: NetworkNameAccess = .unknown
     @Published var errorMessage: String?
     @Published private(set) var loginEnabled = false
     @Published private(set) var loginNeedsApproval = false
     @Published private(set) var updatedAt: Date?
+    @Published private(set) var audioOutputs: [AudioOutput] = []
+    @Published private(set) var audioBusy = false
     let defaults: UserDefaults
     private let worker = DispatchQueue(label: "com.mergebar.status", qos: .utility)
+    private let audioWorker = DispatchQueue(label: "com.fusebar.audio", qos: .userInitiated)
+    private let volumeChanges = PassthroughSubject<(Double, String?), Never>()
+    private var volumeSubscription: AnyCancellable?
+    private var audioMonitor: AudioChangeMonitor?
+    private var soundRevision = 0
     private var central: CBCentralManager?
     private var location: CLLocationManager?
     private var wifiMonitor: NWPathMonitor?
@@ -40,14 +48,22 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
                                            bluetooth: defaults.bool(forKey: "showBluetooth"), sound: defaults.bool(forKey: "showSound"))
         super.init()
         if demo { snapshot = .normal; return }
+        let locationManager = CLLocationManager()
+        location = locationManager
+        locationManager.delegate = self
+        updateNetworkNameAccess()
         if CBManager.authorization == .allowedAlways { enableBluetooth() }
         refreshLoginStatus()
+        volumeSubscription = volumeChanges.throttle(for: .milliseconds(40), scheduler: DispatchQueue.main, latest: true)
+            .sink { [weak self] value in self?.writeVolume(value.0, expectedUID: value.1) }
+        audioMonitor = AudioChangeMonitor { [weak self] in self?.refreshSound() }
+        audioMonitor?.start()
         let center = NSWorkspace.shared.notificationCenter
         observers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.sleeping = true; self?.timer?.invalidate(); self?.timer = nil }
+            Task { @MainActor in self?.sleeping = true; self?.audioMonitor?.stop(); self?.timer?.invalidate(); self?.timer = nil }
         })
         observers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.sleeping = false; self?.startTimer(); self?.refresh() }
+            Task { @MainActor in self?.sleeping = false; self?.audioMonitor?.start(); self?.startTimer(); self?.refresh() }
         })
         let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
         wifiMonitor = monitor
@@ -66,6 +82,8 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     func stop() {
+        audioMonitor?.stop(); audioMonitor = nil
+        volumeSubscription?.cancel(); volumeSubscription = nil
         wifiMonitor?.cancel(); wifiMonitor = nil
         timer?.invalidate(); timer = nil
         observers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
@@ -92,16 +110,31 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         let manager = location ?? CLLocationManager()
         location = manager
         manager.delegate = self
+        updateNetworkNameAccess()
         switch manager.authorizationStatus {
         case .denied, .restricted:
-            errorMessage = "网络名称需要定位授权。可在系统设置 → 隐私与安全性 → 定位服务中允许 FuseBar。"
+            errorMessage = L("网络名称需要定位授权。可在系统设置 → 隐私与安全性 → 定位服务中允许 FuseBar。")
+        case .authorizedAlways:
+            refresh()
         default:
             manager.requestWhenInUseAuthorization()
         }
     }
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor [weak self] in self?.refresh() }
+        Task { @MainActor [weak self] in self?.updateNetworkNameAccess(); self?.refresh() }
+    }
+
+    private func updateNetworkNameAccess() {
+        guard let location else { return }
+        let access: NetworkNameAccess
+        switch location.authorizationStatus {
+        case .authorizedAlways: access = .allowed
+        case .notDetermined: access = .notRequested
+        case .denied, .restricted: access = .blocked
+        @unknown default: access = .unknown
+        }
+        if networkNameAccess != access { networkNameAccess = access }
     }
 
     nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -126,17 +159,21 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     func refresh() {
+        updateNetworkNameAccess()
         guard !demo, !reading, !sleeping else { return }
         // Recover if authorization was granted in System Settings while the app was running.
         if central == nil && CBManager.authorization == .allowedAlways { enableBluetooth() }
         reading = true
         let state = bluetoothState
         let path = wifiPath
+        let revision = soundRevision
         worker.async { [weak self] in
             let value = SystemReader.read(bluetoothState: state, wifiPath: path)
             Task { @MainActor in
                 guard let self else { return }
-                if self.snapshot != value { self.snapshot = value }
+                var current = value
+                if self.soundRevision != revision { current.sound = self.snapshot.sound }
+                if self.snapshot != current { self.snapshot = current }
                 self.updatedAt = Date()
                 self.reading = false
                 // A first path update can arrive while the initial hardware read is in flight.
@@ -146,12 +183,70 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     func setVolume(_ value: Double) {
-        guard !demo else { return }
-        worker.async { [weak self] in
-            let error = AudioDevice.setVolume(Float(value))
+        guard !demo, value.isFinite else { return }
+        volumeChanges.send((min(1, max(0, value)), snapshot.sound.deviceUID))
+    }
+
+    private func writeVolume(_ value: Double, expectedUID: String?) {
+        soundRevision += 1
+        audioWorker.async { [weak self] in
+            let error = AudioDevice.setVolume(Float(value), expectedUID: expectedUID)
             Task { @MainActor in
                 self?.errorMessage = error
-                self?.refresh()
+                self?.refreshSound()
+            }
+        }
+    }
+
+    private func refreshSound() {
+        guard !demo, !sleeping else { return }
+        soundRevision += 1
+        let revision = soundRevision
+        audioWorker.async { [weak self] in
+            let sound = AudioDevice.read()
+            Task { @MainActor in
+                guard let self, self.soundRevision == revision else { return }
+                if self.snapshot.sound != sound { self.snapshot.sound = sound }
+            }
+        }
+    }
+
+    func setMuted(_ muted: Bool) {
+        guard !demo, !audioBusy else { return }
+        audioBusy = true
+        audioWorker.async { [weak self] in
+            let error = AudioDevice.setMuted(muted)
+            Task { @MainActor in
+                self?.audioBusy = false
+                self?.errorMessage = error
+                self?.refreshSound()
+            }
+        }
+    }
+
+    func refreshAudioOutputs() {
+        guard !demo, !audioBusy else { return }
+        audioBusy = true
+        audioWorker.async { [weak self] in
+            let outputs = AudioDevice.outputs()
+            Task { @MainActor in
+                self?.audioOutputs = outputs
+                self?.audioBusy = false
+            }
+        }
+    }
+
+    func selectAudioOutput(_ output: AudioOutput) {
+        guard !demo, !audioBusy else { return }
+        audioBusy = true
+        audioWorker.async { [weak self] in
+            let error = AudioDevice.selectOutput(uid: output.id)
+            let outputs = AudioDevice.outputs()
+            Task { @MainActor in
+                self?.audioOutputs = outputs
+                self?.audioBusy = false
+                self?.errorMessage = error
+                self?.refreshSound()
             }
         }
     }
@@ -165,7 +260,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         do {
             if enabled { try SMAppService.mainApp.register() }
             else { try SMAppService.mainApp.unregister() }
-        } catch { errorMessage = "无法更新登录启动：\(error.localizedDescription)" }
+        } catch { errorMessage = L("无法更新登录启动：%@", error.localizedDescription) }
         refreshLoginStatus()
     }
 }
@@ -176,11 +271,43 @@ enum SettingsDestination: String {
     case battery = "com.apple.preference.battery"
     case sound = "com.apple.Sound-Settings.extension"
     case menuBar = "com.apple.ControlCenter-Settings.extension"
+    case displays = "com.apple.Displays-Settings.extension"
+    case focus = "com.apple.Focus-Settings.extension"
+    case airDrop = "com.apple.AirDrop-Handoff-Settings.extension"
+    case desktop = "com.apple.Desktop-Settings.extension"
+    case keyboard = "com.apple.Keyboard-Settings.extension"
+    case accessibility = "com.apple.Accessibility-Settings.extension"
+    case notifications = "com.apple.Notifications-Settings.extension"
+    case timeMachine = "com.apple.Time-Machine-Settings.extension"
+    case users = "com.apple.Users-Groups-Settings.extension"
+    case dateTime = "com.apple.Date-Time-Settings.extension"
     case privacy = "com.apple.preference.security?Privacy_Bluetooth"
 
     @MainActor func open() {
         // Deep links vary across releases; fall back to opening the Settings application.
         if let url = URL(string: "x-apple.systempreferences:\(rawValue)"), NSWorkspace.shared.open(url) { return }
         NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+    }
+}
+
+/// Opens Apple's system launchers without simulated shortcuts or Accessibility access.
+enum QuickAction: CaseIterable {
+    case applications, allWindows
+
+    var title: String { self == .applications ? L("应用启动器") : L("所有窗口") }
+    var symbol: String { self == .applications ? "square.grid.3x3.fill" : "rectangle.3.group" }
+    var help: String {
+        self == .applications ? L("打开系统应用启动器（Apps 或 Launchpad）") : L("打开 Mission Control，查看所有窗口")
+    }
+
+    var applicationURL: URL? {
+        let paths: [String]
+        switch self {
+        case .applications:
+            paths = ["/System/Applications/Apps.app", "/System/Applications/Launchpad.app", "/Applications/Launchpad.app"]
+        case .allWindows:
+            paths = ["/System/Applications/Mission Control.app", "/Applications/Mission Control.app"]
+        }
+        return paths.first(where: { FileManager.default.fileExists(atPath: $0) }).map { URL(fileURLWithPath: $0) }
     }
 }
