@@ -47,3 +47,5 @@ gh workflow run release.yml -f tag=v1.0
 ```
 
 This is intentionally a local-build / hosted-verification pipeline. A future fully hosted signing pipeline would require separately provisioning Apple signing and notarization secrets.
+
+Versioned paths are also supported: `zsh Scripts/prepare-release.sh build/FuseBar-1.0.1.xcarchive build/DeveloperID-1.0.1/FuseBar.app`. The release helper verifies the exported version matches the archive before packaging.

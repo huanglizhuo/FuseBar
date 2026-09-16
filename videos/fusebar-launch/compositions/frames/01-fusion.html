@@ -1,0 +1,115 @@
+<template>
+<div id="root" data-composition-id="f01-fusion" data-duration="12" data-width="1080" data-height="1080" data-fps="60">
+<style>
+@font-face{font-family:"Space Grotesk";src:url("assets/fonts/SpaceGrotesk.ttf") format("truetype");font-weight:300 700}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-400.woff2") format("woff2");font-weight:400}
+@font-face{font-family:"Inter";src:url("assets/fonts/Inter-700.woff2") format("woff2");font-weight:700}
+#root{position:absolute;inset:0;overflow:hidden;container-type:size;color:#0B243B}
+.f01-fusion-ground{position:absolute;inset:0;background:#F4F8FC}
+.f01-fusion-stage{position:absolute;inset:0;width:100%;height:100%}
+.f01-fusion-title{position:absolute;left:6.481481cqw;top:13.425926cqh;width:87.037037cqw;text-align:center;font:700 5.925926cqw/1.08 "Space Grotesk";letter-spacing:-.02em;margin:0}
+.f01-fusion-sub{position:absolute;left:10cqw;top:29.444444cqh;width:80cqw;text-align:center;font:400 2.407407cqw/1.6 "Inter";color:#0076E8}
+.f01-fusion-brand{position:absolute;left:10cqw;top:72.222222cqh;width:80cqw;text-align:center;font:700 4.814815cqw/1.1 "Space Grotesk";letter-spacing:-.03em}
+.f01-fusion-menu{font-family:"Inter";font-size:16px;fill:#0B243B}
+</style>
+<div id="f01-fusion-ground" class="clip f01-fusion-ground" data-start="0" data-duration="12" data-track-index="0"></div>
+<div id="f01-fusion-content" class="clip" data-start="0" data-duration="12" data-track-index="1">
+<svg class="f01-fusion-stage" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+<defs><clipPath id="f01-fusion-desktop-clip"><rect x="44" y="150" width="992" height="670" rx="14"/></clipPath><linearGradient id="f01-fusion-desktop-color" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E7F1FA"/><stop offset="1" stop-color="#D7E9F9"/></linearGradient></defs>
+<g id="f01-fusion-desktop">
+<g clip-path="url(#f01-fusion-desktop-clip)">
+<rect x="44" y="150" width="992" height="670" fill="url(#f01-fusion-desktop-color)"/>
+<path d="M44 755 C330 468 655 909 1036 437 V820 H44Z" fill="#0076E8" opacity=".065"/>
+<path d="M44 816 C475 560 745 853 1036 655 V820 H44Z" fill="#0076E8" opacity=".055"/>
+<rect x="44" y="150" width="992" height="52" fill="#F4F8FC" opacity=".9"/>
+<path d="M44 202 H1036" stroke="#0B243B" stroke-opacity=".07"/>
+<g class="f01-fusion-menu"><text x="78" y="182" font-weight="700">Finder</text><text x="149" y="182">File</text><text x="193" y="182">Edit</text><text x="240" y="182">View</text><text x="296" y="182">Go</text><text x="339" y="182">Window</text><text x="424" y="182">Help</text><text x="911" y="182" font-size="13">Wed 16 Sep</text></g>
+<g opacity=".6" stroke="#0B243B" stroke-width="1.8" fill="none"><circle cx="892" cy="173" r="5"/><path d="M896 178 l4 4"/></g>
+</g>
+<rect x="44" y="150" width="992" height="670" rx="14" fill="none" stroke="#0076E8" stroke-opacity=".15"/>
+<text x="540" y="873" text-anchor="middle" fill="#0076E8" font-family="Inter" font-size="28">Menu bar concept</text>
+</g>
+<!-- These are the same status objects from the menu bar through the final orb. -->
+<g id="f01-fusion-subject" fill="#0B243B" transform="translate(712.8 77) scale(.18)">
+<g id="f01-fusion-battery-body">
+<rect id="f01-fusion-battery-shell" x="711" y="504" width="178" height="92" rx="18"/>
+<rect id="f01-fusion-battery-hole" x="720" y="513" width="160" height="74" rx="10" fill="#F4F8FC"/>
+<rect id="f01-fusion-battery-fill" x="726" y="519" width="131" height="62" rx="6"/>
+</g>
+<rect id="f01-fusion-terminal" x="897" y="536" width="12" height="28" rx="5"/>
+<path id="f01-fusion-bending" d="M680 512 L680 588" fill="none" stroke="#0B243B" stroke-width="16" stroke-linecap="round" opacity="0"/>
+<g id="f01-fusion-wifi" stroke="#0B243B" stroke-width="13" stroke-linecap="round" fill="none">
+<path d="M477 530 Q540 476 603 530"/><path d="M500 555 Q540 522 580 555"/><path d="M525 578 Q540 565 555 578"/><circle cx="540" cy="590" r="7" fill="#0B243B" stroke="none"/>
+</g>
+<path id="f01-fusion-sound-0" d="M224 532 H253 V568 H224 Z"/>
+<path id="f01-fusion-sound-1" d="M250 532 L288 504 V596 L250 568 Z"/>
+<path id="f01-fusion-sound-2" d="M309 524 Q332 550 309 576 L300 568 Q317 550 300 532 Z"/>
+<path id="f01-fusion-sound-3" d="M332 504 Q374 550 332 596 L322 587 Q357 550 322 513 Z"/>
+</g>
+</svg>
+<h1 id="f01-fusion-question" class="f01-fusion-title">What if those<br>become one?</h1>
+<div id="f01-fusion-sub" class="f01-fusion-sub">Inspired by iPhone Duo</div>
+<h1 id="f01-fusion-now" class="f01-fusion-title">Now, on your Mac.</h1>
+<div id="f01-fusion-brand" class="f01-fusion-brand">FuseBar</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const E=n=>document.getElementById('f01-fusion-'+n);
+const clamp=x=>Math.max(0,Math.min(1,x));
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const sm=(t,a,b)=>{let p=prog(t,a,b);return p*p*(3-2*p)};
+const out=(t,a,b)=>1-Math.pow(1-prog(t,a,b),3);
+const mix=(a,b,p)=>a+(b-a)*p;
+const rad=d=>d*Math.PI/180;
+const op=(n,v)=>E(n).setAttribute('opacity',v);
+const rect=(n,x,y,w,h,r)=>{let e=E(n);e.setAttribute('x',x);e.setAttribute('y',y);e.setAttribute('width',Math.max(0,w));e.setAttribute('height',Math.max(0,h));e.setAttribute('rx',r)};
+const pnt=(x,y)=>({x,y});
+function bez(a,b,c,d,p){let q=1-p;return pnt(q*q*q*a.x+3*q*q*p*b.x+3*q*p*p*c.x+p*p*p*d.x,q*q*q*a.y+3*q*q*p*b.y+3*q*p*p*c.y+p*p*p*d.y)}
+function polygon(points,n=48){let dist=[0];for(let i=0;i<points.length;i++){let a=points[i],b=points[(i+1)%points.length];dist.push(dist[i]+Math.hypot(b.x-a.x,b.y-a.y))}return Array.from({length:n},(_,i)=>{let d=dist[dist.length-1]*i/n,j=0;while(dist[j+1]<d)j++;let a=points[j],b=points[(j+1)%points.length],p=(d-dist[j])/(dist[j+1]-dist[j]);return pnt(mix(a.x,b.x,p),mix(a.y,b.y,p))})}
+function wave(x,y0,y1,bend){let a=[];for(let j=0;j<=24;j++){let p=j/24;a.push(pnt(x+4*bend*p*(1-p),mix(y0,y1,p)))}for(let j=24;j>=0;j--){let p=j/24;a.push(pnt(x-10+4*(bend-3)*p*(1-p),mix(y0+8,y1-8,p)))}return polygon(a)}
+const soundSources=[polygon([pnt(224,532),pnt(253,532),pnt(253,568),pnt(224,568)]),polygon([pnt(250,532),pnt(288,504),pnt(288,596),pnt(250,568)]),wave(309,524,576,17),wave(332,504,596,29)];
+function capsule(x,y,h){return Array.from({length:48},(_,i)=>{let angle=2*Math.PI*i/48;return pnt(x+6.5*Math.cos(angle),y+6.5*Math.sin(angle)+(Math.sin(angle)>=0?1:-1)*Math.max(0,(h-13)/2))})}
+function path(points){return points.map((p,i)=>(i?'L':'M')+p.x.toFixed(4)+' '+p.y.toFixed(4)).join(' ')+' Z'}
+function title(n,alpha,y=0){let e=E(n);e.style.opacity=alpha;e.style.transform='translateY('+y+'px)'}
+// Pure-time inverse-radius stroke: adapted from CircleStatusBar's BendingStroke
+// geometry and orbit choreography. No captured media, random state or timers.
+function bendPath(cx,cy,rotation,bend,length){if(bend<.00001)return 'M'+cx+' '+(cy-length/2)+' L'+cx+' '+(cy+length/2);let r=1/bend,rr=rad(rotation),h=length/r/2,ox=cx-r*Math.cos(rr),oy=cy-r*Math.sin(rr);let a=rr-h,b=rr+h;return 'M'+(ox+r*Math.cos(a))+' '+(oy+r*Math.sin(a))+' A'+r+' '+r+' 0 '+(length/r>Math.PI?1:0)+' 1 '+(ox+r*Math.cos(b))+' '+(oy+r*Math.sin(b))}
+function paint(t){
+ const z=sm(t,1.8,3.8),sc=mix(.18,1,z);
+ E('subject').setAttribute('transform','translate('+mix(712.8,0,z)+' '+mix(77,0,z)+') scale('+sc+')');
+ const desktop=1-sm(t,1.85,3.35);op('desktop',desktop);E('desktop').style.filter='blur('+(sm(t,1.8,3.3)*6)+'px)';
+ let q=sm(t,3.75,4.25)*(1-sm(t,9.1,9.55));title('question',q,18*(1-sm(t,3.75,4.25)));
+ title('sub',sm(t,4.15,4.65)*(1-sm(t,8.7,9.3)),10*(1-sm(t,4.15,4.65)));
+ title('now',sm(t,9.5,10),10*(1-sm(t,9.5,10)));
+ title('brand',sm(t,10,10.45)*(1-sm(t,11.15,11.65)),8*(1-sm(t,10,10.45)));
+ const collapse=out(t,5.55,6.55),cx=mix(800,680,collapse),w=mix(178,16,collapse);
+ rect('battery-shell',cx-w/2,504,w,92,mix(18,8,collapse));
+ const hollow=1-sm(t,5.55,6.2);rect('battery-hole',cx-(w-18)*hollow/2,513,Math.max(0,(w-18)*hollow),74,10);
+ rect('battery-fill',cx-(w-30)*hollow/2,519,Math.max(0,(w-30)*hollow*.82),62,6);
+ const cap=1-sm(t,5.45,5.85);rect('terminal',897,550-14*cap,12*cap,28*cap,5);
+ op('battery-body',t<6.55?1:0);op('bending',t>=6.55?1:0);
+ let angle;if(t<6.82)angle=mix(0,32,sm(t,6.55,6.82));else if(t<7.72)angle=mix(32,-245,Math.pow(prog(t,6.82,7.72),1.18));else angle=mix(-245,-450,out(t,7.72,9.25));
+ const excursion=36*Math.exp(-Math.pow((t-6.96)/.22,2))*sm(t,6.55,6.7);
+ const radius=140+excursion,theta=rad(angle),bend=sm(t,6.55,6.95)/radius;
+ const length=mix(76,140*rad(280),out(t,7.3,9.25));
+ E('bending').setAttribute('d',bendPath(540+radius*Math.cos(theta),550+radius*Math.sin(theta),angle,bend,length));
+ const wifi=sm(t,6.65,7.65),ws=mix(1.12,1,wifi);E('wifi').setAttribute('transform','translate(540 550) scale('+ws+') translate(-540 -550)');
+ for(let i=0;i<4;i++){
+  const morph=sm(t,5.65+i*.04,6.35+i*.04),height=mix([35,54,73,92][i],13,sm(t,6.25+(3-i)*.07,6.95+(3-i)*.035));
+  const start=pnt(238+i*31,617-height/2),a=rad(117-i*18),end=pnt(540+140*Math.cos(a),550+140*Math.sin(a));
+  const f=sm(t,7.08+(3-i)*.09,8.65+(3-i)*.09),pos=bez(start,pnt(start.x+12,782),pnt(end.x-26,795),end,f),target=capsule(pos.x,pos.y,height);
+  E('sound-'+i).setAttribute('d',path(target.map((p,j)=>pnt(mix(soundSources[i][j].x,p.x,morph),mix(soundSources[i][j].y,p.y,morph)))));
+  if(t>=9.25)E('sound-'+i).setAttribute('d','M'+(end.x+6.5)+' '+end.y+' A6.5 6.5 0 1 1 '+(end.x-6.5)+' '+end.y+' A6.5 6.5 0 1 1 '+(end.x+6.5)+' '+end.y+' Z');
+  op('sound-'+i,i<2?1:mix(1,.22,sm(t,8.3,9.15)));
+ }
+}
+paint(0);
+const driver={t:0};const tl=gsap.timeline({paused:true});
+tl.to(driver,{t:12,duration:12,ease:'none',onUpdate:()=>paint(driver.t)},0);
+window.__timelines=window.__timelines||{};window.__timelines['f01-fusion']=tl;
+})();
+</script>
+</div>
+</template>

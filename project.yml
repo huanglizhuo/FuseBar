@@ -36,8 +36,8 @@ targets:
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: 'FuseBar 仅在本机读取蓝牙开关及已配对设备的连接状态。'
         INFOPLIST_KEY_NSLocationUsageDescription: 'macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。'
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'macOS 要求定位授权才能显示当前 Wi-Fi 网络名称。FuseBar 不采集位置，也不上传网络名称。'
-        MARKETING_VERSION: '1.0'
-        CURRENT_PROJECT_VERSION: '1'
+        MARKETING_VERSION: '1.0.1'
+        CURRENT_PROJECT_VERSION: '2'
   FuseBarTests:
     type: bundle.unit-test
     platform: macOS

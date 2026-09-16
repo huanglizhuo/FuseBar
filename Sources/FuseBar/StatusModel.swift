@@ -27,6 +27,9 @@ struct WiFiStatus: Equatable {
     var connection: WiFiConnection = .unknown
     var name: String?
     var rssi: Int?
+    // Network.framework marks Personal Hotspot-class Wi-Fi paths as expensive.
+    // This is a network-cost signal, not proof of the phone manufacturer.
+    var hotspotStyle = false
     var bars: Int {
         guard let rssi, rssi < 0 else { return 0 }
         return rssi >= -60 ? 3 : rssi >= -75 ? 2 : 1
@@ -37,7 +40,9 @@ struct WiFiStatus: Equatable {
         case .unavailable: return "无 Wi-Fi 接口"
         case .off: return "Wi-Fi 已关闭"
         case .disconnected: return "未连接无线网络"
-        case .connected: return name.map { "\($0) · 已连接" } ?? "已连接 · 网络名称受系统保护"
+        case .connected:
+            if hotspotStyle { return (name.map { "\($0) · " } ?? "") + "热点 / 按流量计费网络 · 已连接" }
+            return name.map { "\($0) · 已连接" } ?? "已连接 · 网络名称受系统保护"
         }
     }
 }
@@ -64,10 +69,14 @@ struct SoundStatus: Equatable {
     var muted: Bool?
     var canSetVolume = false
     var effectivelyMuted: Bool { muted == true || volume == 0 }
+    var volumeDots: Int? {
+        guard available, let volume, volume.isFinite else { return nil }
+        return Int(ceil(Double(min(1, max(0, volume))) * 4))
+    }
     var detail: String {
         guard available else { return "无可用输出设备" }
         if effectivelyMuted { return "\(deviceName) · 静音" }
-        if let volume { return "\(deviceName) · \(Int((volume * 100).rounded()))%" }
+        if let volume, volume.isFinite { return "\(deviceName) · \(Int((volume * 100).rounded()))%" }
         return "\(deviceName) · 设备控制音量"
     }
 }
@@ -95,6 +104,11 @@ struct StatusSnapshot: Equatable {
         if preferences.battery && battery.availability == .available && battery.charging { return .charging }
         if preferences.sound && sound.effectivelyMuted { return .muted }
         return .none
+    }
+
+    func volumeDots(_ preferences: IndicatorPreferences) -> Int? {
+        guard preferences.sound, badge(preferences) == .none else { return nil }
+        return sound.volumeDots
     }
 
     func headline(_ preferences: IndicatorPreferences) -> String {
@@ -134,10 +148,11 @@ struct StatusSnapshot: Equatable {
         var combined = critical; combined.wifi.connection = .disconnected; combined.sound.muted = true
         var desktop = normal; desktop.battery.availability = .unavailable
         var mediumSignal = normal; mediumSignal.wifi.rssi = -68
+        var hotspot = normal; hotspot.wifi.hotspotStyle = true; hotspot.wifi.name = "Personal Hotspot"
         var weakSignal = normal; weakSignal.wifi.rssi = -82
         return [("日常", normal), ("充电", charging), ("低电量", low), ("严重低电", critical),
                 ("Wi-Fi 断开", disconnected), ("无线关闭", off), ("静音", mute),
                 ("多重异常", combined), ("桌面 Mac", desktop), ("尚未读取", StatusSnapshot()),
-                ("Wi-Fi 中等", mediumSignal), ("Wi-Fi 较弱", weakSignal)]
+                ("Wi-Fi 中等", mediumSignal), ("Wi-Fi 较弱", weakSignal), ("个人热点", hotspot)]
     }
 }

@@ -21,16 +21,25 @@ enum SystemReader {
         return BatteryStatus(availability: .unavailable)
     }
 
-    static func wifi() -> WiFiStatus {
-        guard let interface = CWWiFiClient.shared().interface() else { return WiFiStatus(connection: .unavailable) }
-        guard interface.powerOn() else { return WiFiStatus(connection: .off) }
-        // SSID may be redacted without location permission. Station mode denotes association.
-        let mode = interface.interfaceMode()
-        if mode == .station {
-            let rssi = interface.rssiValue()
-            return WiFiStatus(connection: .connected, name: interface.ssid(), rssi: rssi < 0 ? rssi : nil)
+    static func wifi(path: WiFiPathState? = nil) -> WiFiStatus {
+        guard let interface = CWWiFiClient.shared().interface() else {
+            if path?.connected == true { return resolveWiFi(mode: .none, name: nil, rssi: 0, path: path) }
+            return WiFiStatus(connection: .unavailable)
         }
-        if mode == .none { return WiFiStatus(connection: .disconnected) }
+        guard interface.powerOn() || path?.connected == true else { return WiFiStatus(connection: .off) }
+        return resolveWiFi(mode: interface.interfaceMode(), name: interface.ssid(),
+                           rssi: interface.rssiValue(), path: path)
+    }
+
+    static func resolveWiFi(mode: CWInterfaceMode, name: String?, rssi: Int,
+                            path: WiFiPathState?) -> WiFiStatus {
+        // CoreWLAN .none can mean a read error. A satisfied Wi-Fi-only path is
+        // positive evidence of connectivity even when CoreWLAN cannot report association.
+        if mode == .station || path?.connected == true {
+            return WiFiStatus(connection: .connected, name: name, rssi: rssi < 0 ? rssi : nil,
+                              hotspotStyle: path?.connected == true && path?.expensive == true)
+        }
+        if mode == .none, path?.connected == false { return WiFiStatus(connection: .disconnected) }
         return WiFiStatus(connection: .unknown)
     }
 
@@ -43,7 +52,13 @@ enum SystemReader {
         return BluetoothStatus(state: .on, devices: names)
     }
 
-    static func read(bluetoothState: BluetoothState) -> StatusSnapshot {
-        StatusSnapshot(battery: battery(), wifi: wifi(), bluetooth: bluetooth(state: bluetoothState), sound: AudioDevice.read())
+    static func read(bluetoothState: BluetoothState, wifiPath: WiFiPathState? = nil) -> StatusSnapshot {
+        StatusSnapshot(battery: battery(), wifi: wifi(path: wifiPath), bluetooth: bluetooth(state: bluetoothState), sound: AudioDevice.read())
     }
+}
+
+/// A value captured from the Wi-Fi-only NWPathMonitor; nil means not sampled yet.
+struct WiFiPathState: Equatable {
+    var connected: Bool
+    var expensive: Bool
 }

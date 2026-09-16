@@ -1,0 +1,91 @@
+<template>
+<style>
+@font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700}
+@font-face{font-family:'Inter';src:url('assets/fonts/Inter-400.woff2') format('woff2');font-weight:400}
+@font-face{font-family:'Inter';src:url('assets/fonts/Inter-700.woff2') format('woff2');font-weight:700}
+#root{position:relative;width:100%;height:100%;overflow:hidden;container-type:size;color:#0B243B;font-family:'Inter'}
+#f02-status-ground{position:absolute;inset:0;background:#F4F8FC}
+#f02-status-header{position:absolute;left:70px;top:145px;width:940px;margin:0;font-family:'Space Grotesk';font-size:64px;font-weight:700;line-height:1.08;letter-spacing:-.02em;text-align:center;white-space:nowrap}
+#f02-status-orb{position:absolute;left:390px;top:400px;width:300px;height:300px;transform-origin:150px 150px;z-index:3}
+#f02-status-orb svg{display:block;width:100%;height:100%;overflow:visible}
+.f02-status-title{font-family:'Space Grotesk';font-size:38px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.f02-status-sub{font-size:28px;color:#0076E8;line-height:1.5;margin-top:12px}
+#f02-status-battery{position:absolute;left:105px;top:451px;width:225px}
+#f02-status-battery strong{display:block;font-family:'Space Grotesk';font-size:58px;font-weight:600;color:#0076E8;margin-top:8px}
+#f02-status-wifi-label{position:absolute;left:785px;top:492px;width:205px}
+#f02-status-volume,#f02-status-alert-label{position:absolute;left:100px;top:757px;width:880px;text-align:center}
+#f02-status-hotspot-label{position:absolute;left:100px;top:314px;width:880px;text-align:center;font-size:30px;color:#0076E8}
+#f02-status-strip{position:absolute;left:80px;top:506px;width:920px;height:88px;border:1.5px solid rgba(0,118,232,.2);border-radius:14px;background:rgba(0,118,232,.04);box-sizing:border-box;display:flex;align-items:center;padding:0 30px;font-family:'Space Grotesk';font-size:28px;font-weight:600}
+#f02-status-native{position:absolute;left:827px;top:527px;width:140px;height:46px;z-index:4}
+#f02-status-note{position:absolute;left:80px;top:658px;width:920px;text-align:center;font-size:28px;line-height:1.5;color:#0076E8}
+#f02-status-concept{position:absolute;left:80px;top:441px;width:920px;text-align:center;font-family:'Space Grotesk';font-size:28px;font-weight:500;color:#0076E8}
+</style>
+<div id="root" data-composition-id="f02-status" data-width="1080" data-height="1080">
+<div id="f02-status-ground" class="clip" data-start="0" data-duration="12" data-track-index="0"></div>
+<h1 id="f02-status-header">Now, on your Mac.</h1>
+<div id="f02-status-strip">Menu bar</div>
+<svg id="f02-status-native" viewBox="0 0 140 46" fill="none" stroke="#0B243B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-label="Native Wi-Fi and battery remain visible">
+<path d="M7 17 Q25 1 43 17 M13 24 Q25 13 37 24 M20 31 Q25 26 30 31"/><circle cx="25" cy="36" r="1.9" fill="#0B243B" stroke="none"/>
+<rect x="77" y="11" width="46" height="24" rx="5"/><path d="M128 18 V28"/><rect x="82" y="16" width="31" height="14" rx="2" fill="#0B243B" stroke="none"/>
+</svg>
+<div id="f02-status-concept">Menu bar concept</div>
+<div id="f02-status-note">You choose which system icons to hide.</div>
+<div id="f02-status-battery"><div class="f02-status-title">Battery</div><strong>82%</strong></div>
+<div id="f02-status-wifi-label" class="f02-status-title">Wi-Fi</div>
+<div id="f02-status-volume"><div class="f02-status-title">Four dots. Your volume.</div><div class="f02-status-sub">25 · 50 · 75 · 100%</div></div>
+<div id="f02-status-alert-label"><div class="f02-status-title">Alerts take priority.</div><div id="f02-status-alert-state" class="f02-status-sub">Muted</div></div>
+<div id="f02-status-hotspot-label">Wi-Fi or Personal Hotspot</div>
+<div id="f02-status-orb">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="390 400 300 300" fill="none">
+<path d="M450.009735 657.246222 A140 140 0 1 1 629.990265 657.246222" stroke="rgba(11,36,59,.18)" stroke-width="16" stroke-linecap="round"/>
+<path id="f02-status-ring" d="M450.009735 657.246222 A140 140 0 1 1 629.990265 657.246222" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="0" stroke="#0B243B" stroke-width="16" stroke-linecap="round"/>
+<g id="f02-status-wifi" stroke="#0B243B" stroke-width="13" stroke-linecap="round"><path d="M477 530 Q540 476 603 530"/><path d="M500 555 Q540 522 580 555"/><path d="M525 578 Q540 565 555 578"/><circle cx="540" cy="590" r="7" fill="#0B243B" stroke="none"/></g>
+<g id="f02-status-hotspot" stroke="#0076E8" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M541 527 L554 514 C574 494 602 522 582 542 L565 559"/><path d="M539 573 L526 586 C506 606 478 578 498 558 L515 541"/><path d="M520 570 L560 530"/></g>
+<g id="f02-status-dots" fill="#0B243B"><circle id="f02-status-dot0" cx="476.441330" cy="674.740913" r="6.5" opacity="1"/><circle id="f02-status-dot1" cx="518.099175" cy="688.276368" r="6.5" opacity="1"/><circle id="f02-status-dot2" cx="561.900825" cy="688.276368" r="6.5" opacity="0.22"/><circle id="f02-status-dot3" cx="603.558670" cy="674.740913" r="6.5" opacity="0.22"/></g>
+<g id="f02-status-muted" stroke="#0076E8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M521 674 H529 L540 664 V698 L529 688 H521 Z"/><path d="M550 674 L564 688 M564 674 L550 688"/></g>
+<path id="f02-status-bolt" d="M546 660 L528 683 H540 L533 703 L556 677 H544 Z" fill="#0076E8"/>
+</svg>
+</div>
+</div>
+<script>
+(function(){
+const el=id=>document.getElementById('f02-status-'+id);
+const tl=gsap.timeline({paused:true});
+window.__timelines=window.__timelines||{};
+window.__timelines['f02-status']=tl;
+const reveal=(id,time,duration=.4)=>tl.fromTo(el(id),{opacity:0,y:10},{opacity:1,y:0,duration,ease:'power2.out'},time);
+reveal('battery',.8);reveal('wifi-label',.95);
+tl.to(el('ring'),{strokeDashoffset:18,stroke:'#0076E8',duration:.85,ease:'power2.inOut'},.5);
+for(const id of ['battery','wifi-label'])tl.to(el(id),{opacity:0,y:-8,duration:.25,ease:'power1.in'},2.3);
+reveal('volume',2.5);
+tl.to(el('dot2'),{opacity:1,duration:.5,ease:'power1.inOut'},3.0);
+tl.to(el('dot3'),{opacity:1,duration:.5,ease:'power1.inOut'},3.65);
+tl.to([el('dot2'),el('dot3')],{opacity:.22,duration:.5,ease:'power1.inOut'},4.8);
+tl.to(el('volume'),{opacity:0,y:-8,duration:.25,ease:'power1.in'},5.7);
+reveal('alert-label',5.9);
+tl.to(el('dots'),{opacity:0,scale:.82,svgOrigin:'540 686',duration:.25,ease:'power2.in'},5.7);
+tl.fromTo(el('muted'),{opacity:0},{opacity:1,duration:.2,ease:'power1.out'},5.97);
+tl.to(el('muted'),{opacity:0,duration:.15,ease:'power1.in'},7.03);
+tl.fromTo(el('bolt'),{opacity:0},{opacity:1,duration:.2,ease:'power1.out'},7.2);
+tl.to(el('wifi'),{opacity:0,duration:.35,ease:'power1.inOut'},7.5);
+tl.fromTo(el('hotspot'),{opacity:0},{opacity:1,duration:.35,ease:'power1.inOut'},7.5);
+reveal('hotspot-label',7.5,.35);
+for(const id of ['alert-label','hotspot-label'])tl.to(el(id),{opacity:0,y:-8,duration:.25,ease:'power1.in'},8.8);
+tl.to(el('hotspot'),{opacity:0,duration:.3,ease:'power1.inOut'},8.8);
+tl.to(el('wifi'),{opacity:1,duration:.3,ease:'power1.inOut'},8.8);
+tl.to(el('bolt'),{opacity:0,duration:.2,ease:'power1.in'},8.8);
+tl.to(el('dots'),{opacity:1,scale:1,duration:.3,ease:'power2.out'},9.02);
+tl.to(el('ring'),{stroke:'#0B243B',duration:.4,ease:'power1.out'},8.8);
+tl.fromTo(el('strip'),{opacity:0,scaleX:.8},{opacity:1,scaleX:1,duration:.65,ease:'power2.out'},9.15);
+tl.fromTo(el('native'),{opacity:0},{opacity:1,duration:.5,ease:'power1.out'},9.35);
+tl.to(el('orb'),{x:235,y:0,scale:52/300,duration:1.0,ease:'power3.inOut'},9.05);
+reveal('concept',9.6,.4);reveal('note',9.85,.6);
+const sequence=[{t:0,text:'Now, on your Mac.'},{t:.5,text:'One icon. More context.'},{t:9.05,text:'Your menu bar, simplified.'}];
+const driver={t:0};
+tl.to(driver,{t:12,duration:12,ease:'none',onUpdate:()=>{
+for(let i=sequence.length-1;i>=0;i--){if(driver.t>=sequence[i].t){el('header').textContent=sequence[i].text;break;}}
+el('alert-state').textContent=driver.t<7.18?'Muted':'Charging';
+}},0);
+})();
+</script>
+</template>

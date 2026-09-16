@@ -2,6 +2,7 @@ import AppKit
 import Combine
 import CoreBluetooth
 import CoreLocation
+import Network
 import ServiceManagement
 
 @MainActor
@@ -23,6 +24,8 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     private let worker = DispatchQueue(label: "com.mergebar.status", qos: .utility)
     private var central: CBCentralManager?
     private var location: CLLocationManager?
+    private var wifiMonitor: NWPathMonitor?
+    private var wifiPath: WiFiPathState?
     private var timer: Timer?
     private var reading = false
     private var sleeping = false
@@ -46,11 +49,24 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         observers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.sleeping = false; self?.startTimer(); self?.refresh() }
         })
+        let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
+        wifiMonitor = monitor
+        monitor.pathUpdateHandler = { [weak self] path in
+            let value = WiFiPathState(connected: path.status == .satisfied && path.usesInterfaceType(.wifi),
+                                     expensive: path.isExpensive)
+            Task { @MainActor in
+                guard let self else { return }
+                self.wifiPath = value
+                self.refresh()
+            }
+        }
+        monitor.start(queue: worker)
         startTimer()
         refresh()
     }
 
     func stop() {
+        wifiMonitor?.cancel(); wifiMonitor = nil
         timer?.invalidate(); timer = nil
         observers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
         observers.removeAll()
@@ -115,13 +131,16 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         if central == nil && CBManager.authorization == .allowedAlways { enableBluetooth() }
         reading = true
         let state = bluetoothState
+        let path = wifiPath
         worker.async { [weak self] in
-            let value = SystemReader.read(bluetoothState: state)
+            let value = SystemReader.read(bluetoothState: state, wifiPath: path)
             Task { @MainActor in
                 guard let self else { return }
                 if self.snapshot != value { self.snapshot = value }
                 self.updatedAt = Date()
                 self.reading = false
+                // A first path update can arrive while the initial hardware read is in flight.
+                if self.wifiPath != path { self.refresh() }
             }
         }
     }

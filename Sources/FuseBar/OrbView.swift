@@ -20,7 +20,7 @@ enum StatusSymbols {
 
     static func wifi(_ status: WiFiStatus) -> String {
         switch status.connection {
-        case .connected: return "wifi"
+        case .connected: return status.hotspotStyle ? "personalhotspot" : "wifi"
         case .off: return "wifi.slash"
         case .disconnected: return "wifi.exclamationmark"
         case .unknown, .unavailable: return "questionmark.circle"
@@ -70,8 +70,8 @@ struct OrbView: View {
             if preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
-                    symbol("wifi", x: 11, y: 10, size: 8,
-                           value: snapshot.wifi.bars == 0 ? nil : Double(snapshot.wifi.bars) / 3)
+                    symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: 8,
+                           value: snapshot.wifi.hotspotStyle || snapshot.wifi.bars == 0 ? nil : Double(snapshot.wifi.bars) / 3)
                 case .disconnected:
                     // The full wifi.exclamationmark is reserved for the larger popover row.
                     symbol("xmark", x: 11, y: 10, size: 6)
@@ -86,7 +86,15 @@ struct OrbView: View {
                 symbol(StatusSymbols.charging, x: 11, y: 17.7, size: 6.5, weight: .regular)
             case .muted:
                 symbol("speaker.slash.fill", x: 11, y: 17.7, size: 5.5, weight: .regular)
-            case .none: break
+            case .none:
+                if let filled = snapshot.volumeDots(preferences) {
+                    for index in 0..<4 {
+                        let angle = Double(117 - index * 18) * .pi / 180
+                        let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
+                        let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
+                        context.fill(dot, with: .color(.primary.opacity(index < filled ? 1 : 0.22)))
+                    }
+                }
             }
             if !preferences.wifi && (!preferences.battery || snapshot.battery.availability == .unavailable) {
                 // A stable neutral anchor keeps the app reachable even when all indicators are off.

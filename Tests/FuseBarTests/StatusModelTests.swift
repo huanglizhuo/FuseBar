@@ -2,6 +2,52 @@ import XCTest
 @testable import FuseBar
 
 final class StatusModelTests: XCTestCase {
+    func testHotspotPathOverridesMissingCoreWLANAssociation() {
+        let hotspot = SystemReader.resolveWiFi(mode: .none, name: nil, rssi: 0,
+            path: WiFiPathState(connected: true, expensive: true))
+        XCTAssertEqual(hotspot.connection, .connected)
+        XCTAssertTrue(hotspot.hotspotStyle)
+        XCTAssertEqual(StatusSymbols.wifi(hotspot), "personalhotspot")
+        var snapshot = StatusSnapshot.normal
+        snapshot.wifi = hotspot
+        XCTAssertEqual(snapshot.badge(IndicatorPreferences()), .none)
+        let regular = SystemReader.resolveWiFi(mode: .none, name: nil, rssi: -65,
+            path: WiFiPathState(connected: true, expensive: false))
+        XCTAssertEqual(StatusSymbols.wifi(regular), "wifi")
+        XCTAssertEqual(regular.bars, 2)
+    }
+
+    func testWiFiPathDoesNotTurnAssociationWithoutInternetIntoDisconnection() {
+        let connected = SystemReader.resolveWiFi(mode: .station, name: nil, rssi: -80,
+            path: WiFiPathState(connected: false, expensive: true))
+        XCTAssertEqual(connected.connection, .connected)
+        XCTAssertFalse(connected.hotspotStyle)
+        XCTAssertEqual(SystemReader.resolveWiFi(mode: .none, name: nil, rssi: 0, path: nil).connection, .unknown)
+        XCTAssertEqual(SystemReader.resolveWiFi(mode: .none, name: nil, rssi: 0,
+            path: WiFiPathState(connected: false, expensive: false)).connection, .disconnected)
+    }
+
+    func testVolumeDotThresholdsAndUnreadableVolume() {
+        for (volume, dots): (Float, Int) in [(0, 0), (0.01, 1), (0.25, 1), (0.26, 2),
+                                            (0.5, 2), (0.51, 3), (0.75, 3), (0.76, 4), (1, 4), (2, 4)] {
+            XCTAssertEqual(SoundStatus(available: true, volume: volume).volumeDots, dots)
+        }
+        XCTAssertNil(SoundStatus(available: true).volumeDots)
+        XCTAssertNil(SoundStatus(available: true, volume: .nan).volumeDots)
+        XCTAssertNil(SoundStatus(volume: 0.5).volumeDots)
+        var status = StatusSnapshot.normal
+        XCTAssertEqual(status.volumeDots(IndicatorPreferences()), 2)
+        XCTAssertNil(status.volumeDots(IndicatorPreferences(sound: false)))
+        status.sound.muted = true
+        XCTAssertNil(status.volumeDots(IndicatorPreferences()))
+        status.sound.muted = false
+        status.battery.charging = true
+        XCTAssertNil(status.volumeDots(IndicatorPreferences()))
+        status.battery.charging = false
+        status.wifi.connection = .disconnected
+        XCTAssertNil(status.volumeDots(IndicatorPreferences()))
+    }
+
     func testLowBatteryBoundariesAndExternalPower() {
         for (level, low, critical) in [(0, true, true), (9, true, true), (10, true, false), (19, true, false), (20, false, false)] {
             var battery = BatteryStatus(availability: .available, level: level)

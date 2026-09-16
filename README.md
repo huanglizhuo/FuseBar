@@ -4,7 +4,7 @@
 
 <img src="docs/previews/app-icon/default-256.png" alt="FuseBar app icon" width="96" height="96">
 
-FuseBar combines battery level, Wi-Fi status, and a centered priority indicator in a compact menu bar entry. Click it to see battery, Wi-Fi, Bluetooth, and audio details or adjust supported output devices' volume. No account, ads, subscription, or analytics.
+FuseBar combines battery level, Wi-Fi/hotspot status, and four volume dots that give way to priority alerts in a compact menu bar entry. Click it to see battery, Wi-Fi, Bluetooth, and audio details or adjust supported output devices' volume. No account, ads, subscription, or analytics.
 
 ## Preview
 
@@ -29,9 +29,11 @@ You can manually hide redundant system icons in System Settings → Menu Bar (Co
 
 ## Features
 
+The volume dots and hotspot fix below are in the current development build; the existing 1.0 download predates these changes.
+
 - Battery ring with charging, low-battery, unknown, and no-internal-battery states.
-- Wi-Fi connection and signal strength, with an optional network name.
-- A stable, centered bottom indicator: critical battery → disconnected Wi-Fi → low battery → charging → mute. Other details remain in the panel.
+- Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon.
+- Four dots show approximate volume in 25% steps; unreadable volume stays blank. A stable, centered bottom indicator takes over for alerts: critical battery → disconnected Wi-Fi → low battery → charging → mute. Other details remain in the panel.
 - Optional Bluetooth power and connected paired-device details; no scanning or pairing.
 - Output volume and mute status, plus volume adjustment where supported by the device.
 - Native SwiftUI/AppKit panel, monochrome menu bar rendering, saved preferences, and user-controlled launch at login.
@@ -76,4 +78,4 @@ See [validation notes](docs/VALIDATION.md) for observed results and remaining co
 - [App icon source and design](Design/AppIcon/DESIGN.md)
 - [Original PRD](docs/Original-PRD.md)
 
-Previously named MergeBar; the GitHub repository URL and registered bundle identifier are retained for continuity. The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's drawing and system integration are independently implemented; no reference-project code or media is included.
+Previously named MergeBar; the GitHub repository URL and registered bundle identifier are retained for continuity. The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's native drawing and system integration are independently implemented. The promotional video's adapted animation is credited in [third-party notices](videos/fusebar-launch/THIRD_PARTY_NOTICES.md).

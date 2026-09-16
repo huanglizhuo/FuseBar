@@ -1,0 +1,10 @@
+{
+  "bgm": {
+    "path": "assets/audio/fusebar-original-score.wav",
+    "volume": 0.75,
+    "duration_s": 34,
+    "query": "Original 120 BPM minimal electronic score composed for FuseBar"
+  },
+  "voices": [],
+  "sfx": []
+}

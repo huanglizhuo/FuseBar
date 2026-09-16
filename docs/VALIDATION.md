@@ -83,3 +83,27 @@
 - App Store Connect: three screenshots uploaded by the owner; version 1.0 (1), metadata, free pricing and published privacy declaration completed. Add for Review succeeded; UI explicitly shows **Ready for Review** and **added for review**. This is not yet **Waiting for Review** or App Store approval.
 - GitHub release pipeline uses local Xcode signing/notarization and hosted macOS verification. No Apple secrets are stored in Actions. First hosted run passed signature, Team ID, bundle/version, stapled ticket and Gatekeeper checks; its lipo command order was corrected before rerunning.
 - Hosted verification rerun succeeded: https://github.com/huanglizhuo/MergeBar/actions/runs/35002736988 . It published https://github.com/huanglizhuo/MergeBar/releases/tag/v1.0 with FuseBar-1.0-macOS.zip and SHA256SUMS.txt. Release is no longer a draft. ZIP SHA-256: `12897085eaa987cd90a920a2574ee08d05be8f6cf5613a17753ebad3f3f70adc`.
+
+## 2026-09-16 — FuseBar promotional video
+
+- Created the editable HyperFrames project at `videos/fusebar-launch`, three linked 10-second scenes with original icon fusion, a real native UI screenshot, and GitHub download CTA.
+- Final strict HyperFrames check reported no lint/runtime/layout/contrast findings; inspected scene snapshots and decoded final MP4 frames.
+- MP4 verified: 30 seconds, 1080×1080, 60 fps, H.264/AAC, 3,944,460 bytes. Original synthesized soundtrack, no external music samples.
+- These are marketing visuals, not additional live hardware verification.
+- X copy prepared for @huang4fun. Upload blocked (`Not allowed` and native picker error); not published. Details and continuation steps in `videos/fusebar-launch/REVIEW.md`.
+
+
+## 2026-09-16 — Volume dots and Personal Hotspot
+
+- `zsh Scripts/build.sh`: successful native Debug build. Final `zsh Scripts/test.sh`: 17 tests passed, 0 failures, including volume boundaries, priority suppression, CoreWLAN-missing/hotspot fallback, ordinary Wi-Fi and associated networks without an available path.
+- Read-only local probe observed CoreWLAN unavailable inside the tool sandbox while a Wi-Fi-only Network path was satisfied/expensive. Outside that sandbox CoreWLAN reported station mode, RSSI -31, with the same satisfied/expensive Wi-Fi path. No SSID, BSSID or IP was recorded.
+- A tool compiled from production SwiftUI/StatusStore/SystemReader rendered the current local state with the chain-link icon and connected hotspot/metered detail. This exposed and verified a startup race fix: path changes arriving during the first hardware sample are resampled immediately. This is live local data in an offscreen production view, not an on-screen capture of a newly installed distribution build.
+- Light/dark fixture galleries regenerated at 66 pt and actual 18 pt. Four dots stay symmetric, separate from arc endpoints; priority glyphs replace them; Personal Hotspot symbol is visible in both sizes. These are simulated fixture previews, not live hardware verification.
+- `personalhotspot` represents expensive Wi-Fi paths (including iPhone Personal Hotspot), using public Network.framework. The signal does not prove manufacturer; ordinary metered Wi-Fi may also use the link glyph. No private API, SSID heuristics, scan or new entitlement.
+- Full physical hotspot disconnect/reconnect, VPN combinations, macOS14/15 and Intel remain unverified. Existing GitHub1.0/App Store build1 have not been replaced by this change.
+
+- Video v2: HyperFrames0.8.41 strict check passed with zero findings;17 stills and encoded contact sheet inspected. Export34.000s,1080square60fps,H.264/AAC,4,580,955bytes;2040frames fully decoded. Opening uses a menu-bar concept and continuous zoom/curl/four-dot fusion; labels demonstrate volume and hotspot. End card marks new features as a preview. See `videos/fusebar-launch/REVIEW.md`.
+
+## 2026-09-16 — 1.0.1 distribution preparation
+
+Release archive 1.0.1 (2) succeeded. Developer ID export and Apple notarization succeeded; stapler validation and Gatekeeper assessment passed (`source=Notarized Developer ID`). Executable contains x86_64 and arm64. ZIP prepared for hosted verification. App Store export failed at productbuild with userCanceledErr (-128), before upload; installer-key signing authorization needs to be completed locally. Computer-use calls currently time out, so App Store Connect and X cannot be changed through that connection.

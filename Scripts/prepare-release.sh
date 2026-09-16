@@ -2,8 +2,9 @@
 set -euo pipefail
 cd "${0:A:h:h}"
 # Run from the intended release commit. Signing and Apple login stay in Keychain.
-version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' build/FuseBar.xcarchive/Products/Applications/FuseBar.app/Contents/Info.plist)
-app="$PWD/build/DeveloperID/FuseBar.app"
+archive="${1:-$PWD/build/FuseBar.xcarchive}"
+app="${2:-$PWD/build/DeveloperID/FuseBar.app}"
+version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$archive/Products/Applications/FuseBar.app/Contents/Info.plist")
 codesign --verify --deep --strict --verbose=2 "$app"
 xcrun stapler validate "$app"
 spctl --assess --type execute --verbose=4 "$app"

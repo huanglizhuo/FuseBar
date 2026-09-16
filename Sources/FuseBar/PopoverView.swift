@@ -138,8 +138,8 @@ struct PopoverView: View {
             Text("在圆环中显示").font(.system(size: 13, weight: .semibold))
             Toggle("电池 · 外环", isOn: $store.preferences.battery)
             Toggle("Wi-Fi · 中心", isOn: $store.preferences.wifi)
-            Toggle("静音 · 底部提示", isOn: $store.preferences.sound)
-            Text("底部只显示最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。")
+            Toggle("声音 · 四点音量与静音", isOn: $store.preferences.sound)
+            Text("平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。")
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
             Toggle("悬停摘要包含蓝牙状态", isOn: $store.preferences.bluetooth)
@@ -165,7 +165,7 @@ struct PopoverView: View {
                 Image(systemName: "arrow.right").foregroundStyle(.tertiary)
                 OrbView(snapshot: .normal).frame(width: 32, height: 32)
             }.frame(maxWidth: .infinity).padding(.vertical, 8).accessibilityHidden(true)
-            Text("外环读电量，中心看 Wi-Fi。底部居中显示警告、充电或静音；正常时留空。蓝牙连接状态可在详情中查看。")
+            Text("外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。")
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Text("保留重要状态，收起重复图标。")
                 .font(.system(size: 13, weight: .medium))
@@ -188,7 +188,7 @@ struct OrbGallery: View {
                 ForEach(StatusSnapshot.scenarios, id: \.0) { title, snapshot in
                     VStack(spacing: 12) {
                         OrbView(snapshot: snapshot).frame(width: 66, height: 66)
-                        OrbView(snapshot: snapshot).frame(width: 22, height: 22)
+                        OrbView(snapshot: snapshot).frame(width: 18, height: 18)
                         Text(title).font(.system(size: 12))
                     }.frame(width: 140, height: 145)
                 }

@@ -1,0 +1,71 @@
+<template>
+  <style>
+    @font-face{font-family:'Space Grotesk';src:url('assets/fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-display:swap}
+    @font-face{font-family:'Inter';src:url('assets/fonts/Inter-400.woff2') format('woff2');font-weight:400;font-display:swap}
+    @font-face{font-family:'Inter';src:url('assets/fonts/Inter-700.woff2') format('woff2');font-weight:700;font-display:swap}
+    #root{position:relative;width:100%;height:100%;overflow:hidden;container-type:size;color:#0B243B;font-family:'Space Grotesk'}
+    [class^='f03-download-']{box-sizing:border-box}
+    [class~="f03-download-ground"]{position:absolute;inset:0;background:#F4F8FC}
+    [class~="f03-download-proof"]{position:absolute;inset:0}
+    [class~="f03-download-heading"]{position:absolute;left:6.5cqw;top:7.5cqw;width:84cqw;margin:0;font-size:6.5cqw;line-height:1.08;letter-spacing:-.035em;font-weight:700}
+    [class~="f03-download-heading"] span{display:block}
+    [class~="f03-download-crop"]{position:absolute;left:47.22cqw;top:22.22cqw;width:38.52cqw;height:62.4cqw;overflow:hidden;border-radius:14px;transform-origin:center}
+    [class~="f03-download-crop"] img{position:absolute;left:-107.73cqw;top:-23cqw;width:173.33cqw;height:108.33cqw;max-width:none}
+    [class~="f03-download-label"]{position:absolute;left:11.11cqw;font-size:3.33cqw;font-weight:500;color:#0076E8;padding-left:2.22cqw}
+    [class~="f03-download-label"]::before{content:'';position:absolute;left:0;top:1.2cqw;width:.55cqw;height:.55cqw;border-radius:50%;background:#0076E8}
+    [class~="f03-download-battery"]{top:34.8cqw}[class~="f03-download-wifi"]{top:46.8cqw}[class~="f03-download-audio"]{top:69.9cqw}
+    [class~="f03-download-close-heading"]{position:absolute;top:12.4cqw;left:10cqw;width:80cqw;text-align:center;font-weight:700;font-size:7.2cqw;letter-spacing:-.035em;line-height:1.1;margin:0}
+    [class~="f03-download-rings"]{position:absolute;left:25cqw;top:14.8cqw;width:50cqw;height:50cqw;border:1.5px solid rgba(0,118,232,.08);border-radius:50%}
+    [class~="f03-download-rings"]::after{content:'';position:absolute;inset:6.5cqw;border:1.5px solid rgba(0,118,232,.15);border-radius:50%}
+    [class~="f03-download-icon"]{position:absolute;left:39.35cqw;top:29.17cqw;width:21.3cqw;height:21.3cqw;object-fit:contain}
+    [class~="f03-download-wordmark"]{position:absolute;left:10cqw;top:53.7cqw;width:80cqw;text-align:center;font-weight:700;font-size:7.1cqw;line-height:1.08;letter-spacing:-.04em}
+    [class~="f03-download-values"]{position:absolute;left:10cqw;top:62.65cqw;width:80cqw;text-align:center;font-family:'Inter';font-size:2.96cqw;line-height:1.3;color:#0076E8}
+    [class~="f03-download-cta"]{position:absolute;left:23.2cqw;top:68.52cqw;width:53.6cqw;height:7.4cqw;border-radius:100px;background:#0076E8;color:#F4F8FC;text-align:center;display:flex;align-items:center;justify-content:center;gap:1.5cqw;font-size:3.42cqw;font-weight:700;letter-spacing:-.02em}
+    [class~="f03-download-cta"] svg{width:3cqw;height:3cqw;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    [class~="f03-download-url"]{position:absolute;left:5cqw;top:78.24cqw;width:90cqw;text-align:center;font-family:'Inter';font-size:2.65cqw;line-height:1.3;color:#0B243B}
+    [class~="f03-download-support"]{position:absolute;left:5cqw;top:82.78cqw;width:90cqw;text-align:center;font-family:'Inter';font-size:2.3cqw;line-height:1.3;color:#0076E8}
+    [class~="f03-download-progress"]{position:absolute;left:0;bottom:0;width:100%;height:3px;background:#0076E8;transform-origin:left}
+  </style>
+  <div data-hf-id="hf-q9yb" id="root" data-composition-id="f03-download" data-duration="10" data-width="1080" data-height="1080">
+    <div data-hf-id="hf-vgkb" id="download-ground" class="clip f03-download-ground" data-start="0" data-duration="10" data-track-index="0"></div>
+    <div data-hf-id="hf-689z" class="f03-download-proof">
+      <h1 data-hf-id="hf-7o2p" class="f03-download-heading"><span data-hf-id="hf-kje7">One click.</span><span data-hf-id="hf-ca63">The full picture.</span></h1>
+      <div data-hf-id="hf-lusp" class="f03-download-crop"><img data-hf-id="hf-g7lk" data-layout-allow-overflow="" src="assets/status.png" alt="Actual FuseBar native status panel showing battery, Wi-Fi, Bluetooth and audio"></div>
+      <div data-hf-id="hf-waco" class="f03-download-label f03-download-battery">Battery</div>
+      <div data-hf-id="hf-9fu3" class="f03-download-label f03-download-wifi">Network</div>
+      <div data-hf-id="hf-izmk" class="f03-download-label f03-download-audio">Audio</div>
+    </div>
+    <div data-hf-id="hf-e9xw" class="f03-download-rings"></div>
+    <h2 data-hf-id="hf-5ku8" class="f03-download-close-heading">Meet FuseBar.</h2>
+    <img data-hf-id="hf-uacv" class="f03-download-icon" src="assets/fusebar-icon.png" alt="FuseBar original app icon">
+    <div data-hf-id="hf-pj3y" class="f03-download-wordmark">FuseBar</div>
+    <div data-hf-id="hf-sd3n" class="f03-download-values">Free. Native. Local.</div>
+    <div data-hf-id="hf-fc4n" class="f03-download-cta"><svg data-hf-id="hf-35ls" viewBox="0 0 24 24" aria-hidden="true"><path data-hf-id="hf-szo6" d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" /></svg><span data-hf-id="hf-mt11">Get FuseBar on GitHub</span></div>
+    <div data-hf-id="hf-vtzb" class="f03-download-url">github.com/huanglizhuo/FuseBar</div>
+    <div data-hf-id="hf-wgoo" class="f03-download-support">macOS 14+ · New features preview</div>
+    <div data-hf-id="hf-pe12" class="f03-download-progress"></div>
+  </div>
+  <script>
+    (function(){
+      const q = name => '[class~="f03-download-'+name+'"]';
+      const tl = gsap.timeline({paused:true});
+      tl.fromTo(q('heading'),{y:22,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out'},0)
+        .fromTo(q('crop'),{y:35,scale:.94,opacity:0},{y:0,scale:1,opacity:1,duration:.8,ease:'power3.out'},.08)
+        .fromTo(q('battery'),{x:-20,opacity:0},{x:0,opacity:1,duration:.45,ease:'power2.out'},.65)
+        .fromTo(q('wifi'),{x:-20,opacity:0},{x:0,opacity:1,duration:.45,ease:'power2.out'},1.55)
+        .fromTo(q('audio'),{x:-20,opacity:0},{x:0,opacity:1,duration:.45,ease:'power2.out'},2.45)
+        .to(q('proof'),{scale:.9,y:-20,opacity:0,filter:'blur(8px)',duration:.48,ease:'power2.in'},3.5)
+        .fromTo(q('rings'),{scale:.6,opacity:0},{scale:1,opacity:1,duration:1.3,ease:'power3.out'},3.8)
+        .fromTo(q('close-heading'),{y:24,opacity:0},{y:0,opacity:1,duration:.65,ease:'power3.out'},3.95)
+        .fromTo(q('icon'),{y:55,scale:.6,opacity:0},{y:0,scale:1,opacity:1,duration:1.2,ease:'power3.out'},3.85)
+        .fromTo(q('wordmark'),{y:24,opacity:0},{y:0,opacity:1,duration:.6,ease:'power3.out'},5.5)
+        .fromTo(q('values'),{y:18,opacity:0},{y:0,opacity:1,duration:.55,ease:'power3.out'},6.05)
+        .fromTo(q('cta'),{y:20,scale:.96,opacity:0},{y:0,scale:1,opacity:1,duration:.65,ease:'power3.out'},6.65)
+        .fromTo(q('url'),{y:14,opacity:0},{y:0,opacity:1,duration:.5,ease:'power2.out'},7.5)
+        .fromTo(q('support'),{y:12,opacity:0},{y:0,opacity:1,duration:.5,ease:'power2.out'},8.05)
+        .fromTo(q('progress'),{scaleX:.6667},{scaleX:1,duration:10,ease:'none'},0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines['f03-download'] = tl;
+    })();
+  </script>
+</template>
