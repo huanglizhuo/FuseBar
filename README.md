@@ -25,7 +25,7 @@ FuseBar combines battery level, Wi-Fi/hotspot status, and four volume dots that 
 
 ## Download and use
 
-Download [FuseBar 1.1.0 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.1.0/FuseBar-1.1.0-macOS.zip), signed with Developer ID and notarized by Apple. See [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.1.0). The existing Mac App Store submission is under review; this update is released on GitHub only.
+Download the latest published build, [FuseBar 1.0.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-1.0.1-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1). **Version 1.1.0 source and the previews above are ready; its downloadable release is pending Apple signing/notarization.** The existing Mac App Store submission is under review and unchanged; 1.1.0 is planned for GitHub only.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. **English, Simplified Chinese, Japanese, French, and Spanish** are supported. FuseBar follows your Mac’s preferred language list (including regional variants), falling back to English when none match. Chinese variants use Simplified Chinese. Restart FuseBar after changing the system or per-app language.
 
