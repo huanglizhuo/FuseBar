@@ -217,3 +217,57 @@
 "企业或其他认证 · 系统设置" = "Enterprise or other authentication · System Settings";
 "打开 Wi-Fi 设置…" = "Open Wi-Fi settings…";
 "关闭 Wi-Fi 会中断当前无线网络。" = "Turning Wi-Fi off will disconnect your current wireless network.";
+
+// Coding workspace
+"搜索应用…" = "Search apps…";
+"搜索常用安装目录和已固定应用；其他位置可手动添加。" = "Searches common app folders and pinned apps. Add apps from other locations manually.";
+"添加应用" = "Add apps";
+"项目工作台" = "Projects";
+"当前项目" = "Current project";
+"目录" = "Folder";
+"预览" = "Preview";
+"仓库" = "Repository";
+"添加项目入口" = "Add a project";
+"固定与运行应用" = "Pinned and running apps";
+"当前应用" = "Current app";
+"编码工作台" = "Coding workspace";
+"编码布局：优先显示应用和项目" = "Coding layout: apps and projects first";
+"首页包含固定应用" = "Include pinned apps on home";
+"Dock 自动隐藏设置 ↗" = "Dock auto-hide settings ↗";
+"在系统设置中开启自动隐藏 Dock，为代码和预览腾出空间；也可在那里恢复。" = "Enable Dock auto-hide in System Settings to make room for code and previews. Restore it there at any time.";
+"把屏幕留给代码。" = "More room to build.";
+"快速打开快捷键" = "Quick-open shortcut";
+"无法注册快捷键，请重试。" = "Could not register the shortcut. Try again.";
+"请使用至少两个修饰键，并包含 ⌘ 或 ⌃。" = "Use at least two modifiers, including ⌘ or ⌃.";
+"快捷键不可用或已被占用，原快捷键保持不变。" = "Shortcut unavailable or already in use. Your previous shortcut is unchanged.";
+"按下快捷键，Esc 取消" = "Press shortcut; Esc to cancel";
+"录制快捷键" = "Record shortcut";
+"清除" = "Clear";
+"在任何应用中打开或关闭 FuseBar。至少两个修饰键，包含 ⌘ 或 ⌃。" = "Open or close FuseBar from any app. Use at least two modifiers, including ⌘ or ⌃.";
+"项目配置无法读取，请重新添加。" = "Could not read project settings. Add your projects again.";
+"请输入项目名和有效的 HTTP(S) 地址，不可包含账号密码。" = "Enter a project name and valid HTTP(S) URLs without usernames or passwords.";
+"无法保存项目。" = "Could not save the project.";
+"选择项目目录" = "Choose project folder";
+"无法授权目录，请重新选择。" = "Could not authorize the folder. Select it again.";
+"目录授权失效，请编辑项目并重新选择。" = "Folder access expired. Edit the project and select the folder again.";
+"无法打开项目入口，请检查路径或默认应用。" = "Could not open the project entry. Check the path or default app.";
+"新建" = "New";
+"项目名称" = "Project name";
+"移除目录入口" = "Remove folder shortcut";
+"预览地址，例如 http://localhost:3000" = "Preview URL, e.g. http://localhost:3000";
+"仓库地址，例如 https://github.com/…" = "Repository URL, e.g. https://github.com/…";
+"仅打开你保存的入口。不会运行命令、启动服务器或恢复应用会话。" = "Opens saved entries only. No commands, server startup, or app session restoration.";
+"保存" = "Save";
+"移除项目" = "Remove project";
+"移除项目只删除此处配置，不删除文件。" = "Removing a project deletes this configuration only, never your files.";
+"部分项目不是可用的应用。" = "Some items are not valid apps.";
+
+// Input sources
+"输入源" = "Input source";
+"暂无可用输入源" = "No input sources available";
+"输入源未知" = "Unknown input source";
+"切换输入源" = "Switch input source";
+"中心常驻输入法图标" = "Always show the input source in the center";
+"默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "By default, show the icon for 2 seconds after switching, then restore Wi-Fi. Modes within an input method may not be detectable.";
+"无法切换输入源，请重试或使用系统输入菜单。" = "Could not switch input source. Try again or use the system input menu.";
+"未能返回原应用，请重新选择输入源。" = "Could not return to the previous app. Please select the input source again.";

@@ -1,5 +1,7 @@
 # FuseBar launch post — ready, not published
 
+> Historical launch copy for the published 1.0.1 film. The current development UI and workspace features are described in [README](../README.md); this post has not been refreshed or published by the screenshot update.
+
 Account: @huang4fun on X. Attach the reviewed 34-second video before publishing once. Current computer-use connection times out, so the old composer has not been updated and no post has been sent.
 
 Video: https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-launch-v2.mp4

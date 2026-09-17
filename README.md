@@ -1,31 +1,33 @@
 # FuseBar
 
-**Essential Mac status, together in one menu bar icon.** Free, native, and local. Requires macOS 14 or later.
+**More room for code. Your Mac essentials in one menu bar.** Free, native, and local. Requires macOS 14 or later.
 
 <img src="docs/previews/app-icon/default-256.png" alt="FuseBar app icon" width="96" height="96">
 
-FuseBar combines battery level, Wi-Fi/hotspot status, and four volume dots that give way to priority alerts in a compact menu bar entry. Click it to see battery, Wi-Fi, Bluetooth, and audio details or adjust supported output devices' volume. No account, ads, subscription, or analytics.
+FuseBar brings system status, recently used apps, input sources, and project shortcuts into one compact menu bar panel. Enable Dock auto-hide in macOS to make more room for your editor and preview, then use FuseBar to get back to your tools. No account, ads, subscription, or analytics.
 
 ## Preview
 
 [Watch the 34-second FuseBar film](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-launch-v2.mp4).
 
-<img src="docs/previews/status-en.png" alt="FuseBar 1.1 English status panel with running apps and compact shortcuts" width="352">
-<img src="docs/previews/system-en.png" alt="FuseBar 1.1 English system controls panel" width="352">
+<img src="docs/previews/status-en.png" alt="FuseBar status layout with recent apps, input-source selection, and a centered shortcut footer" width="352">
+<img src="docs/previews/coding-en.png" alt="FuseBar coding layout with recent apps, compact system controls, and project links" width="352">
 
 <details>
-<summary>Preferences and first-use guide</summary>
+<summary>Input sources, preferences, projects, and system controls</summary>
 
-<img src="docs/previews/settings-en.png" alt="FuseBar preferences in English" width="352">
-<img src="docs/previews/guide-en.png" alt="FuseBar first-use guide in English" width="352">
+<img src="docs/previews/input-sources-en.png" alt="Input-source selection with native icons and the current selection" width="352">
+<img src="docs/previews/settings-en.png" alt="Coding layout, quick-open shortcut, and input-source display preferences" width="352">
+<img src="docs/previews/projects-en.png" alt="Local project folder, preview, and repository configuration" width="352">
+<img src="docs/previews/system-en.png" alt="System controls and explicit macOS settings handoffs" width="352">
 
 </details>
 
-*Native UI previews of version 1.1.0, rendered with sample status and a local running-app list. These are not live hardware verification captures. The film above shows the earlier icon-fusion design.*
+*Native UI previews of the current development source (1.1.0), rendered with sample status, local running apps, and local input-source names/icons. They are not live hardware verification captures. See the [screenshot index](docs/previews/README.md) for all five interface languages. The film above shows the earlier icon-fusion design.*
 
 ## Download and use
 
-Download the latest published build, [FuseBar 1.0.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-1.0.1-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1). **Version 1.1.0 source and the previews above are ready; its downloadable release is pending Apple signing/notarization.** The existing Mac App Store submission is under review and unchanged; 1.1.0 is planned for GitHub only.
+Download the latest published build, [FuseBar 1.0.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-1.0.1-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1). **The screenshots and features below describe development source, not the published 1.0.1 binary.** A new signed/notarized GitHub release has not been published. This update does not change the existing Mac App Store submission.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. **English, Simplified Chinese, Japanese, French, and Spanish** are supported. FuseBar follows your Mac’s preferred language list (including regional variants), falling back to English when none match. Chinese variants use Simplified Chinese. Restart FuseBar after changing the system or per-app language.
 
@@ -33,7 +35,7 @@ You can manually hide redundant system icons in System Settings → Menu Bar (Co
 
 ## Features
 
-Version 1.1.0 adds five-language support and an expanded control panel.
+Current development source includes:
 
 - Battery ring with charging, low-battery, unknown, and no-internal-battery states.
 - Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon.
@@ -41,11 +43,29 @@ Version 1.1.0 adds five-language support and an expanded control panel.
 - On-demand Wi-Fi scanning and joining supported personal networks, with explicit confirmation. Other authentication methods open System Settings.
 - Optional Bluetooth power and paired-device details; connection, pairing, and power changes open System Settings.
 - Sound output selection, supported mute/volume controls, and immediate CoreAudio updates.
-- Up to two rows of running apps, with an overflow list and pinned favorites.
-- Compact app launcher and Mission Control shortcuts; user-selected files and folders saved as local bookmarks.
+- Up to two rows of pinned and running apps above search, ordered by recent use or launch, with an overflow button for the full list. Recent order stays on your Mac.
+- Input-source selection with native icons. Switching briefly shows the source in the center for two seconds; Settings can keep it visible. Internal input-method modes may not be detectable.
+- Centered footer shortcuts for the app launcher, Mission Control, and files. Settings is at the lower left; help is at the upper right.
+- User-selected files and folders saved as local bookmarks; the parent panel stays open while a system picker is in use.
 - Explicit system handoffs for displays, Focus, AirDrop/Handoff, Desktop & Dock, accessibility, and more.
 - Native SwiftUI/AppKit panel, monochrome menu bar rendering, saved preferences, and user-controlled launch at login.
 - An original layered Liquid Glass app icon built with Apple's Icon Composer.
+
+## Make room for coding
+
+Enable **Coding layout** in Settings for compact status, up to two rows of pinned/running apps above search, and a selected project's folder, preview, and repository links. Pin tools before hiding the Dock so they stay accessible even when closed. Use **Add apps** for tools that are not running, or search common application folders from the home panel.
+
+In **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Escape closes the panel; Escape during recording cancels recording.
+
+Enable Dock auto-hide yourself through the supplied **Dock auto-hide settings** link, and restore it there at any time. Project links open only the entries you save; they do not start servers or restore editor sessions. These features are not in the latest published 1.0.1 release. See the [implementation scope](docs/CODING_WORKSPACE_PLAN.md) and [validation limits](docs/VALIDATION.md).
+
+## Input sources and navigation
+
+Input Source sits alongside Battery, Wi-Fi, Bluetooth, and Sound. Click its row (or its compact button in Coding layout) to choose an enabled input source. The selected source is marked with a check. Its native icon appears in the ring for two seconds after a change; enable **Always show the input source in the center** in Settings to keep it there. Icons follow light/dark appearance and fall back to a language label when unavailable. Switching modes inside a third-party input method may not change the system input source.
+
+App icons are ordered by recent activation or launch, even while the panel is closed. Up to 100 app identifiers are stored locally to preserve that order. Unrecorded running apps use launch time as a fallback; fixed favorites remain available after quitting.
+
+Detail pages currently replace the panel contents and provide a top-left Back button. Side-opening submenus are **planned, not implemented**. Battery currently opens macOS settings.
 
 ## Privacy
 

@@ -1,6 +1,6 @@
 # FuseBar Privacy Policy
 
-Effective September 16, 2026. Developer: Huang Lizhuo.
+Effective September 17, 2026. Developer: Huang Lizhuo.
 
 FuseBar is a free macOS menu bar utility. It has no account, advertising, analytics SDK, or developer-operated backend. FuseBar does not collect or transmit your battery, Wi-Fi, Bluetooth, audio, or location information to the developer or third parties.
 
@@ -20,6 +20,14 @@ Opening support or privacy links launches your browser. GitHub and Apple operate
 
 ## Contact
 
-Contact Huang Lizhuo at lizhuo.huang@outlook.com, or use [GitHub Issues](https://github.com/huanglizhuo/MergeBar/issues).
+Contact Huang Lizhuo at lizhuo.huang@outlook.com, or use [GitHub Issues](https://github.com/huanglizhuo/FuseBar/issues).
 
 Changes to this policy will be published here with an updated effective date.
+
+### Coding workspace preferences
+
+FuseBar stores optional keyboard shortcut settings, pinned application identifiers/bookmarks, and user-created project names, folder bookmarks, and preview/repository URLs locally in app preferences. Application search reads common application directories on demand and does not index project file contents. Opening a saved web address hands it to your default browser; that browser then connects to the destination you configured. Project entries do not run shell commands or start development servers. Removing a project removes its FuseBar configuration, not its files.
+
+FuseBar reads enabled keyboard input sources, their names and icons, and the current selection locally. When you select an input source, it asks macOS to switch to it. FuseBar does not read keystrokes, typed text, or input-method candidates, and does not transmit input-source information.
+
+To sort the app shelf by recent use, FuseBar observes application activation and launch events and stores up to 100 application bundle identifiers in local preferences. It does not store window titles, document contents, or usage durations, and does not upload this ordering.

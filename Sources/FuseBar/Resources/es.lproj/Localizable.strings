@@ -217,3 +217,57 @@
 "企业或其他认证 · 系统设置" = "Autenticación empresarial u otra · Ajustes del Sistema";
 "打开 Wi-Fi 设置…" = "Abrir ajustes de Wi-Fi…";
 "关闭 Wi-Fi 会中断当前无线网络。" = "Desactivar Wi-Fi desconectará tu red inalámbrica actual.";
+
+// Coding workspace
+"搜索应用…" = "Buscar apps…";
+"搜索常用安装目录和已固定应用；其他位置可手动添加。" = "Busca en carpetas habituales y apps fijadas. Añade manualmente las de otras ubicaciones.";
+"添加应用" = "Añadir apps";
+"项目工作台" = "Proyectos";
+"当前项目" = "Proyecto actual";
+"目录" = "Carpeta";
+"预览" = "Vista previa";
+"仓库" = "Repositorio";
+"添加项目入口" = "Añadir un proyecto";
+"固定与运行应用" = "Apps fijadas y abiertas";
+"当前应用" = "App actual";
+"编码工作台" = "Espacio de desarrollo";
+"编码布局：优先显示应用和项目" = "Vista de código: apps y proyectos primero";
+"首页包含固定应用" = "Mostrar apps fijadas en el inicio";
+"Dock 自动隐藏设置 ↗" = "Ocultar el Dock automáticamente ↗";
+"在系统设置中开启自动隐藏 Dock，为代码和预览腾出空间；也可在那里恢复。" = "Oculta el Dock en Ajustes del Sistema para dejar más espacio al código y las vistas previas. Puedes restaurarlo allí.";
+"把屏幕留给代码。" = "Más espacio para crear.";
+"快速打开快捷键" = "Atajo de apertura rápida";
+"无法注册快捷键，请重试。" = "No se pudo registrar el atajo. Inténtalo de nuevo.";
+"请使用至少两个修饰键，并包含 ⌘ 或 ⌃。" = "Usa al menos dos modificadores, incluido ⌘ o ⌃.";
+"快捷键不可用或已被占用，原快捷键保持不变。" = "El atajo no está disponible o ya está en uso. Se conserva el anterior.";
+"按下快捷键，Esc 取消" = "Pulsa el atajo; Esc para cancelar";
+"录制快捷键" = "Grabar atajo";
+"清除" = "Borrar";
+"在任何应用中打开或关闭 FuseBar。至少两个修饰键，包含 ⌘ 或 ⌃。" = "Abre o cierra FuseBar desde cualquier app. Usa dos modificadores como mínimo, incluido ⌘ o ⌃.";
+"项目配置无法读取，请重新添加。" = "No se pudo leer la configuración. Añade los proyectos de nuevo.";
+"请输入项目名和有效的 HTTP(S) 地址，不可包含账号密码。" = "Introduce un nombre y URL HTTP(S) válidas sin usuario ni contraseña.";
+"无法保存项目。" = "No se pudo guardar el proyecto.";
+"选择项目目录" = "Elegir carpeta del proyecto";
+"无法授权目录，请重新选择。" = "No se pudo autorizar la carpeta. Selecciónala de nuevo.";
+"目录授权失效，请编辑项目并重新选择。" = "El acceso a la carpeta ha caducado. Edita el proyecto y selecciónala de nuevo.";
+"无法打开项目入口，请检查路径或默认应用。" = "No se pudo abrir el acceso. Comprueba la ruta o la app predeterminada.";
+"新建" = "Nuevo";
+"项目名称" = "Nombre del proyecto";
+"移除目录入口" = "Quitar acceso a la carpeta";
+"预览地址，例如 http://localhost:3000" = "URL de vista previa, p. ej. http://localhost:3000";
+"仓库地址，例如 https://github.com/…" = "URL del repositorio, p. ej. https://github.com/…";
+"仅打开你保存的入口。不会运行命令、启动服务器或恢复应用会话。" = "Solo abre accesos guardados. No ejecuta comandos, inicia servidores ni restaura sesiones.";
+"保存" = "Guardar";
+"移除项目" = "Quitar proyecto";
+"移除项目只删除此处配置，不删除文件。" = "Quitar un proyecto solo elimina esta configuración, nunca tus archivos.";
+"部分项目不是可用的应用。" = "Algunos elementos no son apps válidas.";
+
+// Input sources
+"输入源" = "Fuente de entrada";
+"暂无可用输入源" = "No hay fuentes de entrada disponibles";
+"输入源未知" = "Fuente de entrada desconocida";
+"切换输入源" = "Cambiar fuente de entrada";
+"中心常驻输入法图标" = "Mostrar siempre la fuente de entrada en el centro";
+"默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "Por defecto, el icono se muestra 2 segundos al cambiar y luego vuelve el Wi-Fi. Los modos internos pueden no detectarse.";
+"无法切换输入源，请重试或使用系统输入菜单。" = "No se pudo cambiar la fuente de entrada. Inténtalo de nuevo o usa el menú de entrada del sistema.";
+"未能返回原应用，请重新选择输入源。" = "No se pudo volver a la app anterior. Selecciona la fuente de entrada de nuevo.";

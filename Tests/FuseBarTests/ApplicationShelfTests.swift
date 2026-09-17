@@ -2,6 +2,36 @@ import XCTest
 @testable import FuseBar
 
 final class ApplicationShelfTests: XCTestCase {
+    func testRecentOrderMergesPinnedAndRunningWithoutDuplicates() {
+        let pinned = ShelfApplication(id: "pin", name: "Pin", url: nil, running: false)
+        let editor = ShelfApplication(id: "editor", name: "Editor", url: nil, running: true)
+        let browser = ShelfApplication(id: "browser", name: "Browser", url: nil, running: true)
+        let recent = ["browser", "gone", "editor", "browser", "pin"]
+        XCTAssertEqual(ApplicationShelfModel.home(favorites: [pinned, editor], running: [editor, browser],
+            includeFavorites: true, recentIDs: recent).map(\.id), ["browser", "editor", "pin"])
+        XCTAssertEqual(ApplicationShelfModel.home(favorites: [pinned], running: [editor, browser],
+            includeFavorites: false, recentIDs: recent).map(\.id), ["browser", "editor"])
+        XCTAssertEqual(ApplicationShelfModel.recent([editor, browser, pinned], ids: ["browser"]).map(\.id), ["browser", "editor", "pin"])
+    }
+
+    @MainActor func testRecentUsePersistsAndIgnoresFuseBarAndRefresh() throws {
+        let suite = "FuseBarTests.Recency.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let shelf = ApplicationShelf(defaults: defaults)
+        shelf.recordRecentApplication("editor")
+        shelf.recordRecentApplication("browser")
+        shelf.recordRecentApplication("editor")
+        shelf.recordRecentApplication(Bundle.main.bundleIdentifier!)
+        shelf.recordRecentApplication("")
+        shelf.refresh()
+        XCTAssertEqual(shelf.recentIDs, ["editor", "browser"])
+        XCTAssertEqual(ApplicationShelf(defaults: defaults).recentIDs, ["editor", "browser"])
+        for index in 0..<110 { shelf.recordRecentApplication("app.\(index)") }
+        XCTAssertEqual(shelf.recentIDs.count, 100)
+        XCTAssertEqual(shelf.recentIDs.first, "app.109")
+    }
+
     func testCompactGridBoundaryAndOverflowSlot() {
         let apps = (0..<13).map { ShelfApplication(id: "app.\($0)", name: "App \($0)", url: nil, running: true) }
         XCTAssertEqual(ApplicationShelfModel.compact(Array(apps.prefix(6))).apps.count, 6)

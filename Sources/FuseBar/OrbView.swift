@@ -41,15 +41,17 @@ struct OrbView: View {
     var preferences = IndicatorPreferences()
     // Menu-bar templates need opaque mask ink; content views retain semantic color.
     var ink: Color = .primary
+    var emphasized = false
+    var inputSource: KeyboardSource?
 
     var body: some View {
         Canvas { context, size in
             let scale = min(size.width, size.height) / 22
             context.scaleBy(x: scale, y: scale)
             func symbol(_ name: String, x: CGFloat, y: CGFloat, size: CGFloat,
-                        value: Double? = nil, weight: Font.Weight = .semibold) {
+                        value: Double? = nil, weight: Font.Weight? = nil) {
                 let glyph = Text(Image(systemName: name, variableValue: value).symbolRenderingMode(.monochrome))
-                    .font(.system(size: size, weight: weight)).foregroundStyle(ink)
+                    .font(.system(size: size, weight: weight ?? (emphasized ? .bold : .semibold))).foregroundStyle(ink)
                 context.draw(glyph, at: CGPoint(x: x, y: y))
             }
             func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
@@ -58,7 +60,7 @@ struct OrbView: View {
                 path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
                             startAngle: .degrees(130), endAngle: .degrees(130 + 280 * fraction), clockwise: false)
                 context.stroke(path, with: .color(ink.opacity(opacity)),
-                               style: StrokeStyle(lineWidth: 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
+                               style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
             }
             if preferences.battery {
                 switch snapshot.battery.availability {
@@ -69,7 +71,15 @@ struct OrbView: View {
                 case .unavailable: break
                 }
             }
-            if preferences.wifi {
+            if let inputSource {
+                if let icon = inputSource.templateIcon?.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+                    var glyph = context.resolve(Image(decorative: icon, scale: 1).renderingMode(.template))
+                    glyph.shading = .color(ink)
+                    context.draw(glyph, in: CGRect(x: 7.5, y: 6.5, width: 7, height: 7))
+                } else {
+                    context.draw(Text(inputSource.fallback).font(.system(size: 6, weight: .semibold)).foregroundStyle(ink), at: CGPoint(x: 11, y: 10))
+                }
+            } else if preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
                     symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: snapshot.wifi.hotspotStyle ? 6.5 : 8,
@@ -98,7 +108,7 @@ struct OrbView: View {
                     }
                 }
             }
-            if !preferences.wifi && (!preferences.battery || snapshot.battery.availability == .unavailable) {
+            if inputSource == nil && !preferences.wifi && (!preferences.battery || snapshot.battery.availability == .unavailable) {
                 // A stable neutral anchor keeps the app reachable even when all indicators are off.
                 symbol("circle", x: 11, y: 10, size: 9, weight: .regular)
             }

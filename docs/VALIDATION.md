@@ -174,3 +174,83 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - README now uses English 1.1.0 native previews. App Store submission/build/forms were not modified. Intel/older macOS runtime and live network switching remain unverified as recorded above.
 
 - Universal Release archive succeeded (`arm64 x86_64`). Developer ID export was attempted three times: Apple timestamp service unavailable twice; Xcode account request failed once with NSURLError -1009 on an expensive/constrained hotspot path. Plain HTTPS connectivity to Apple succeeded. No 1.1.0 release asset has been published or claimed notarized. Awaiting authorization to temporarily disable Low Data Mode, then retry signing/notarization and restore the setting.
+
+## Vibe Coding workspace (2026-09-17, development build)
+
+- Implemented configurable Carbon global hotkey registration with exclusive conflict detection, enabled system-shortcut checks, persisted key code/modifiers, transactional replacement, clear/release and restart registration. Recorder uses local focused AppKit events; no Accessibility/Input Monitoring permission added. Escape cancels recording; recorded function/arrow keys have readable labels. Empty search Return does not launch an invisible result.
+- Added optional coding layout, pinned+running home shelf, app picker with read-only scoped bookmarks, bounded common-directory app discovery, search with arrow/Return handlers, shared home context actions and frontmost-app indication. Fixed favorites remain present when stopped. Existing running items retain relative order; removal still compacts the running section and is not a claim that every running slot is immovable.
+- Added local project name/folder/preview/repository editing and selection. Only HTTP(S) web entries without embedded credentials; folder access requires explicit selection and read-only bookmark. Remove changes local configuration only. No shell execution, server startup, window restoration or automatic Dock preference changes.
+- 40 tests passed: existing status/localization coverage plus merged shelf overflow/stability, project validation/persistence/removal, shortcut encoding/validation, native recorder capture/cancellation, real Carbon registration conflict/release/re-registration, and an application-target Carbon hotkey event invoking the callback once while ignoring an unknown ID. The last test is event dispatch, not a physical keyboard event.
+- Native offscreen production views rendered in five languages. Inspected coding home in English/Japanese, shortcut settings in English/French, project editor in English/Spanish; guide/settings use bounded scroll regions. `docs/previews/coding/` uses sample status/project and a local app list, not live hardware verification.
+- Development build installed in /Applications/FuseBar.app with a backup under /private/tmp/FuseBar-before-coding.*; strict signature verification passed. Computer Use could not read this menu-bar app (timeout); physical hotkey delivery, full-screen/multiple-display behavior, keyboard selection/focus restoration, actual folder picker/bookmark reopening and complete Dock-free workflow remain manual acceptance items. No claim of complete runtime verification.
+- App Store and public GitHub release were not changed. The existing release signing/network blocker remains separate from this development work.
+
+### 2026-09-17 — 横向应用栏与文件选择器修复
+
+- 首页两种布局均改为搜索框上方的单行水平滚动应用栏，无 12 项截断；13 个固定应用的顺序/完整性测试通过。System 首页快捷按钮移除，设置保留系统功能入口。
+- 回归测试经真实 `FileShortcuts.add` 调用路径，注入返回取消的 NSOpenPanel 替身，在 runModal 期间发送 AppKit 失活通知，监测 NSPopover.performClose 请求。修复前出现 3 个断言失败；修复后保持弹窗，取消后正常关闭。该测试验证真实通知/关闭监听，不代表实机鼠标点击系统文件选择器的端到端验证。
+- 原因：失活监听直接关闭弹窗，全局点击监听也没有系统选择器生命周期保护。三个选择器统一采用显式 presentation scope，关闭监听及快捷键/状态按钮均尊重该状态。
+- `zsh Scripts/test.sh`：41 项测试、0 失败（/private/tmp/fusebar-panel-green.log）。`zsh Scripts/build.sh`：BUILD SUCCEEDED。
+- 原生离屏视图渲染完成五语页面；检查英文编码首页与中文状态首页，单行应用位于搜索上方且无 System 快捷按钮。示例状态属于预览，非实时硬件证据。
+
+### 2026-09-17 — 恢复两行应用栏
+
+- 按用户调整恢复六列、最多两行，位置仍在搜索框上方。超过 12 项时前 11 项加省略号进入完整应用页，保留固定/运行筛选。System 快捷按钮移除和文件选择器修复未改动。
+- `zsh Scripts/build.sh` 成功；五语原生离屏预览生成完成，检查英文编码首页确认六列换行且搜索框位于应用栏下方。此轮为布局调整，未新增测试或重复运行全套测试。
+- 开发构建通过严格签名检查并替换 `/Applications/FuseBar.app`，已重新启动。
+
+### 2026-09-17 — 标题栏快捷按钮与菜单栏加粗
+
+- 构建成功（/private/tmp/fusebar-header-build.log），`git diff --check` 通过。此次布局/绘制参数调整未新增测试。
+- 五语原生离屏预览生成，检查英文编码页确认标题右侧四个无文字图标、底部无重复快捷入口、两行应用栏保留。悬停名称使用 SwiftUI help，尚未进行实机鼠标悬停验收。
+- 菜单栏渲染显式启用 emphasized：外环 1.7 pt、默认中心符号 bold；22 pt 画布与位置不变，详情图标保留原笔画。
+- 开发构建及安装后的应用严格签名验证通过，已替换并启动本机 /Applications/FuseBar.app。
+
+### 2026-09-17 — 设置回到底部、移除读取/刷新行
+
+- Settings 从顶部移至左下角，保留 ⌘,；移除状态页读取说明与刷新按钮，保留自动刷新。
+- `zsh Scripts/build.sh` 成功；五语离屏预览生成完成，检查英文状态首页确认顶部三个图标、左下设置、声音滑块后直接为页脚。纯布局修改未新增/重跑单元测试。
+- 构建与安装后严格签名检查通过，已替换并启动本机 FuseBar。
+
+### 2026-09-17 — 输入源图标、切换与显示模式
+
+- 独立 Apple Development 签名 `.app` 验证程序使用与 FuseBar 相同沙箱权限。本机 ABC、Hiragana、微信输入法均读取并解码原生图标成功。`TISSelectInputSource` 实际切换返回 0、读回匹配，恢复原输入源返回 0、读回匹配。证据：`/private/tmp/fusebar-input-sandbox-verification.log`。未修改系统已启用的输入源集合。
+- 通知与显示逻辑：仅输入源 ID 变化触发两秒展示，重复刷新不延长，连续变化延长到最新一次；常驻设置持久化。失败读回不伪装成功。单元测试覆盖时间边界、未知值、语言回退、设置恢复和拒绝切换。
+- 实际图标预览发现 Canvas 中 NSImage 模板中心空白；改为 CoreGraphics 单色透明度掩码及 CGImage 绘制，保留白色镂空。新增回归测试确认白色镂空透明、Orb 中心确实有图案；原生三输入源预览已目视检查。
+- 最新完整测试日志 `/private/tmp/fusebar-input-final-tests.log`；46 项测试全部通过。五语界面预览包含样例系统状态与本机真实输入源名称/图标，不标记为实时菜单栏截图。
+- 电脑控制 `getApp('/Applications/FuseBar.app')` 返回 timeoutReached，尚未完成原生鼠标选择、输入中候选框、跨应用焦点恢复的端到端验收。实际沙箱切换成功不等同于上述交互场景均已验证。
+- 不读取按键、正文或候选内容；输入法内部 Shift 中英文模式未承诺检测。ABC 使用公开但已弃用的 IconRef 图像转换作为兼容路径，不调用私有 API。
+- 最终 `zsh Scripts/build.sh` 成功，构建及安装后严格签名检查通过；已备份旧应用、替换 `/Applications/FuseBar.app` 并确认新进程启动。未 push、未发布 GitHub 或 App Store。
+
+### 2026-09-17 — 输入源 light/dark 主题修复
+
+- 可重复渲染测试复现：InputSourceGlyph 在 dark 环境中心像素仍为黑色（redComponent=0，预期 >0.8）。原因是弹窗与菜单项直接使用第三方原始黑色图片，未采用模板着色。圆环输出的最终 isTemplate 标记仍存在。
+- 弹窗图标改用 CGImage 模板与语义 primary；原生输入源菜单项使用 templateIcon，交由菜单适配外观及高亮。
+- `zsh Scripts/test.sh`：47 项、0 失败，含明暗图标与 Orb 中心颜色回归；`zsh Scripts/build.sh` 成功，git diff --check 通过。
+- 目视检查本机 ABC、Hiragana、微信输入法的明暗原生离屏图谱：暗底亮图、亮底暗图，镂空保留。未改变用户系统主题；这些是渲染验证，不是实际 NSStatusBar 壁纸/高亮的端到端截图。
+
+### 2026-09-17 — 缩小输入法图标
+
+- 圆环中心图案由 9 pt 缩至 7 pt；输入源行、原生菜单图片逻辑尺寸与 SwiftUI frame 统一限制为 14 pt。保持单色模板与中心位置。
+- 构建、严格签名检查及 git diff --check 通过。重新生成五语预览及明暗图谱，目视检查深色图谱确认更小的图案与间距。此次纯尺寸调整未新增/重跑单元测试。
+- 已替换并启动本机 FuseBar；原生菜单鼠标展开未作端到端验证。
+
+### 2026-09-17 — 固定与运行应用按最近使用排序
+
+- 首页合并列表按最近激活/启动置顶，固定应用仍保留，去重后维持两行/溢出规则；无记录运行应用按 launchDate 补齐。监听由弹窗生命周期移至 AppDelegate 启动/退出，FuseBar 自身和非 regular 应用不记入。
+- 仅本机保存最多 100 个 bundle ID，普通 refresh 不改写记录。新增测试覆盖固定/运行混合排序、重复/失效 ID、重新激活置顶、持久恢复、忽略自身、刷新稳定与记录上限。
+- `zsh Scripts/test.sh`：49 项、0 失败（/private/tmp/fusebar-recency-tests.log）；构建、严格签名检查及 git diff --check 通过。已替换本机应用并确认新进程运行。
+- 未模拟用户跨应用鼠标切换；上述事件监听生命周期经代码审查，排序与保存经自动化测试。既往未记录的激活历史无法从系统补取，不宣称重建历史使用顺序。
+
+### 2026-09-17 — 输入源状态行与底栏重排
+
+- Input Source 标准布局与其他状态行保持相同文字大小、图标列宽、上下间距与分隔线；编码布局同排显示。选择源改为二级列表，仍调用既有选择/焦点恢复流程。
+- 底栏使用独立居中布局放置 Apps/Windows/Files，左右为设置图标及 Quit；帮助位于右上角。设置快捷键与悬停/辅助标签保留。
+- 构建与 git diff --check 通过。五语离屏预览生成完成，目视检查英文标准、编码首页与输入源二级页：无重叠，居中按钮正确，当前源勾选可见。此次 UI 调整未新增/重复运行单元测试；未声称原生鼠标端到端验证。
+
+### 2026-09-17 — 源码推送前截图与文档同步
+
+- 重新运行 `Scripts/render-readme-previews.sh docs/previews`，生成九个页面 × 五种语言，共 45 张页面预览及两张输入源明暗图谱。检查英文标准/编码首页，全部文件生成成功；README、截图索引与主要文档相对链接校验通过。
+- README 改为当前开发版定位、实际底栏/输入源/应用排序/快捷键/项目行为，增加截图索引；工作台定义、产品计划、能力说明、隐私政策同步。历史发布文案与商店素材明确为旧版；不更新 App Store 表单。
+- 已通过 `gh release view` 核实当前公开版本仍为 v1.0.1。侧边子菜单尚未实现，明确标记为计划，不以假截图描述完成。
+- 最新完整测试：49 项、0 失败（/private/tmp/fusebar-push-tests.log）；之前同一应用源码的构建与签名验证通过。此轮不创建 release/tag，仅提交并 push 开发源码和文档。

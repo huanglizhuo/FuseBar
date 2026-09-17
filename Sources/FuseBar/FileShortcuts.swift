@@ -18,14 +18,13 @@ final class FileShortcuts: ObservableObject {
         items = defaults.data(forKey: "fileShortcuts").flatMap { try? JSONDecoder().decode([FileShortcut].self, from: $0) } ?? []
     }
 
-    func add() {
-        let panel = NSOpenPanel()
+    func add(panel: NSOpenPanel = NSOpenPanel()) {
         panel.title = L("添加文件或文件夹到 FuseBar")
         panel.prompt = L("添加")
         panel.canChooseDirectories = true
         panel.canChooseFiles = true
         panel.allowsMultipleSelection = true
-        guard panel.runModal() == .OK else { return }
+        guard SystemPanelPresentation.shared.run(panel) == .OK else { return }
         do {
             var additions: [FileShortcut] = []
             for url in panel.urls {
