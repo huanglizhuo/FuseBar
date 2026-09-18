@@ -14,6 +14,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
             defaults.set(preferences.wifi, forKey: "showWiFi")
             defaults.set(preferences.bluetooth, forKey: "showBluetooth")
             defaults.set(preferences.sound, forKey: "showSound")
+            defaults.set(preferences.center.rawValue, forKey: "centerIndicator")
         }
     }
     @Published private(set) var networkNameAccess: NetworkNameAccess = .unknown
@@ -45,7 +46,8 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         self.demo = demo
         defaults.register(defaults: ["showBattery": true, "showWiFi": true, "showBluetooth": true, "showSound": true])
         preferences = IndicatorPreferences(battery: defaults.bool(forKey: "showBattery"), wifi: defaults.bool(forKey: "showWiFi"),
-                                           bluetooth: defaults.bool(forKey: "showBluetooth"), sound: defaults.bool(forKey: "showSound"))
+                                           bluetooth: defaults.bool(forKey: "showBluetooth"), sound: defaults.bool(forKey: "showSound"),
+                                           center: CenterIndicator(rawValue: defaults.string(forKey: "centerIndicator") ?? "") ?? .network)
         super.init()
         if demo { snapshot = .normal; return }
         let locationManager = CLLocationManager()

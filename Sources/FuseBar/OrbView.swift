@@ -79,7 +79,9 @@ struct OrbView: View {
                 } else {
                     context.draw(Text(inputSource.fallback).font(.system(size: 6, weight: .semibold)).foregroundStyle(ink), at: CGPoint(x: 11, y: 10))
                 }
-            } else if preferences.wifi {
+            } else if preferences.center == .sound && preferences.sound {
+                symbol(StatusSymbols.sound(snapshot.sound), x: 11, y: 10, size: 7)
+            } else if preferences.center == .network && preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
                     symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: snapshot.wifi.hotspotStyle ? 6.5 : 8,
@@ -108,7 +110,7 @@ struct OrbView: View {
                     }
                 }
             }
-            if inputSource == nil && !preferences.wifi && (!preferences.battery || snapshot.battery.availability == .unavailable) {
+            if inputSource == nil && !preferences.centerEnabled && (!preferences.battery || snapshot.battery.availability == .unavailable) {
                 // A stable neutral anchor keeps the app reachable even when all indicators are off.
                 symbol("circle", x: 11, y: 10, size: 9, weight: .regular)
             }

@@ -271,3 +271,31 @@
 "默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "Par défaut, l’icône apparaît pendant 2 secondes après le changement, puis le Wi-Fi revient. Les modes internes peuvent ne pas être détectés.";
 "无法切换输入源，请重试或使用系统输入菜单。" = "Impossible de changer de source de saisie. Réessayez ou utilisez le menu de saisie du système.";
 "未能返回原应用，请重新选择输入源。" = "Impossible de revenir à l’application précédente. Sélectionnez à nouveau la source de saisie.";
+
+"关闭子菜单" = "Fermer le sous-menu";
+
+"搜索应用与操作…" = "Rechercher apps et actions…";
+
+"操作" = "Action";
+
+"最近操作" = "Actions récentes";
+
+"已选择" = "Sélectionné";
+
+"没有匹配结果" = "Aucun résultat";
+
+"↑↓ 选择 · Return 打开" = "↑↓ Choisir · Entrée Ouvrir";
+
+"已开启" = "Activé";
+
+"已关闭" = "Désactivé";
+
+"默认中心图标" = "Icône centrale par défaut";
+
+"网络连接" = "Connexion réseau";
+
+"网络状态与提醒" = "État et alertes réseau";
+
+"声音状态与音量" = "État sonore et volume";
+
+"切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。" = "Après un changement de source de saisie, son icône apparaît pendant 2 secondes, puis l’icône centrale choisie revient. L’affichage permanent de la source de saisie est prioritaire.";

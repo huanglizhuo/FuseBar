@@ -18,6 +18,10 @@ final class FileShortcuts: ObservableObject {
         items = defaults.data(forKey: "fileShortcuts").flatMap { try? JSONDecoder().decode([FileShortcut].self, from: $0) } ?? []
     }
 
+    func reload() {
+        items = defaults.data(forKey: "fileShortcuts").flatMap { try? JSONDecoder().decode([FileShortcut].self, from: $0) } ?? []
+    }
+
     func add(panel: NSOpenPanel = NSOpenPanel()) {
         panel.title = L("添加文件或文件夹到 FuseBar")
         panel.prompt = L("添加")

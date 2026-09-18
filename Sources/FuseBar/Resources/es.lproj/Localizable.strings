@@ -271,3 +271,31 @@
 "默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "Por defecto, el icono se muestra 2 segundos al cambiar y luego vuelve el Wi-Fi. Los modos internos pueden no detectarse.";
 "无法切换输入源，请重试或使用系统输入菜单。" = "No se pudo cambiar la fuente de entrada. Inténtalo de nuevo o usa el menú de entrada del sistema.";
 "未能返回原应用，请重新选择输入源。" = "No se pudo volver a la app anterior. Selecciona la fuente de entrada de nuevo.";
+
+"关闭子菜单" = "Cerrar submenú";
+
+"搜索应用与操作…" = "Buscar apps y acciones…";
+
+"操作" = "Acción";
+
+"最近操作" = "Acciones recientes";
+
+"已选择" = "Seleccionado";
+
+"没有匹配结果" = "Sin resultados";
+
+"↑↓ 选择 · Return 打开" = "↑↓ Elegir · Intro Abrir";
+
+"已开启" = "Activado";
+
+"已关闭" = "Desactivado";
+
+"默认中心图标" = "Icono central predeterminado";
+
+"网络连接" = "Conexión de red";
+
+"网络状态与提醒" = "Estado y avisos de red";
+
+"声音状态与音量" = "Estado del sonido y volumen";
+
+"切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。" = "Al cambiar la fuente de entrada, su icono aparece durante 2 segundos y luego vuelve el icono central elegido. La visualización permanente de la fuente de entrada tiene prioridad.";

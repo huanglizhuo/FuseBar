@@ -83,11 +83,15 @@ struct SoundStatus: Equatable {
     }
 }
 
+enum CenterIndicator: String, CaseIterable { case network, sound }
+
 struct IndicatorPreferences: Equatable {
     var battery = true
     var wifi = true
     var bluetooth = true
     var sound = true
+    var center: CenterIndicator = .network
+    var centerEnabled: Bool { center == .network ? wifi : sound }
     var anyEnabled: Bool { battery || wifi || sound }
 }
 

@@ -12,13 +12,16 @@ struct FuseBarApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var item: NSStatusItem?
     private let popover: NSPopover
+    private let sideSubmenu: SideSubmenu
 
     override init() {
         popover = NSPopover()
+        sideSubmenu = .shared
         super.init()
     }
 
-    init(popover: NSPopover) {
+    init(popover: NSPopover, sideSubmenu: SideSubmenu? = nil) {
+        self.sideSubmenu = sideSubmenu ?? .shared
         self.popover = popover
         super.init()
     }
@@ -68,6 +71,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        sideSubmenu.close()
         removeDismissalMonitors()
         GlobalShortcut.shared.stop()
         ApplicationShelf.shared.stop()
@@ -76,33 +80,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         store?.stop()
     }
 
-    func popoverDidClose(_ notification: Notification) { removeDismissalMonitors() }
+    func popoverDidClose(_ notification: Notification) { sideSubmenu.close(); removeDismissalMonitors() }
 
     func installDismissalMonitors() {
         removeDismissalMonitors()
-        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
             // AppKit invokes event monitors on the main thread. No deferred stale close action.
             MainActor.assumeIsolated {
-                guard let self, !SystemPanelPresentation.shared.isPresenting, NSApp.modalWindow == nil, !self.mouseIsOverStatusButton else { return }
-                self.popover.performClose(nil)
+                guard let self, !self.mouseIsOverStatusButton else { return }
+                self.closeAllMenus()
             }
         }
-        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .keyDown]) { [weak self] event in
+        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown]) { [weak self] event in
             let consume = MainActor.assumeIsolated {
-                guard let self, !SystemPanelPresentation.shared.isPresenting else { return false }
+                guard let self else { return false }
                 if event.type == .keyDown {
+                    guard !SystemPanelPresentation.shared.isPresenting else { return false }
                     if event.keyCode == 53, NSApp.modalWindow == nil,
                        (event.window?.firstResponder as? RecordingButton)?.recording != true {
-                        self.dismissAndRestoreFocus()
+                        self.dismissInnermostPanel()
                         return true
                     }
                     return false
                 }
                 // The status button owns its own toggle. Never dismiss it in this monitor first.
                 if self.mouseIsOverStatusButton { return false }
-                if event.window !== self.popover.contentViewController?.view.window, NSApp.modalWindow == nil {
-                    self.popover.performClose(nil)
-                }
+                self.dismissForOutsideClick(window: event.window)
                 return false
             }
             return consume ? nil : event
@@ -111,9 +114,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                                                                      object: NSApp, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard !SystemPanelPresentation.shared.isPresenting, NSApp.modalWindow == nil else { return }
-                self?.popover.performClose(nil)
+                self?.closeAllMenus()
             }
         }
+    }
+
+    func dismissForOutsideClick(window: NSWindow?) {
+        let rootWindow = popover.contentViewController?.view.window
+        if let window, window === rootWindow || sideSubmenu.contains(window) { return }
+        closeAllMenus()
+    }
+
+    func closeAllMenus() {
+        sideSubmenu.close()
+        popover.performClose(nil)
+        removeDismissalMonitors()
+    }
+
+    private func restorePreviousApplication() {
+        guard let target = previousApplication, !target.isTerminated,
+              target.bundleIdentifier != Bundle.main.bundleIdentifier else { return }
+        NSApp.yieldActivation(to: target)
+        target.activate(options: [])
     }
 
     private var mouseIsOverStatusButton: Bool {
@@ -157,25 +179,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     private func selectInputSource(_ id: String) {
-        let target = previousApplication
         inputSelection?.cancel()
-        dismissAndRestoreFocus()
+        closeAllMenus()
         inputSelection = Task { @MainActor [weak self] in
             guard let self else { return }
-            if let target, !target.isTerminated {
-                for _ in 0..<20 {
-                    if NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processIdentifier { break }
-                    try? await Task.sleep(nanoseconds: 25_000_000)
-                    guard !Task.isCancelled else { return }
-                }
-                guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processIdentifier else {
-                    self.store?.errorMessage = L("未能返回原应用，请重新选择输入源。")
-                    self.togglePanel(focusSearch: false)
-                    return
-                }
-            }
-            guard !Task.isCancelled else { return }
-            if !self.inputSources.select(id) {
+            let result = await InputSourceSelection.perform(restoreFocus: {
+                self.restorePreviousApplication()
+            }, select: {
+                self.inputSources.select(id)
+            })
+            if result == false {
                 self.store?.errorMessage = self.inputSources.error
                 self.togglePanel(focusSearch: false)
             }
@@ -185,9 +198,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     @objc private func togglePopover() { togglePanel(focusSearch: false) }
 
     private func togglePanel(focusSearch: Bool) {
+        if popover.isShown || sideSubmenu.isShown { dismissAndRestoreFocus(); return }
         guard !SystemPanelPresentation.shared.isPresenting, NSApp.modalWindow == nil, let button = item?.button else { return }
-        if popover.isShown { dismissAndRestoreFocus() }
-        else {
+        do {
             if let frontmost = NSWorkspace.shared.frontmostApplication, frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
                 previousApplication = frontmost
             }
@@ -203,10 +216,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
     }
 
+    func dismissInnermostPanel() {
+        if sideSubmenu.isShown { sideSubmenu.close(restoreParent: true) }
+        else { dismissAndRestoreFocus() }
+    }
+
     private func dismissAndRestoreFocus() {
         let restore = NSApp.isActive
-        popover.performClose(nil)
-        if restore { previousApplication?.activate(options: []) }
+        closeAllMenus()
+        if restore { restorePreviousApplication() }
     }
 
     private func performQuickAction(_ action: QuickAction) {
@@ -218,7 +236,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     private func openApplication(_ url: URL, title: String) {
-        popover.performClose(nil)
+        closeAllMenus()
         Task { @MainActor [weak self] in
             let scoped = url.startAccessingSecurityScopedResource()
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }

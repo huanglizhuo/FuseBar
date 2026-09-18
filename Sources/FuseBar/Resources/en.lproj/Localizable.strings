@@ -271,3 +271,31 @@
 "默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "By default, show the icon for 2 seconds after switching, then restore Wi-Fi. Modes within an input method may not be detectable.";
 "无法切换输入源，请重试或使用系统输入菜单。" = "Could not switch input source. Try again or use the system input menu.";
 "未能返回原应用，请重新选择输入源。" = "Could not return to the previous app. Please select the input source again.";
+
+"关闭子菜单" = "Close submenu";
+
+"搜索应用与操作…" = "Search apps and actions…";
+
+"操作" = "Action";
+
+"最近操作" = "Recent actions";
+
+"已选择" = "Selected";
+
+"没有匹配结果" = "No matching results";
+
+"↑↓ 选择 · Return 打开" = "↑↓ Select · Return Open";
+
+"已开启" = "On";
+
+"已关闭" = "Off";
+
+"默认中心图标" = "Default center icon";
+
+"网络连接" = "Network connection";
+
+"网络状态与提醒" = "Network status and alerts";
+
+"声音状态与音量" = "Sound status and volume";
+
+"切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。" = "After switching input sources, show its icon for 2 seconds, then restore the selected center icon. Always-show input source takes priority.";

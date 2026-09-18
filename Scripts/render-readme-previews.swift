@@ -37,21 +37,26 @@ struct ReadmePreviews {
                 try data.write(to: output.appendingPathComponent(file))
             }
         }
-        for (name, page) in [("status", PopoverView.Page.status), ("settings", .settings),
-                             ("guide", .guide), ("wifi", .wifi), ("sound", .sound), ("system", .system), ("coding", .status), ("projects", .projects), ("input-sources", .inputSources)] {
+        var pages: [(String, PopoverView.Page)] = [("status", .status), ("settings", .settings),
+            ("guide", .guide), ("wifi", .wifi), ("sound", .sound), ("system", .system),
+            ("coding", .status), ("projects", .projects), ("input-sources", .inputSources)]
+        if L10n.language == "en" { pages += [("status-dark", .status), ("search", .status), ("search-empty", .status), ("recent", .status)] }
+        for (name, page) in pages {
+            let dark = name == "status-dark"
+            defaults.set(name == "recent" ? ["action:sound", "action:settings", "action:files"] : [], forKey: "menuRecentActions")
             defaults.set(name == "coding", forKey: "codingLayout")
             let projects = CodingProjects(defaults: defaults)
             if projects.items.isEmpty { projects.save(CodingProject(name: "FuseBar", preview: "http://localhost:3000", repository: "https://github.com/huanglizhuo/FuseBar")) }
-            let content = PopoverView(store: store, initialPage: page, preview: true,
+            let content = PopoverView(store: store, initialPage: page, preview: true, initialQuery: name == "search" ? "Wi-Fi" : name == "search-empty" ? "zz-no-match" : "", isSubmenu: [.wifi, .sound, .inputSources].contains(page), focusSearch: name == "recent",
                                       onQuickAction: { _ in }, onOpenApplication: { _ in }, shelf: shelf)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(16).background(Color(nsColor: .windowBackgroundColor))
-                .environment(\.colorScheme, .light)
+                .environment(\.colorScheme, dark ? .dark : .light)
             let hosting = NSHostingView(rootView: content)
             let size = hosting.fittingSize
             let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: .borderless,
                                   backing: .buffered, defer: false)
-            window.appearance = NSAppearance(named: .aqua)
+            window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
             window.contentView = hosting
             hosting.setFrameSize(size)
             RunLoop.main.run(until: Date().addingTimeInterval(0.15))
@@ -62,6 +67,31 @@ struct ReadmePreviews {
             hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
             try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name)-\(L10n.language).png"))
             print("\(L10n.language) \(name): \(size)")
+        }
+        defaults.removeObject(forKey: "menuRecentActions")
+        if L10n.language == "en" {
+            defaults.set(false, forKey: "codingLayout")
+            for (name, page) in [("battery", PopoverView.Page.battery), ("wifi", .wifi), ("sound", .sound), ("input-sources", .inputSources)] {
+                // Composed offscreen layout preview, not evidence of live popover placement.
+                let content = HStack(alignment: .top, spacing: 12) {
+                    PopoverView(store: store, preview: true, onQuickAction: { _ in }, onOpenApplication: { _ in }, shelf: shelf)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    PopoverView(store: store, initialPage: page, preview: true, isSubmenu: true)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }.padding(16).background(Color(nsColor: .windowBackgroundColor)).environment(\.colorScheme, .light)
+                let hosting = NSHostingView(rootView: content)
+                let size = hosting.fittingSize
+                let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
+                window.appearance = NSAppearance(named: .aqua)
+                window.contentView = hosting
+                hosting.setFrameSize(size)
+                RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+                hosting.layoutSubtreeIfNeeded()
+                if let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) {
+                    hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+                    try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("side-\(name)-en.png"))
+                }
+            }
         }
         store.stop()
     }

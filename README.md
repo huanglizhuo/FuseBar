@@ -14,7 +14,9 @@ FuseBar brings system status, recently used apps, input sources, and project sho
 <img src="docs/previews/coding-en.png" alt="FuseBar coding layout with recent apps, compact system controls, and project links" width="352">
 
 <details>
-<summary>Input sources, preferences, projects, and system controls</summary>
+<summary>Side submenus, input sources, preferences, projects, and system controls</summary>
+
+<img src="docs/previews/side-input-sources-en.png" alt="Composed layout preview of the main panel with an input-source side submenu" width="664">
 
 <img src="docs/previews/input-sources-en.png" alt="Input-source selection with native icons and the current selection" width="352">
 <img src="docs/previews/settings-en.png" alt="Coding layout, quick-open shortcut, and input-source display preferences" width="352">
@@ -42,11 +44,14 @@ Current development source includes:
 - Four dots show approximate volume in 25% steps; unreadable volume stays blank. A stable, centered bottom indicator takes over for alerts: critical battery → disconnected Wi-Fi → low battery → charging → mute. Other details remain in the panel.
 - On-demand Wi-Fi scanning and joining supported personal networks, with explicit confirmation. Other authentication methods open System Settings.
 - Optional Bluetooth power and paired-device details; connection, pairing, and power changes open System Settings.
-- Sound output selection, supported mute/volume controls, and immediate CoreAudio updates.
+- Sound output selection, an inline mute button, supported volume controls, and immediate CoreAudio updates.
+- Unified search for discovered apps, saved file shortcuts, and actions, with three recent actions and keyboard navigation. History stays on your Mac.
+- Compact status rows with highlighted side-submenu selection, theme-aware icons, and hover feedback.
 - Up to two rows of pinned and running apps above search, ordered by recent use or launch, with an overflow button for the full list. Recent order stays on your Mac.
+- Choose Network connection or Sound output as the default center icon in Settings; changes apply immediately and persist locally.
 - Input-source selection with native icons. Switching briefly shows the source in the center for two seconds; Settings can keep it visible. Internal input-method modes may not be detectable.
-- Centered footer shortcuts for the app launcher, Mission Control, and files. Settings is at the lower left; help is at the upper right.
-- User-selected files and folders saved as local bookmarks; the parent panel stays open while a system picker is in use.
+- Centered footer shortcuts for the app launcher, Mission Control, and files. Settings is at the lower left, Quit uses a power icon at the lower right, and help is at the upper right.
+- User-selected files and folders saved as local bookmarks. Clicking outside FuseBar closes its menus without canceling an open system picker.
 - Explicit system handoffs for displays, Focus, AirDrop/Handoff, Desktop & Dock, accessibility, and more.
 - Native SwiftUI/AppKit panel, monochrome menu bar rendering, saved preferences, and user-controlled launch at login.
 - An original layered Liquid Glass app icon built with Apple's Icon Composer.
@@ -55,7 +60,7 @@ Current development source includes:
 
 Enable **Coding layout** in Settings for compact status, up to two rows of pinned/running apps above search, and a selected project's folder, preview, and repository links. Pin tools before hiding the Dock so they stay accessible even when closed. Use **Add apps** for tools that are not running, or search common application folders from the home panel.
 
-In **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Escape closes the panel; Escape during recording cancels recording.
+In **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Search focuses when the panel opens. Use ↑/↓ and Return to choose a result, → to expand a focused status, and ← to close its submenu. Escape closes the submenu first, then the main panel; Escape during recording cancels recording.
 
 Enable Dock auto-hide yourself through the supplied **Dock auto-hide settings** link, and restore it there at any time. Project links open only the entries you save; they do not start servers or restore editor sessions. These features are not in the latest published 1.0.1 release. See the [implementation scope](docs/CODING_WORKSPACE_PLAN.md) and [validation limits](docs/VALIDATION.md).
 
@@ -65,7 +70,7 @@ Input Source sits alongside Battery, Wi-Fi, Bluetooth, and Sound. Click its row 
 
 App icons are ordered by recent activation or launch, even while the panel is closed. Up to 100 app identifiers are stored locally to preserve that order. Unrecorded running apps use launch time as a fallback; fixed favorites remain available after quitting.
 
-Detail pages currently replace the panel contents and provide a top-left Back button. Side-opening submenus are **planned, not implemented**. Battery currently opens macOS settings.
+Battery, Wi-Fi, Bluetooth, Sound, and Input Source open in a separate side submenu while the main panel stays visible. Click another status to switch the submenu; click the same status again or press Escape to close it. Escape again closes the main panel. AppKit places the submenu on the left when the right edge has insufficient room. Battery includes a link to macOS settings. Settings, project editing, and other utility pages keep in-panel navigation.
 
 ## Privacy
 

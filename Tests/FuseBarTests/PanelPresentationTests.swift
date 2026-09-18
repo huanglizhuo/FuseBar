@@ -17,6 +17,18 @@ import XCTest
 }
 
 final class PanelPresentationTests: XCTestCase {
+    @MainActor func testClickingOutsideMenusClosesThemEvenDuringFilePicker() {
+        let popover = TrackingPopover()
+        let delegate = AppDelegate(popover: popover)
+        let picker = FocusChangingPicker()
+        picker.duringPresentation = {
+            XCTAssertTrue(SystemPanelPresentation.shared.isPresenting)
+            delegate.dismissForOutsideClick(window: picker)
+            XCTAssertEqual(popover.closeRequests, 1)
+        }
+        FileShortcuts().add(panel: picker)
+    }
+
     @MainActor func testFilePickerFocusTransferDoesNotClosePopoverAndCancelRestoresDismissal() {
         let popover = TrackingPopover()
         let delegate = AppDelegate(popover: popover)

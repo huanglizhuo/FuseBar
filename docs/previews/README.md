@@ -18,4 +18,6 @@ Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script
 
 Input-source artwork: [light](input-source-icons.png) · [dark](input-source-icons-dark.png). These enlarged comparison diagrams show the same source artwork in the ring and standalone controls.
 
-The current UI uses in-panel detail navigation. Side-opening submenus remain a proposal. App Store marketing assets under `docs/store-screenshots` and the released film describe earlier versions and were not resubmitted in this update.
+Status items now open separate side submenus; utility pages retain in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` and the released film describe earlier versions and were not resubmitted in this update.
+
+Compact panel validation previews: [dark theme](status-dark-en.png), [search result](search-en.png), [empty search](search-empty-en.png), [recent actions](recent-en.png). Recent actions in this preview are explicitly seeded sample entries in the isolated preference suite.

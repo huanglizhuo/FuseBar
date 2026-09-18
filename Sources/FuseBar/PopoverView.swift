@@ -11,6 +11,12 @@ struct PopoverView: View {
     @StateObject private var projects: CodingProjects
     @FocusState private var searchFocused: Bool
     @State private var searchIndex = 0
+    @ObservedObject private var submenu = SideSubmenu.shared
+    @StateObject private var history: MenuSearchHistory
+    @StateObject private var files: FileShortcuts
+    @State private var hoveredApp: String?
+    @FocusState private var focusedStatus: Page?
+    @FocusState private var focusedSource: String?
     private let focusSearch: Bool
     @State private var appQuery = ""
     @State private var runningOnly = false
@@ -19,13 +25,16 @@ struct PopoverView: View {
     @State private var volume = 0.0
     @AppStorage("onboardingComplete") private var onboardingComplete = false
     private let preview: Bool
+    private let isSubmenu: Bool
     private let onOpenApplication: ((URL) -> Void)?
     private let onQuickAction: ((QuickAction) -> Void)?
-    enum Page { case status, settings, guide, applications, sound, wifi, bluetooth, files, system, projects, inputSources }
+    enum Page: Hashable { case battery, status, settings, guide, applications, sound, wifi, bluetooth, files, system, projects, inputSources }
 
-    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
+    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
         _shelf = StateObject(wrappedValue: shelf ?? ApplicationShelf.shared)
         _projects = StateObject(wrappedValue: CodingProjects(defaults: store.defaults))
+        _history = StateObject(wrappedValue: MenuSearchHistory(defaults: store.defaults))
+        _files = StateObject(wrappedValue: FileShortcuts(defaults: store.defaults))
         self.focusSearch = focusSearch
         self.onSelectInputSource = onSelectInputSource
         let sources = preview ? InputSourceStore(defaults: store.defaults) : InputSourceStore.shared
@@ -35,12 +44,73 @@ struct PopoverView: View {
         _includeFavoriteApps = AppStorage(wrappedValue: true, "includeFavoriteApps", store: store.defaults)
         self.store = store
         self.preview = preview
+        self.isSubmenu = isSubmenu
         self.onQuickAction = onQuickAction
         self.onOpenApplication = onOpenApplication
         _page = State(initialValue: initialPage)
+        _appQuery = State(initialValue: initialQuery)
     }
 
     var body: some View {
+        Group {
+            if isSubmenu { submenuContent }
+            else { mainContent }
+        }
+    }
+
+    private func openSubmenu(_ destination: Page, anchor: String? = nil) {
+        history.record("action:" + String(describing: destination))
+        SideSubmenu.shared.toggle(anchor ?? String(describing: destination), content: AnyView(
+            PopoverView(store: store, initialPage: destination, preview: preview, isSubmenu: true,
+                        onSelectInputSource: onSelectInputSource, onQuickAction: onQuickAction,
+                        onOpenApplication: onOpenApplication, shelf: shelf)))
+    }
+
+    private var submenuTitle: String {
+        switch page {
+        case .battery: return L("电池")
+        case .wifi: return "Wi-Fi"
+        case .sound: return L("声音")
+        case .bluetooth: return L("蓝牙")
+        case .inputSources: return L("输入源")
+        default: return "FuseBar"
+        }
+    }
+
+    private var submenuContent: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(submenuTitle).font(.headline)
+                Spacer()
+                Button { SideSubmenu.shared.close(restoreParent: true) } label: {
+                    Image(systemName: "xmark").frame(width: 20, height: 20)
+                }.buttonStyle(.plain).help(L("关闭子菜单")).accessibilityLabel(L("关闭子菜单"))
+            }.padding(16)
+            Divider()
+            Group {
+                switch page {
+                case .battery:
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(store.snapshot.battery.detail, systemImage: StatusSymbols.battery(store.snapshot.battery))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button(L("打开电池系统设置")) { SettingsDestination.battery.open() }
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(18)
+                case .wifi: WiFiPanel(store: store)
+                case .sound: soundOutputs
+                case .bluetooth: BluetoothPanel(store: store)
+                case .inputSources: inputSourceList
+                default: EmptyView()
+                }
+            }
+            if let error = store.errorMessage {
+                Text(error).font(.caption).foregroundStyle(.red).padding(12)
+            }
+        }.frame(width: 300)
+            .onKeyPress(.leftArrow) { SideSubmenu.shared.close(restoreParent: true); return .handled }
+            .background(.regularMaterial).environment(\.locale, L10n.locale)
+    }
+
+    private var mainContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             if page != .status {
                 HStack {
@@ -55,22 +125,26 @@ struct PopoverView: View {
             }
             VStack(alignment: .leading, spacing: 7) {
                 HStack(spacing: 8) {
-                    OrbView(snapshot: store.snapshot, preferences: store.preferences).frame(width: 26, height: 26)
+                    OrbView(snapshot: store.snapshot, preferences: store.preferences).frame(width: 20, height: 20)
                         .accessibilityHidden(true)
-                    Text("FuseBar").font(.system(size: 17, weight: .semibold))
+                    Text("FuseBar").font(.system(size: 14, weight: .semibold))
                     Spacer(minLength: 4)
                     Button { page = .guide } label: {
                         Image(systemName: "questionmark.circle").frame(width: 24, height: 24)
                     }.buttonStyle(.borderless).help(L("图标说明与使用引导"))
                         .accessibilityLabel(L("图标说明与使用引导"))
                 }
-                Text(store.snapshot.headline(store.preferences)).font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }.padding(18)
+            }.padding(.horizontal, 18).padding(.vertical, 10)
             Divider()
             if page == .settings { ScrollView { settings }.frame(height: 420) }
             else if page == .guide || (!preview && !onboardingComplete) { ScrollView { guide }.frame(height: 420) }
             else if page == .applications { applications }
+            else if page == .battery {
+                VStack(alignment: .leading, spacing: 12) {
+                    Label(store.snapshot.battery.detail, systemImage: StatusSymbols.battery(store.snapshot.battery))
+                    Button(L("打开电池系统设置")) { SettingsDestination.battery.open() }
+                }.padding(18)
+            }
             else if page == .sound { soundOutputs }
             else if page == .wifi { WiFiPanel(store: store) }
             else if page == .bluetooth { BluetoothPanel(store: store) }
@@ -82,9 +156,11 @@ struct PopoverView: View {
                 VStack(spacing: 0) {
                     runningApplications
                     searchField
-                    if !appQuery.isEmpty { searchResults }
-                    else if codingLayout { codingHome }
-                    else { status }
+                    if showingSearchResults { searchResults }
+                    if appQuery.isEmpty {
+                        if codingLayout { codingHome }
+                        else { status }
+                    }
                 }
             }
             if let error = store.errorMessage {
@@ -97,15 +173,17 @@ struct PopoverView: View {
             Divider()
             ZStack {
                 HStack {
-                    Button { page = .settings; store.refreshLoginStatus() } label: {
-                        Image(systemName: "gearshape").frame(width: 24, height: 24)
+                    Button { history.record("action:settings"); page = .settings; store.refreshLoginStatus() } label: {
+                        Image(systemName: "gearshape").frame(width: 28, height: 28)
                     }.keyboardShortcut(",", modifiers: .command).disabled(page == .settings)
                         .help(L("设置…")).accessibilityLabel(L("设置…"))
                     Spacer()
-                    Button(L("退出")) { NSApplication.shared.terminate(nil) }.keyboardShortcut("q")
+                    Button { NSApplication.shared.terminate(nil) } label: {
+                        Image(systemName: "power").frame(width: 28, height: 28)
+                    }.keyboardShortcut("q").help(L("退出")).accessibilityLabel(L("退出"))
                 }
                 footerActions
-            }.buttonStyle(.borderless).font(.caption).padding(.horizontal, 18).padding(.vertical, 10)
+            }.buttonStyle(MenuButtonStyle()).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary).padding(.horizontal, 18).padding(.vertical, 8)
         }
         .frame(width: 320)
         .background(.regularMaterial)
@@ -114,49 +192,63 @@ struct PopoverView: View {
             volume = Double(store.snapshot.sound.volume ?? 0)
             store.refresh()
             if !preview { shelf.refresh(); shelf.discoverApplications() }
-            if focusSearch { DispatchQueue.main.async { searchFocused = true } }
+            if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
         }
+        .onChange(of: page) { _, _ in SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload() }
+        .onChange(of: files.error) { _, error in if let error { store.errorMessage = error } }
+        .onKeyPress(.leftArrow) {
+            guard page != .status else { return .ignored }
+            page = .status
+            return .handled
+        }
+        .onChange(of: codingLayout) { _, _ in SideSubmenu.shared.close() }
+        .onChange(of: appQuery) { _, _ in SideSubmenu.shared.close() }
         .onChange(of: store.snapshot.sound.volume) { _, value in
             if !editingVolume { volume = Double(value ?? 0) }
         }
     }
 
     private var footerActions: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             ForEach(QuickAction.allCases, id: \.self) { action in
-                Button { onQuickAction?(action) } label: {
-                    Image(systemName: action.symbol).frame(width: 24, height: 24)
+                Button { history.record(action == .applications ? "action:applications" : "action:windows"); onQuickAction?(action) } label: {
+                    Image(systemName: action.symbol).frame(width: 28, height: 28)
                 }.help(action.title).accessibilityLabel(action.title)
                     .disabled(!preview && onQuickAction == nil)
             }
-            Button { page = .files } label: {
-                Image(systemName: "folder").frame(width: 24, height: 24)
+            Button { history.record("action:files"); page = .files } label: {
+                Image(systemName: "folder").frame(width: 28, height: 28)
             }.help(L("文件夹")).accessibilityLabel(L("文件夹"))
 
-        }.buttonStyle(.borderless).font(.system(size: 12))
+        }.buttonStyle(MenuButtonStyle()).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary)
     }
 
     private var inputSourcePicker: some View {
-        Button { page = .inputSources } label: {
-            HStack(spacing: 12) {
+        Button { openSubmenu(.inputSources) } label: {
+            HStack(spacing: 10) {
                 Group {
-                    if let current = inputSources.current { InputSourceGlyph(source: current) }
-                    else { Image(systemName: "keyboard").font(.system(size: 16)).foregroundStyle(.secondary) }
+                    if let current = inputSources.current { InputSourceGlyph(source: current).scaleEffect(0.9) }
+                    else { Image(systemName: "keyboard") }
                 }.frame(width: 20)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L("输入源")).font(.system(size: 12, weight: .medium))
-                    Text(inputSources.current?.name ?? L("输入源未知"))
-                        .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(2)
-                }
-                Spacer(minLength: 0)
+                Text(L("输入源")).font(.system(size: 12, weight: .medium))
+                Spacer(minLength: 8)
+                Text(inputSources.current?.name ?? L("输入源未知"))
+                    .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                 Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
-            }.padding(.horizontal, 18).padding(.vertical, 13).contentShape(Rectangle())
-        }.buttonStyle(.plain).help(L("切换输入源"))
+            }.padding(.horizontal, 10).frame(height: 36).contentShape(Rectangle())
+        }.buttonStyle(MenuButtonStyle(selected: submenu.selection == "inputSources"))
+            .padding(.horizontal, 8).help(inputSources.current?.name ?? L("切换输入源"))
+            .background(SideSubmenuAnchor(id: "inputSources"))
+            .focusable().focused($focusedStatus, equals: .inputSources)
+            .onKeyPress(.rightArrow) { openSubmenu(.inputSources); return .handled }
+            .onKeyPress(.return) { openSubmenu(.inputSources); return .handled }
+            .onKeyPress(.downArrow) { focusedStatus = .sound; return .handled }
+            .onKeyPress(.upArrow) { focusedStatus = .bluetooth; return .handled }
     }
 
     private var inputSourceList: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(L("输入源")).font(.headline)
+            if !isSubmenu { Text(L("输入源")).font(.headline) }
             ScrollView {
                 VStack(spacing: 6) {
                     if inputSources.sources.isEmpty { Text(L("暂无可用输入源")).font(.caption).foregroundStyle(.secondary) }
@@ -168,73 +260,197 @@ struct PopoverView: View {
                                 Spacer()
                                 if source.id == inputSources.currentID { Image(systemName: "checkmark") }
                             }.padding(10).frame(maxWidth: .infinity).contentShape(Rectangle())
-                        }.buttonStyle(.plain).disabled(!preview && onSelectInputSource == nil)
+                        }.buttonStyle(MenuButtonStyle(selected: source.id == inputSources.currentID))
+                            .focusable().focused($focusedSource, equals: source.id)
+                            .onKeyPress(.downArrow) { moveSourceFocus(source.id, offset: 1); return .handled }
+                            .onKeyPress(.upArrow) { moveSourceFocus(source.id, offset: -1); return .handled }
+                            .onKeyPress(.return) { onSelectInputSource?(source.id); return .handled }
+                            .disabled(!preview && onSelectInputSource == nil)
                     }
                 }
-            }.frame(height: 240)
-        }.padding(18).onAppear { if !preview { inputSources.refresh() } }
+            }.frame(height: isSubmenu ? min(240, CGFloat(max(1, inputSources.sources.count)) * 46) : 240)
+        }.padding(18).onAppear {
+            if !preview {
+                inputSources.refresh()
+                DispatchQueue.main.async { focusedSource = inputSources.currentID ?? inputSources.sources.first?.id }
+            }
+        }
     }
 
-    private var searchMatches: [ShelfApplication] {
-        Array(ApplicationShelfModel.visible(shelf.searchable, query: appQuery).prefix(50))
+    private func moveSourceFocus(_ id: String, offset: Int) {
+        guard let index = inputSources.sources.firstIndex(where: { $0.id == id }), !inputSources.sources.isEmpty else { return }
+        focusedSource = inputSources.sources[min(max(0, index + offset), inputSources.sources.count - 1)].id
+    }
+
+    private var searchEntries: [MenuSearchEntry] {
+        let apps = shelf.searchable.compactMap { app -> MenuSearchEntry? in
+            guard let url = app.url else { return nil }
+            return MenuSearchEntry(id: "app:" + app.id, title: app.name, category: L("应用"), symbol: "app", destination: .application(url))
+        }
+        let shortcuts = files.items.map {
+            MenuSearchEntry(id: "file:" + $0.id.uuidString, title: $0.name, category: L("文件与文件夹"), symbol: "doc.on.doc", destination: .file($0.id))
+        }
+        let actions: [(String, String, String)] = [
+            ("battery", L("电池"), "battery.100percent"), ("wifi", "Wi-Fi", "wifi"),
+            ("sound", L("声音输出"), "speaker.wave.2"), ("bluetooth", L("蓝牙"), StatusSymbols.bluetooth),
+            ("inputSources", L("输入源"), "keyboard"), ("settings", L("设置…"), "gearshape"),
+            ("files", L("文件与文件夹"), "folder"), ("projects", L("项目工作台"), "hammer"),
+            ("applications", L("应用启动器"), "square.grid.3x3"), ("windows", L("所有窗口"), "rectangle.3.group"),
+            ("system", L("系统"), "switch.2")]
+        return apps + shortcuts + actions.map {
+            MenuSearchEntry(id: "action:" + $0.0, title: $0.1, category: L("操作"), symbol: $0.2, destination: .action($0.0))
+        }
+    }
+    private var searchMatches: [MenuSearchEntry] {
+        MenuSearchModel.results(searchEntries, query: appQuery, recentIDs: history.ids)
+    }
+    private var showingSearchResults: Bool {
+        !appQuery.isEmpty || (searchFocused && !searchMatches.isEmpty)
     }
 
     private var searchField: some View {
-        TextField(L("搜索应用…"), text: $appQuery)
+        TextField(L("搜索应用与操作…"), text: $appQuery)
             .textFieldStyle(.roundedBorder).focused($searchFocused)
+            .accessibilityLabel(L("搜索应用与操作…"))
             .onChange(of: appQuery) { _, _ in searchIndex = 0 }
             .onSubmit { openSearchSelection() }
             .onKeyPress(.downArrow) {
-                searchIndex = min(searchIndex + 1, max(0, searchMatches.count - 1)); return .handled
+                if searchMatches.isEmpty && appQuery.isEmpty { searchFocused = false; focusedStatus = .battery }
+                else { searchIndex = min(searchIndex + 1, max(0, searchMatches.count - 1)) }
+                return .handled
             }
             .onKeyPress(.upArrow) { searchIndex = max(0, searchIndex - 1); return .handled }
-            .padding(.horizontal, 18).padding(.vertical, 10)
+            .padding(.horizontal, 18).padding(.vertical, 8)
     }
 
     private func openSearchSelection() {
-        guard !appQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              searchMatches.indices.contains(searchIndex), let url = searchMatches[searchIndex].url else { return }
-        onOpenApplication?(url)
+        guard searchMatches.indices.contains(searchIndex) else { return }
+        performSearchEntry(searchMatches[searchIndex])
+    }
+
+    private func performSearchEntry(_ entry: MenuSearchEntry) {
+        history.record(entry.id)
+        switch entry.destination {
+        case .application(let url): onOpenApplication?(url)
+        case .file(let id):
+            if let item = files.items.first(where: { $0.id == id }) { files.open(item) }
+        case .action(let id):
+            let statusPages: [String: Page] = ["battery": .battery, "wifi": .wifi, "sound": .sound, "bluetooth": .bluetooth, "inputSources": .inputSources]
+            if let destination = statusPages[id] {
+                openSubmenu(destination, anchor: "search:" + id)
+                return
+            }
+            searchFocused = false
+            appQuery = ""
+            switch id {
+            case "battery": page = .battery
+            case "wifi": page = .wifi
+            case "sound": page = .sound
+            case "bluetooth": page = .bluetooth
+            case "inputSources": page = .inputSources
+            case "settings": page = .settings; store.refreshLoginStatus()
+            case "files": page = .files
+            case "projects": page = .projects
+            case "system": page = .system
+            case "applications": onQuickAction?(.applications)
+            case "windows": onQuickAction?(.allWindows)
+            default: break
+            }
+        }
+    }
+
+    private func searchResultButton(_ entry: MenuSearchEntry, index: Int, compact: Bool) -> some View {
+        let anchor = "search:" + entry.id.replacingOccurrences(of: "action:", with: "")
+        return Button { performSearchEntry(entry) } label: {
+            HStack(spacing: compact ? 4 : 8) {
+                Image(systemName: entry.symbol).frame(width: compact ? 14 : 20)
+                Text(entry.title).lineLimit(1).truncationMode(.tail)
+                if !compact {
+                    Spacer(minLength: 4)
+                    Text(entry.category).font(.caption2).foregroundStyle(.secondary)
+                }
+            }.font(.system(size: compact ? 11 : 12))
+                .frame(maxWidth: .infinity, alignment: .leading).padding(compact ? 6 : 8).contentShape(Rectangle())
+        }.buttonStyle(MenuButtonStyle(selected: index == searchIndex || submenu.selection == anchor))
+            .background(SideSubmenuAnchor(id: anchor))
+            .onKeyPress(.rightArrow) { performSearchEntry(entry); return .handled }
+            .help(entry.title).accessibilityLabel(entry.title)
+            .accessibilityValue(index == searchIndex ? L("已选择") : "")
     }
 
     private var searchResults: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ScrollViewReader { reader in
-                ScrollView {
-                    LazyVStack {
-                        ForEach(Array(searchMatches.enumerated()), id: \.element.id) { index, app in
-                            applicationRow(app).padding(5)
-                                .background(index == searchIndex ? Color.accentColor.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                                .id(index)
-                        }
-                        if searchMatches.isEmpty { Text(L("没有匹配的应用。")).font(.caption) }
+        VStack(alignment: .leading, spacing: 6) {
+            if appQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(L("最近操作")).font(.caption2).foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    ForEach(Array(searchMatches.enumerated()), id: \.element.id) { index, entry in
+                        searchResultButton(entry, index: index, compact: true)
                     }
-                }.frame(height: 220)
-                .onChange(of: searchIndex) { _, index in reader.scrollTo(index) }
+                }
+            } else {
+                ScrollViewReader { reader in
+                    ScrollView {
+                        LazyVStack(spacing: 2) {
+                            ForEach(Array(searchMatches.enumerated()), id: \.element.id) { index, entry in
+                                searchResultButton(entry, index: index, compact: false).id(index)
+                            }
+                            if searchMatches.isEmpty { Text(L("没有匹配结果")).font(.caption).padding(8) }
+                        }
+                    }.frame(height: min(220, CGFloat(max(1, searchMatches.count)) * 36))
+                    .onChange(of: searchIndex) { _, index in reader.scrollTo(index) }
+                }
+                Text(L("↑↓ 选择 · Return 打开")).font(.caption2).foregroundStyle(.secondary)
             }
-            Text(L("搜索常用安装目录和已固定应用；其他位置可手动添加。"))
-                .font(.caption2).foregroundStyle(.secondary)
-            Button(L("添加应用")) { store.errorMessage = shelf.addApplication() }
-        }.padding(18)
+        }.padding(.horizontal, 18).padding(.bottom, 10)
     }
 
     private var codingHome: some View {
         VStack(spacing: 0) {
             HStack {
-                Button { SettingsDestination.battery.open() } label: {
+                Button { openSubmenu(.battery) } label: {
                     Label(store.snapshot.battery.availability == .available ? "\(store.snapshot.battery.level)%" : "—", systemImage: StatusSymbols.battery(store.snapshot.battery))
-                }.help(store.snapshot.battery.detail)
-                Button { page = .wifi } label: { Image(systemName: StatusSymbols.wifi(store.snapshot.wifi)) }.help(store.snapshot.wifi.detail)
+                }.help(store.snapshot.battery.detail).background(SideSubmenuAnchor(id: "battery"))
+                    .buttonStyle(MenuButtonStyle(selected: submenu.selection == "battery", inset: 6))
+                    .focusable().focused($focusedStatus, equals: .battery)
+                    .onKeyPress(.rightArrow) { openSubmenu(.battery); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.battery); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: .battery, offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: .battery, offset: -1); return .handled }
+                Button { openSubmenu(.wifi) } label: { Image(systemName: StatusSymbols.wifi(store.snapshot.wifi)) }.help(store.snapshot.wifi.detail).background(SideSubmenuAnchor(id: "wifi"))
+                    .buttonStyle(MenuButtonStyle(selected: submenu.selection == "wifi", inset: 6))
+                    .focusable().focused($focusedStatus, equals: .wifi)
+                    .onKeyPress(.rightArrow) { openSubmenu(.wifi); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.wifi); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: .wifi, offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: .wifi, offset: -1); return .handled }
                     .accessibilityLabel("Wi-Fi")
-                Button { page = .sound } label: { Image(systemName: StatusSymbols.sound(store.snapshot.sound)) }.help(store.snapshot.sound.detail)
+                Button { openSubmenu(.sound) } label: { Image(systemName: StatusSymbols.sound(store.snapshot.sound)) }.help(store.snapshot.sound.detail).background(SideSubmenuAnchor(id: "sound"))
+                    .buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 6))
+                    .focusable().focused($focusedStatus, equals: .sound)
+                    .onKeyPress(.rightArrow) { openSubmenu(.sound); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.sound); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: .sound, offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: .sound, offset: -1); return .handled }
                     .accessibilityLabel(L("声音"))
-                Button { page = .bluetooth } label: { Image(systemName: StatusSymbols.bluetooth) }.help(store.snapshot.bluetooth.detail)
+                Button { openSubmenu(.bluetooth) } label: { Image(systemName: StatusSymbols.bluetooth) }.help(store.snapshot.bluetooth.detail).background(SideSubmenuAnchor(id: "bluetooth"))
+                    .buttonStyle(MenuButtonStyle(selected: submenu.selection == "bluetooth", inset: 6))
+                    .focusable().focused($focusedStatus, equals: .bluetooth)
+                    .onKeyPress(.rightArrow) { openSubmenu(.bluetooth); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.bluetooth); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: .bluetooth, offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: .bluetooth, offset: -1); return .handled }
                     .accessibilityLabel(L("蓝牙"))
-                Button { page = .inputSources } label: {
+                Button { openSubmenu(.inputSources) } label: {
                     if let current = inputSources.current { InputSourceGlyph(source: current).frame(width: 14, height: 14) }
                     else { Image(systemName: "keyboard") }
-                }.help(L("切换输入源")).accessibilityLabel(L("输入源"))
-            }.controlSize(.small).padding(.horizontal, 18).padding(.bottom, 10)
+                }.help(L("切换输入源")).accessibilityLabel(L("输入源")).background(SideSubmenuAnchor(id: "inputSources"))
+                    .buttonStyle(MenuButtonStyle(selected: submenu.selection == "inputSources", inset: 6))
+                    .focusable().focused($focusedStatus, equals: .inputSources)
+                    .onKeyPress(.rightArrow) { openSubmenu(.inputSources); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.inputSources); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: .inputSources, offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: .inputSources, offset: -1); return .handled }
+            }.controlSize(.small).foregroundStyle(.primary).padding(.horizontal, 18).padding(.bottom, 10)
             Divider()
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -340,7 +556,7 @@ struct PopoverView: View {
     private var soundOutputs: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(L("声音输出")).font(.headline)
+                if !isSubmenu { Text(L("声音输出")).font(.headline) }
                 Spacer()
                 if store.audioBusy { ProgressView().controlSize(.small) }
                 Button(L("刷新")) { store.refreshAudioOutputs() }.disabled(store.audioBusy)
@@ -378,9 +594,9 @@ struct PopoverView: View {
 
     private var status: some View {
         VStack(spacing: 0) {
-            statusRow(L("电池"), detail: store.snapshot.battery.detail, symbol: StatusSymbols.battery(store.snapshot.battery), destination: .battery)
+            statusRow(L("电池"), detail: store.snapshot.battery.availability == .available ? "\(store.snapshot.battery.level)%" + (store.snapshot.battery.charging ? " · " + L("正在充电") : store.snapshot.battery.low ? " · " + L("电量较低") : "") : store.snapshot.battery.detail, symbol: StatusSymbols.battery(store.snapshot.battery), destination: .battery)
             Divider().padding(.leading, 48)
-            statusRow("Wi-Fi", detail: store.snapshot.wifi.detail, symbol: StatusSymbols.wifi(store.snapshot.wifi), destination: .wifi)
+            statusRow("Wi-Fi", detail: store.snapshot.wifi.connection == .connected ? (store.snapshot.wifi.name ?? store.snapshot.wifi.detail) : store.snapshot.wifi.detail, symbol: StatusSymbols.wifi(store.snapshot.wifi), destination: .wifi)
             if store.snapshot.wifi.shouldOfferNameAuthorization(store.networkNameAccess) {
                 VStack(alignment: .leading, spacing: 5) {
                     Button(store.networkNameAccess == .blocked ? L("检查定位权限…") : L("显示网络名称…")) { store.requestNetworkName() }.font(.caption)
@@ -404,10 +620,16 @@ struct PopoverView: View {
             Divider().padding(.leading, 48)
             inputSourcePicker
             Divider().padding(.leading, 48)
-            statusRow(L("声音"), detail: store.snapshot.sound.detail,
+            statusRow(L("声音"), detail: store.snapshot.sound.available ? store.snapshot.sound.deviceName : store.snapshot.sound.detail,
                       symbol: StatusSymbols.sound(store.snapshot.sound), destination: .sound)
             HStack(spacing: 8) {
-                Image(systemName: "speaker.fill").font(.caption2).foregroundStyle(.secondary)
+                Button { store.setMuted(store.snapshot.sound.muted != true) } label: {
+                    Image(systemName: store.snapshot.sound.muted == true ? "speaker.slash.fill" : "speaker.fill")
+                        .font(.system(size: 12)).frame(width: 24, height: 24)
+                }.buttonStyle(MenuButtonStyle(selected: store.snapshot.sound.muted == true))
+                    .disabled(store.audioBusy || !store.snapshot.sound.canSetMute)
+                    .help(L("静音")).accessibilityLabel(L("静音"))
+                    .accessibilityValue(store.snapshot.sound.muted == true ? L("已开启") : L("已关闭"))
                 Slider(value: Binding(get: { volume }, set: { value in
                     volume = value
                     store.setVolume(value)
@@ -440,9 +662,9 @@ struct PopoverView: View {
             if apps.isEmpty {
                 Text(L("暂无运行中的应用")).font(.caption).foregroundStyle(.secondary)
             } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 8) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 5) {
                     ForEach(Array(apps.prefix(apps.count > 12 ? 11 : 12))) { app in
-                        Button { if let url = app.url { onOpenApplication?(url) } } label: {
+                        Button { if let url = app.url { history.record("app:" + app.id); onOpenApplication?(url) } } label: {
                             Group {
                                 if let url = app.url {
                                     Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 28, height: 28)
@@ -451,8 +673,14 @@ struct PopoverView: View {
                                 .background(shelf.frontmostID == app.id ? Color.accentColor.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 7))
                                 .overlay(alignment: .bottom) {
                                     if app.running { Circle().fill(.secondary).frame(width: 3, height: 3) }
+                                }
+                                .overlay(alignment: .topTrailing) {
+                                    if hoveredApp == app.id && shelf.isPinned(app) {
+                                        Image(systemName: "pin.fill").font(.system(size: 8)).padding(2)
+                                            .background(.regularMaterial, in: Circle()).accessibilityHidden(true)
+                                    }
                                 }.contentShape(Rectangle())
-                        }.buttonStyle(.plain).help(app.name).accessibilityLabel(L("打开 %@", app.name))
+                        }.buttonStyle(MenuButtonStyle()).onHover { hoveredApp = $0 ? app.id : nil }.help(app.name).accessibilityLabel(L("打开 %@", app.name))
                             .accessibilityValue(shelf.frontmostID == app.id ? L("当前应用") : app.running ? L("正在运行") : L("固定"))
                             .contextMenu { applicationMenu(app) }
                             .disabled(app.url == nil || (!preview && onOpenApplication == nil))
@@ -465,26 +693,68 @@ struct PopoverView: View {
                     }
                 }
             }
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18).padding(.vertical, 12)
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18).padding(.vertical, 8)
     }
 
     private func statusRow(_ title: String, detail: String, symbol: String, destination: SettingsDestination) -> some View {
         Button {
-            if destination == .sound { page = .sound }
-            else if destination == .wifi { page = .wifi }
-            else if destination == .bluetooth { page = .bluetooth }
+            if destination == .sound { openSubmenu(.sound) }
+            else if destination == .wifi { openSubmenu(.wifi) }
+            else if destination == .bluetooth { openSubmenu(.bluetooth) }
+            else if destination == .battery { openSubmenu(.battery) }
             else { destination.open() }
         } label: {
             HStack(alignment: .center, spacing: 12) {
-                Image(systemName: symbol).font(.system(size: 16)).frame(width: 20).foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.system(size: 12, weight: .medium))
-                    Text(detail).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(2)
+                Image(systemName: symbol).font(.system(size: 14, weight: .medium)).frame(width: 20).foregroundStyle(.primary)
+                Text(title).font(.system(size: 12, weight: .medium)).fixedSize()
+                Spacer(minLength: 8)
+                if statusWarning(destination) {
+                    Image(systemName: "exclamationmark.circle").font(.system(size: 11)).foregroundStyle(.orange)
                 }
-                Spacer(minLength: 0)
-                Image(systemName: destination == .battery ? "arrow.up.forward" : "chevron.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
-            }.padding(.horizontal, 18).padding(.vertical, 13).contentShape(Rectangle())
-        }.buttonStyle(.plain).help(destination == .battery ? L("打开电池系统设置") : L("打开%@面板", title))
+                Text(detail).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                Image(systemName: "chevron.right").font(.system(size: 9, weight: .semibold)).foregroundStyle(.tertiary)
+            }.padding(.horizontal, 10).frame(height: 36).contentShape(Rectangle())
+        }.buttonStyle(MenuButtonStyle(selected: submenu.selection == String(describing: destination)))
+            .padding(.horizontal, 8).help(fullStatusDetail(destination))
+            .accessibilityLabel(title + ": " + fullStatusDetail(destination))
+            .background(SideSubmenuAnchor(id: String(describing: destination)))
+            .focusable().focused($focusedStatus, equals: statusPage(destination))
+            .onKeyPress(.rightArrow) { openSubmenu(statusPage(destination)); return .handled }
+            .onKeyPress(.return) { openSubmenu(statusPage(destination)); return .handled }
+            .onKeyPress(.downArrow) { moveStatusFocus(from: statusPage(destination), offset: 1); return .handled }
+            .onKeyPress(.upArrow) { moveStatusFocus(from: statusPage(destination), offset: -1); return .handled }
+    }
+
+    private func fullStatusDetail(_ destination: SettingsDestination) -> String {
+        switch destination {
+        case .battery: return store.snapshot.battery.detail
+        case .wifi: return store.snapshot.wifi.detail
+        case .bluetooth: return store.snapshot.bluetooth.detail
+        default: return store.snapshot.sound.detail
+        }
+    }
+
+    private func statusPage(_ destination: SettingsDestination) -> Page {
+        switch destination {
+        case .battery: return .battery
+        case .wifi: return .wifi
+        case .bluetooth: return .bluetooth
+        default: return .sound
+        }
+    }
+    private func moveStatusFocus(from current: Page, offset: Int) {
+        let order: [Page] = codingLayout ? [.battery, .wifi, .sound, .bluetooth, .inputSources] : [.battery, .wifi, .bluetooth, .inputSources, .sound]
+        guard let index = order.firstIndex(of: current) else { return }
+        let next = index + offset
+        if next < 0 { searchFocused = true }
+        else { focusedStatus = order[min(next, order.count - 1)] }
+    }
+    private func statusWarning(_ destination: SettingsDestination) -> Bool {
+        switch destination {
+        case .battery: return store.snapshot.battery.low
+        case .wifi: return store.snapshot.wifi.connection == .disconnected
+        default: return false
+        }
     }
 
     private var settings: some View {
@@ -498,14 +768,18 @@ struct PopoverView: View {
             Text(L("在系统设置中开启自动隐藏 Dock，为代码和预览腾出空间；也可在那里恢复。"))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Divider()
+            Picker(L("默认中心图标"), selection: $store.preferences.center) {
+                Text(L("网络连接")).tag(CenterIndicator.network)
+                Text(L("声音输出")).tag(CenterIndicator.sound)
+            }
             Toggle(L("中心常驻输入法图标"), isOn: $inputSources.alwaysShow)
-            Text(L("默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。"))
+            Text(L("切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。"))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Divider()
             Text(L("在圆环中显示")).font(.system(size: 13, weight: .semibold))
             Toggle(L("电池 · 外环"), isOn: $store.preferences.battery)
-            Toggle(L("Wi-Fi · 中心"), isOn: $store.preferences.wifi)
-            Toggle(L("声音 · 四点音量与静音"), isOn: $store.preferences.sound)
+            Toggle(L("网络状态与提醒"), isOn: $store.preferences.wifi)
+            Toggle(L("声音状态与音量"), isOn: $store.preferences.sound)
             Text(L("平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。"))
                 .font(.caption).foregroundStyle(.secondary)
             Divider()

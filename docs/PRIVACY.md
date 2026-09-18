@@ -26,7 +26,7 @@ Changes to this policy will be published here with an updated effective date.
 
 ### Coding workspace preferences
 
-FuseBar stores optional keyboard shortcut settings, pinned application identifiers/bookmarks, and user-created project names, folder bookmarks, and preview/repository URLs locally in app preferences. Application search reads common application directories on demand and does not index project file contents. Opening a saved web address hands it to your default browser; that browser then connects to the destination you configured. Project entries do not run shell commands or start development servers. Removing a project removes its FuseBar configuration, not its files.
+FuseBar stores optional keyboard shortcut settings, pinned application identifiers/bookmarks, and user-created project names, folder bookmarks, and preview/repository URLs locally in app preferences. Application search reads common application directories on demand and does not index project file contents. Unified search also uses file shortcuts you explicitly added and built-in actions. The 20 most recent action identifiers are saved locally to show up to three recent shortcuts; search queries are not saved. Opening a saved web address hands it to your default browser; that browser then connects to the destination you configured. Project entries do not run shell commands or start development servers. Removing a project removes its FuseBar configuration, not its files.
 
 FuseBar reads enabled keyboard input sources, their names and icons, and the current selection locally. When you select an input source, it asks macOS to switch to it. FuseBar does not read keystrokes, typed text, or input-method candidates, and does not transmit input-source information.
 
