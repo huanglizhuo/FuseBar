@@ -43,7 +43,7 @@ Current development source includes:
 - Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon.
 - Four dots show approximate volume in 25% steps; unreadable volume stays blank. A stable, centered bottom indicator takes over for alerts: critical battery → disconnected Wi-Fi → low battery → charging → mute. Other details remain in the panel.
 - On-demand Wi-Fi scanning and joining supported personal networks, with explicit confirmation. Other authentication methods open System Settings.
-- Optional Bluetooth power and paired-device details; connection, pairing, and power changes open System Settings.
+- Optional Bluetooth power and paired-device details; click a device to connect or disconnect with progress and verified state. Pairing and power changes remain in System Settings. Renamed Bluetooth audio devices use the system audio name when an exact device identity match is available.
 - Sound output selection, an inline mute button, supported volume controls, and immediate CoreAudio updates.
 - Unified search for discovered apps, saved file shortcuts, and actions, with three recent actions and keyboard navigation. History stays on your Mac.
 - Compact status rows with highlighted side-submenu selection, theme-aware icons, and hover feedback.

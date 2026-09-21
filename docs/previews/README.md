@@ -1,6 +1,6 @@
 # FuseBar UI previews
 
-Regenerated from development source 1.1.0 on September 17, 2026. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
+Wi-Fi, sound and Bluetooth previews refreshed from development source 1.1.0 on September 21, 2026; other pages retain their previous renders. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
 
 Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script uses an isolated preference suite and does not change the system language, input source, Dock settings, or saved app preferences.
 
@@ -13,6 +13,7 @@ Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script
 | Projects | [en](projects-en.png) | [zh-Hans](projects-zh-Hans.png) | [ja](projects-ja.png) | [fr](projects-fr.png) | [es](projects-es.png) |
 | Guide | [en](guide-en.png) | [zh-Hans](guide-zh-Hans.png) | [ja](guide-ja.png) | [fr](guide-fr.png) | [es](guide-es.png) |
 | Wi-Fi | [en](wifi-en.png) | [zh-Hans](wifi-zh-Hans.png) | [ja](wifi-ja.png) | [fr](wifi-fr.png) | [es](wifi-es.png) |
+| Bluetooth | [en](bluetooth-en.png) | [zh-Hans](bluetooth-zh-Hans.png) | [ja](bluetooth-ja.png) | [fr](bluetooth-fr.png) | [es](bluetooth-es.png) |
 | Sound | [en](sound-en.png) | [zh-Hans](sound-zh-Hans.png) | [ja](sound-ja.png) | [fr](sound-fr.png) | [es](sound-es.png) |
 | System controls | [en](system-en.png) | [zh-Hans](system-zh-Hans.png) | [ja](system-ja.png) | [fr](system-fr.png) | [es](system-es.png) |
 
@@ -21,3 +22,5 @@ Input-source artwork: [light](input-source-icons.png) · [dark](input-source-ico
 Status items now open separate side submenus; utility pages retain in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` and the released film describe earlier versions and were not resubmitted in this update.
 
 Compact panel validation previews: [dark theme](status-dark-en.png), [search result](search-en.png), [empty search](search-empty-en.png), [recent actions](recent-en.png). Recent actions in this preview are explicitly seeded sample entries in the isolated preference suite.
+
+Device menu dark previews: [Wi-Fi](wifi-dark-en.png), [sound](sound-dark-en.png), [Bluetooth](bluetooth-dark-en.png). Device lists are sample fixtures and do not scan or control hardware. See the [system-menu comparison](../SYSTEM_MENU_REVIEW.md).

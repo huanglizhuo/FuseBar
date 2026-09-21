@@ -12,6 +12,15 @@ struct BatteryStatus: Equatable {
     var fraction: Double { Double(min(100, max(0, level))) / 100 }
     var critical: Bool { availability == .available && level < 10 && !externalPower }
     var low: Bool { availability == .available && level < 20 && !externalPower }
+    /// macOS tints its battery indicator green while charging and red only at the
+    /// critical threshold; merely low batteries keep the plain label color.
+    enum SystemTint: Equatable { case none, charging, critical }
+    var systemTint: SystemTint {
+        guard availability == .available else { return .none }
+        if charging { return .charging }
+        if critical { return .critical }
+        return .none
+    }
     var detail: String {
         switch availability {
         case .unknown: return L("电池状态未知")
@@ -85,12 +94,17 @@ struct SoundStatus: Equatable {
 
 enum CenterIndicator: String, CaseIterable { case network, sound }
 
+/// What the bottom slot of the orb shows: the default alert/dot pipeline or a
+/// persistent numeric readout of one metric.
+enum BottomIndicator: String, CaseIterable { case status, batteryLevel, volumeLevel }
+
 struct IndicatorPreferences: Equatable {
     var battery = true
     var wifi = true
     var bluetooth = true
     var sound = true
     var center: CenterIndicator = .network
+    var bottomIndicator: BottomIndicator = .status
     var centerEnabled: Bool { center == .network ? wifi : sound }
     var anyEnabled: Bool { battery || wifi || sound }
 }
@@ -115,6 +129,20 @@ struct StatusSnapshot: Equatable {
     func volumeDots(_ preferences: IndicatorPreferences) -> Int? {
         guard preferences.sound, badge(preferences) == .none else { return nil }
         return sound.volumeDots
+    }
+
+    /// The persistent numeric readout chosen for the bottom slot; nil keeps the
+    /// default alert/dot pipeline, including when the chosen metric is unavailable.
+    func bottomNumber(_ preferences: IndicatorPreferences) -> String? {
+        switch preferences.bottomIndicator {
+        case .status: return nil
+        case .batteryLevel:
+            guard preferences.battery, battery.availability == .available else { return nil }
+            return String(min(100, max(0, battery.level)))
+        case .volumeLevel:
+            guard preferences.sound, sound.available, let volume = sound.volume, volume.isFinite else { return nil }
+            return String(Int((Double(min(1, max(0, volume))) * 100).rounded()))
+        }
     }
 
     func headline(_ preferences: IndicatorPreferences) -> String {

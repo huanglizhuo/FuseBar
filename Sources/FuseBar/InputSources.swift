@@ -23,9 +23,14 @@ struct KeyboardSource: Identifiable {
 @MainActor protocol InputSourceClient {
     func read() -> (sources: [KeyboardSource], currentID: String?)
     func select(_ id: String) -> OSStatus
+    func invalidateIcons()
 }
 
+extension InputSourceClient { func invalidateIcons() {} }
+
 @MainActor struct SystemInputSourceClient: InputSourceClient {
+    private static var icons: [String: (icon: NSImage?, template: NSImage?)] = [:]
+    func invalidateIcons() { Self.icons.removeAll() }
     private func property(_ source: TISInputSource, _ key: CFString) -> AnyObject? {
         guard let pointer = TISGetInputSourceProperty(source, key) else { return nil }
         return Unmanaged<AnyObject>.fromOpaque(pointer).takeUnretainedValue()
@@ -46,16 +51,20 @@ struct KeyboardSource: Identifiable {
         var seen = Set<String>()
         let sources = enabledSources().compactMap { source -> KeyboardSource? in
             guard let id = property(source, kTISPropertyInputSourceID) as? String, seen.insert(id).inserted else { return nil }
-            var icon: NSImage?
-            if let url = property(source, kTISPropertyIconImageURL) as? URL { icon = NSImage(contentsOf: url) }
-            if icon == nil, let ref = TISGetInputSourceProperty(source, kTISPropertyIconRef) {
-                // ABC and some keyboard layouts expose only this legacy, public representation.
-                icon = NSImage(iconRef: OpaquePointer(ref))
+            if Self.icons[id] == nil {
+                var icon: NSImage?
+                if let url = property(source, kTISPropertyIconImageURL) as? URL { icon = NSImage(contentsOf: url) }
+                if icon == nil, let ref = TISGetInputSourceProperty(source, kTISPropertyIconRef) {
+                    // ABC and some keyboard layouts expose only this legacy, public representation.
+                    icon = NSImage(iconRef: OpaquePointer(ref))
+                }
+                icon?.size = NSSize(width: 16, height: 16)
+                Self.icons[id] = (icon, icon.flatMap(Self.template))
             }
-            icon?.size = NSSize(width: 16, height: 16)
+            let cached = Self.icons[id]
             return KeyboardSource(id: id, name: property(source, kTISPropertyLocalizedName) as? String ?? id,
                                   language: (property(source, kTISPropertyInputSourceLanguages) as? [String])?.first ?? "",
-                                  icon: icon, templateIcon: icon.flatMap(Self.template))
+                                  icon: cached?.icon, templateIcon: cached?.template)
         }
         return (sources, current.flatMap { property($0, kTISPropertyInputSourceID) as? String })
     }
@@ -135,8 +144,12 @@ struct InputSourcePresentation {
         guard observers.isEmpty else { return }
         refresh()
         for name in [kTISNotifySelectedKeyboardInputSourceChanged, kTISNotifyEnabledKeyboardInputSourcesChanged] {
+            let invalidatesIcons = name == kTISNotifyEnabledKeyboardInputSourcesChanged
             observers.append(DistributedNotificationCenter.default().addObserver(forName: Notification.Name(name! as String), object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor in self?.refresh() }
+                Task { @MainActor in
+                    if invalidatesIcons { self?.client.invalidateIcons() }
+                    self?.refresh()
+                }
             })
         }
     }

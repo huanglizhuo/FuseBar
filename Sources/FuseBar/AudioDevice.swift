@@ -5,6 +5,53 @@ struct AudioOutput: Identifiable, Equatable {
     let id: String // CoreAudio UID, not a reusable numeric device ID.
     let name: String
     let selected: Bool
+    var transport: UInt32 = 0
+    var bluetoothAddress: String? = nil // A paired device whose audio route is not available yet.
+    var symbol: String {
+        switch transport {
+        case kAudioDeviceTransportTypeBuiltIn: return "speaker.wave.2.fill"
+        case kAudioDeviceTransportTypeBluetooth, kAudioDeviceTransportTypeBluetoothLE: return "headphones"
+        case kAudioDeviceTransportTypeHDMI, kAudioDeviceTransportTypeDisplayPort: return "display"
+        case kAudioDeviceTransportTypeAirPlay: return "airplayaudio"
+        default: return "speaker.wave.2.fill"
+        }
+    }
+}
+
+/// Keep unavailable paired audio devices visible without duplicating live CoreAudio routes.
+extension AudioOutput {
+    static func choices(outputs: [AudioOutput], paired: [PairedBluetoothDevice]) -> [AudioOutput] {
+        let liveAddresses = Set(outputs.compactMap(BluetoothDeviceNames.audioAddress))
+        let pending = paired.compactMap { device -> AudioOutput? in
+            guard device.isAudioDevice, let address = BluetoothDeviceNames.addressKey(device.id),
+                  !liveAddresses.contains(address) else { return nil }
+            return AudioOutput(id: "bluetooth:" + address, name: device.name, selected: false,
+                               transport: kAudioDeviceTransportTypeBluetooth, bluetoothAddress: device.id)
+        }
+        return outputs + pending.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+    }
+}
+
+/// Called on the audio worker. Connection success alone does not imply an audio route exists.
+enum BluetoothAudioConnection {
+    static func select(address: String, client: any BluetoothDeviceControlling = SystemBluetoothDeviceClient(),
+                       outputs: () -> [AudioOutput] = AudioDevice.outputs,
+                       selectOutput: (String) -> String? = { AudioDevice.selectOutput(uid: $0) },
+                       wait: () -> Void = { Thread.sleep(forTimeInterval: 0.2) },
+                       attempts: Int = 50) -> String? {
+        guard let key = BluetoothDeviceNames.addressKey(address),
+              client.read()?.contains(where: { BluetoothDeviceNames.addressKey($0.id) == key && $0.isAudioDevice }) == true else {
+            return L("设备已不在配对列表中，请刷新后重试。")
+        }
+        if let error = client.setConnected(address: address, connected: true) { return error }
+        for index in 0..<attempts {
+            if let output = outputs().first(where: { BluetoothDeviceNames.audioAddress($0) == key }) {
+                return selectOutput(output.id)
+            }
+            if index + 1 < attempts { wait() }
+        }
+        return L("耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。")
+    }
 }
 
 /// Reads the current output on each operation; never writes to a cached output device.
@@ -90,7 +137,8 @@ enum AudioDevice {
         let selected = output()
         return outputDevices().compactMap { device in
             guard let uid = text(device, selector: kAudioDevicePropertyDeviceUID) else { return nil }
-            return AudioOutput(id: uid, name: text(device, selector: kAudioObjectPropertyName) ?? L("声音输出"), selected: selected == device)
+            return AudioOutput(id: uid, name: text(device, selector: kAudioObjectPropertyName) ?? L("声音输出"), selected: selected == device,
+                               transport: scalar(device, address(kAudioDevicePropertyTransportType, scope: kAudioObjectPropertyScopeGlobal), initial: UInt32(0)) ?? 0)
         }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
@@ -137,5 +185,67 @@ enum AudioDevice {
             }
         }
         return nil
+    }
+}
+
+struct VolumeWriteRequest: Sendable {
+    let value: Double
+    let deviceUID: String?
+}
+
+/// Backpressure: at most one hardware write plus one replaceable latest value.
+@MainActor
+final class LatestVolumeWriter {
+    private let queue: DispatchQueue
+    private let write: @Sendable (VolumeWriteRequest) -> String?
+    private let completed: (String?) -> Void
+    private var pending: VolumeWriteRequest?
+    private var writing = false
+    private var scheduled = false
+    private var generation = 0
+
+    init(queue: DispatchQueue = DispatchQueue(label: "com.fusebar.volume", qos: .userInitiated),
+         write: @escaping @Sendable (VolumeWriteRequest) -> String? = {
+             AudioDevice.setVolume(Float($0.value), expectedUID: $0.deviceUID)
+         }, completed: @escaping (String?) -> Void) {
+        self.queue = queue
+        self.write = write
+        self.completed = completed
+    }
+
+    func submit(_ request: VolumeWriteRequest) {
+        pending = request
+        schedule()
+    }
+
+    func cancelPending() {
+        generation += 1
+        pending = nil
+    }
+
+    private func schedule() {
+        guard !writing, !scheduled, pending != nil else { return }
+        scheduled = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(40)) { [weak self] in
+            guard let self else { return }
+            self.scheduled = false
+            self.drain()
+        }
+    }
+
+    private func drain() {
+        guard !writing, let request = pending else { return }
+        pending = nil
+        writing = true
+        let token = generation
+        queue.async { [weak self, write] in
+            let error = write(request)
+            Task { @MainActor in
+                guard let self else { return }
+                self.writing = false
+                if self.generation == token { self.completed(error) }
+                self.schedule()
+            }
+        }
     }
 }

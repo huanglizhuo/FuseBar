@@ -38,16 +38,16 @@ struct ReadmePreviews {
             }
         }
         var pages: [(String, PopoverView.Page)] = [("status", .status), ("settings", .settings),
-            ("guide", .guide), ("wifi", .wifi), ("sound", .sound), ("system", .system),
+            ("guide", .guide), ("wifi", .wifi), ("bluetooth", .bluetooth), ("sound", .sound), ("system", .system),
             ("coding", .status), ("projects", .projects), ("input-sources", .inputSources)]
-        if L10n.language == "en" { pages += [("status-dark", .status), ("search", .status), ("search-empty", .status), ("recent", .status)] }
+        if L10n.language == "en" { pages += [("status-dark", .status), ("wifi-dark", .wifi), ("sound-dark", .sound), ("bluetooth-dark", .bluetooth), ("search", .status), ("search-empty", .status), ("recent", .status)] }
         for (name, page) in pages {
-            let dark = name == "status-dark"
+            let dark = name.hasSuffix("-dark")
             defaults.set(name == "recent" ? ["action:sound", "action:settings", "action:files"] : [], forKey: "menuRecentActions")
             defaults.set(name == "coding", forKey: "codingLayout")
             let projects = CodingProjects(defaults: defaults)
             if projects.items.isEmpty { projects.save(CodingProject(name: "FuseBar", preview: "http://localhost:3000", repository: "https://github.com/huanglizhuo/FuseBar")) }
-            let content = PopoverView(store: store, initialPage: page, preview: true, initialQuery: name == "search" ? "Wi-Fi" : name == "search-empty" ? "zz-no-match" : "", isSubmenu: [.wifi, .sound, .inputSources].contains(page), focusSearch: name == "recent",
+            let content = PopoverView(store: store, initialPage: page, preview: true, initialQuery: name == "search" ? "Wi-Fi" : name == "search-empty" ? "zz-no-match" : "", isSubmenu: [.wifi, .sound, .bluetooth, .inputSources].contains(page), focusSearch: name == "recent",
                                       onQuickAction: { _ in }, onOpenApplication: { _ in }, shelf: shelf)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(16).background(Color(nsColor: .windowBackgroundColor))

@@ -45,11 +45,10 @@ enum SystemReader {
 
     static func bluetooth(state: BluetoothState) -> BluetoothStatus {
         guard state == .on else { return BluetoothStatus(state: state) }
-        guard let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else {
+        guard let paired = SystemBluetoothDeviceClient().read() else {
             return BluetoothStatus(state: .unknown)
         }
-        let names = paired.filter { $0.isConnected() }.map { $0.name ?? L("已连接的蓝牙设备") }.sorted()
-        return BluetoothStatus(state: .on, devices: names)
+        return BluetoothStatus(state: .on, devices: paired.filter(\.connected).map(\.name).sorted())
     }
 
     static func read(bluetoothState: BluetoothState, wifiPath: WiFiPathState? = nil) -> StatusSnapshot {

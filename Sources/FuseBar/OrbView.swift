@@ -42,6 +42,9 @@ struct OrbView: View {
     // Menu-bar templates need opaque mask ink; content views retain semantic color.
     var ink: Color = .primary
     var emphasized = false
+    // The status item renders a monochrome template, so it never tints; colored
+    // contexts (panel header, gallery) follow the system battery colors instead.
+    var batteryRingTint = false
     var inputSource: KeyboardSource?
 
     var body: some View {
@@ -54,6 +57,14 @@ struct OrbView: View {
                     .font(.system(size: size, weight: weight ?? (emphasized ? .bold : .semibold))).foregroundStyle(ink)
                 context.draw(glyph, at: CGPoint(x: x, y: y))
             }
+            let ringTint: Color? = {
+                guard batteryRingTint else { return nil }
+                switch snapshot.battery.systemTint {
+                case .charging: return .green
+                case .critical: return .red
+                case .none: return nil
+                }
+            }()
             func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
                 var path = Path()
                 // A symmetric 80° gap holds exactly one status symbol on the vertical axis.
@@ -62,11 +73,18 @@ struct OrbView: View {
                 context.stroke(path, with: .color(ink.opacity(opacity)),
                                style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
             }
+            func valueArc(_ fraction: Double) {
+                var path = Path()
+                path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
+                            startAngle: .degrees(130), endAngle: .degrees(130 + 280 * fraction), clockwise: false)
+                context.stroke(path, with: .color((ringTint ?? ink).opacity(1)),
+                               style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round))
+            }
             if preferences.battery {
                 switch snapshot.battery.availability {
                 case .available:
                     arc(1, opacity: 0.18)
-                    if snapshot.battery.fraction > 0 { arc(snapshot.battery.fraction, opacity: 1) }
+                    if snapshot.battery.fraction > 0 { valueArc(snapshot.battery.fraction) }
                 case .unknown: arc(1, opacity: 0.55, dashed: true)
                 case .unavailable: break
                 }
@@ -93,20 +111,25 @@ struct OrbView: View {
                 case .unknown, .unavailable: symbol("questionmark", x: 11, y: 10, size: 7)
                 }
             }
-            switch snapshot.badge(preferences) {
-            case .critical, .networkWarning, .lowBattery:
-                symbol("exclamationmark", x: 11, y: 17.7, size: 6.5, weight: .bold)
-            case .charging:
-                symbol(StatusSymbols.charging, x: 11, y: 17.7, size: 6.5, weight: .regular)
-            case .muted:
-                symbol("speaker.slash.fill", x: 11, y: 17.7, size: 5.5, weight: .regular)
-            case .none:
-                if let filled = snapshot.volumeDots(preferences) {
-                    for index in 0..<4 {
-                        let angle = Double(117 - index * 18) * .pi / 180
-                        let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
-                        let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
-                        context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : 0.22)))
+            if let number = snapshot.bottomNumber(preferences) {
+                context.draw(Text(number).font(.system(size: number.count > 2 ? 5.4 : 6, weight: .semibold)).monospacedDigit()
+                    .foregroundStyle(ink), at: CGPoint(x: 11, y: 17.7))
+            } else {
+                switch snapshot.badge(preferences) {
+                case .critical, .networkWarning, .lowBattery:
+                    symbol("exclamationmark", x: 11, y: 17.7, size: 6.5, weight: .bold)
+                case .charging:
+                    symbol(StatusSymbols.charging, x: 11, y: 17.7, size: 6.5, weight: .regular)
+                case .muted:
+                    symbol("speaker.slash.fill", x: 11, y: 17.7, size: 5.5, weight: .regular)
+                case .none:
+                    if let filled = snapshot.volumeDots(preferences) {
+                        for index in 0..<4 {
+                            let angle = Double(117 - index * 18) * .pi / 180
+                            let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
+                            let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
+                            context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : 0.22)))
+                        }
                     }
                 }
             }

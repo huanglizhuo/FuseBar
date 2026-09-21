@@ -1,8 +1,9 @@
 import AppKit
 import Combine
+import SwiftUI
 import UniformTypeIdentifiers
 
-struct ShelfApplication: Identifiable, Equatable {
+struct ShelfApplication: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
     let url: URL?
@@ -71,12 +72,20 @@ final class ApplicationShelf: ObservableObject {
     private var pins: [String]
     private var bookmarks: [String: Data]
     private var observers: [NSObjectProtocol] = []
+    private let worker = DispatchQueue(label: "com.fusebar.application-metadata", qos: .utility)
+    private let readApplications: @Sendable ([String], [String: Data]) -> [ShelfApplication]
+    private var refreshing = false
+    private var refreshPending = false
+    private var revision = 0
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard,
+         readApplications: @escaping @Sendable ([String], [String: Data]) -> [ShelfApplication] = { ApplicationShelf.readApplications(pins: $0, bookmarks: $1) }) {
+        self.readApplications = readApplications
         self.defaults = defaults
         recentIDs = Array(ApplicationShelfModel.normalizedPins(defaults.stringArray(forKey: "recentApplications") ?? []).prefix(100))
         bookmarks = defaults.dictionary(forKey: "applicationBookmarks") as? [String: Data] ?? [:]
         pins = ApplicationShelfModel.normalizedPins(defaults.stringArray(forKey: "pinnedApplications") ?? [])
+        favorites = pins.map { ShelfApplication(id: $0, name: $0, url: nil, running: false) }
     }
 
     func start() {
@@ -107,11 +116,40 @@ final class ApplicationShelf: ObservableObject {
     }
 
     func stop() {
+        revision += 1
+        refreshPending = false
         observers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
         observers.removeAll()
     }
 
     func refresh() {
+        revision += 1
+        // Preserve a usable cached menu while metadata is read. Only one refresh may be queued.
+        favorites = pins.map { id in
+            favorites.first { $0.id == id } ?? ShelfApplication(id: id, name: id, url: nil, running: false)
+        }
+        guard !refreshing else { refreshPending = true; return }
+        refreshing = true
+        let token = revision
+        let requestedPins = pins
+        let requestedBookmarks = bookmarks
+        worker.async { [weak self, readApplications] in
+            let apps = readApplications(requestedPins, requestedBookmarks)
+            let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            Task { @MainActor in
+                guard let self else { return }
+                self.refreshing = false
+                if self.revision == token {
+                    self.running = ApplicationShelfModel.recent(apps.filter(\.running), ids: self.recentIDs)
+                    self.favorites = self.pins.compactMap { id in apps.first { $0.id == id } }
+                    if frontmost != Bundle.main.bundleIdentifier { self.frontmostID = frontmost }
+                }
+                if self.refreshPending { self.refreshPending = false; self.refresh() }
+            }
+        }
+    }
+
+    nonisolated private static func readApplications(pins: [String], bookmarks: [String: Data]) -> [ShelfApplication] {
         let current = ApplicationShelfModel.visible(NSWorkspace.shared.runningApplications.sorted {
             ($0.launchDate ?? .distantPast) > ($1.launchDate ?? .distantPast)
         }.compactMap { app in
@@ -119,16 +157,12 @@ final class ApplicationShelf: ObservableObject {
                   let id = app.bundleIdentifier, id != Bundle.main.bundleIdentifier else { return nil }
             return ShelfApplication(id: id, name: app.localizedName ?? id, url: app.bundleURL, running: true)
         }, query: "")
-        running = ApplicationShelfModel.recent(current, ids: recentIDs)
-        if let frontmost = NSWorkspace.shared.frontmostApplication, frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
-            frontmostID = frontmost.bundleIdentifier
-        }
-        favorites = pins.map { id in
-            if let app = running.first(where: { $0.id == id }) { return app }
-            let url = self.applicationURL(id)
+        let stoppedPins = pins.filter { id in !current.contains { $0.id == id } }.map { id in
+            let url = applicationURL(id, bookmarks: bookmarks)
             let name = url.map { FileManager.default.displayName(atPath: $0.path) } ?? id
             return ShelfApplication(id: id, name: name, url: url, running: false)
         }
+        return current + stoppedPins
     }
 
     func discoverApplications() {
@@ -174,11 +208,11 @@ final class ApplicationShelf: ObservableObject {
         return invalid ? L("部分项目不是可用的应用。") : nil
     }
 
-    private func applicationURL(_ id: String) -> URL? {
+    nonisolated private static func applicationURL(_ id: String, bookmarks: [String: Data]) -> URL? {
         if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) { return url }
         guard let data = bookmarks[id] else { return nil }
         var stale = false
-        guard let url = try? URL(resolvingBookmarkData: data, options: [.withSecurityScope, .withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale), !stale else { return nil }
+        guard let url = try? URL(resolvingBookmarkData: data, options: [.withSecurityScope, .withoutUI, .withoutMounting], relativeTo: nil, bookmarkDataIsStale: &stale), !stale else { return nil }
         return url
     }
 
@@ -212,5 +246,36 @@ final class ApplicationShelf: ObservableObject {
         else { pins.append(app.id) }
         defaults.set(pins, forKey: "pinnedApplications")
         refresh()
+    }
+}
+
+/// View rendering only reads cached images; filesystem icon lookup never runs in body.
+private enum ApplicationIconCache {
+    static let images = NSCache<NSURL, NSImage>()
+    static let worker = DispatchQueue(label: "com.fusebar.application-icons", qos: .utility)
+    static func load(_ url: URL) async -> NSImage {
+        await withCheckedContinuation { continuation in
+            worker.async {
+                if let image = images.object(forKey: url as NSURL) { continuation.resume(returning: image); return }
+                let image = NSWorkspace.shared.icon(forFile: url.path)
+                images.countLimit = 256
+                images.setObject(image, forKey: url as NSURL)
+                continuation.resume(returning: image)
+            }
+        }
+    }
+}
+
+struct ApplicationIcon: View {
+    let url: URL
+    @State private var icon: NSImage?
+    var body: some View {
+        Group {
+            if let icon { Image(nsImage: icon).resizable() }
+            else { Image(systemName: "app.dashed").resizable() }
+        }.task(id: url) {
+            let image = await ApplicationIconCache.load(url)
+            if !Task.isCancelled { icon = image }
+        }
     }
 }

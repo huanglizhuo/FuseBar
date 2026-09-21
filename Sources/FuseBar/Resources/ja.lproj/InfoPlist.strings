@@ -1,3 +1,3 @@
-"NSBluetoothAlwaysUsageDescription" = "FuseBar は Bluetooth の電源とペアリング済み装置の接続状態を Mac 内で読み取ります。";
+"NSBluetoothAlwaysUsageDescription" = "FuseBar はペアリング済みの Bluetooth デバイスを表示し、操作に応じて接続・接続解除します。名前と状態は Mac 内でのみ処理されます。";
 "NSLocationUsageDescription" = "Wi-Fi 名と必要時の周辺ネットワーク検索には macOS の位置情報の許可が必要です。FuseBar は位置を収集せず、ネットワーク名を送信しません。";
 "NSLocationWhenInUseUsageDescription" = "Wi-Fi 名と必要時の周辺ネットワーク検索には macOS の位置情報の許可が必要です。FuseBar は位置を収集せず、ネットワーク名を送信しません。";

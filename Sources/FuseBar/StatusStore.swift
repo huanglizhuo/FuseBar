@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import CoreAudio
 import CoreBluetooth
 import CoreLocation
 import Network
@@ -15,6 +16,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
             defaults.set(preferences.bluetooth, forKey: "showBluetooth")
             defaults.set(preferences.sound, forKey: "showSound")
             defaults.set(preferences.center.rawValue, forKey: "centerIndicator")
+            defaults.set(preferences.bottomIndicator.rawValue, forKey: "bottomIndicator")
         }
     }
     @Published private(set) var networkNameAccess: NetworkNameAccess = .unknown
@@ -22,13 +24,20 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published private(set) var loginEnabled = false
     @Published private(set) var loginNeedsApproval = false
     @Published private(set) var updatedAt: Date?
+    @Published private(set) var audioSelectionID: String?
     @Published private(set) var audioOutputs: [AudioOutput] = []
     @Published private(set) var audioBusy = false
     let defaults: UserDefaults
     private let worker = DispatchQueue(label: "com.mergebar.status", qos: .utility)
+    private var audioRefreshPending = false
     private let audioWorker = DispatchQueue(label: "com.fusebar.audio", qos: .userInitiated)
-    private let volumeChanges = PassthroughSubject<(Double, String?), Never>()
-    private var volumeSubscription: AnyCancellable?
+    private let connectionWorker = DispatchQueue(label: "com.fusebar.audio-connection", qos: .userInitiated)
+    private var soundReading = false
+    private var soundRefreshPending = false
+    private lazy var volumeWriter = LatestVolumeWriter(queue: audioWorker) { [weak self] error in
+        self?.errorMessage = error
+        self?.refreshSound()
+    }
     private var audioMonitor: AudioChangeMonitor?
     private var soundRevision = 0
     private var central: CBCentralManager?
@@ -44,21 +53,27 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     init(defaults: UserDefaults = .standard, demo: Bool = false) {
         self.defaults = defaults
         self.demo = demo
-        defaults.register(defaults: ["showBattery": true, "showWiFi": true, "showBluetooth": true, "showSound": true])
+        defaults.register(defaults: ["showBattery": true, "showWiFi": true, "showBluetooth": true, "showSound": true,
+                                     "bottomIndicator": BottomIndicator.status.rawValue])
         preferences = IndicatorPreferences(battery: defaults.bool(forKey: "showBattery"), wifi: defaults.bool(forKey: "showWiFi"),
                                            bluetooth: defaults.bool(forKey: "showBluetooth"), sound: defaults.bool(forKey: "showSound"),
-                                           center: CenterIndicator(rawValue: defaults.string(forKey: "centerIndicator") ?? "") ?? .network)
+                                           center: CenterIndicator(rawValue: defaults.string(forKey: "centerIndicator") ?? "") ?? .network,
+                                           bottomIndicator: BottomIndicator(rawValue: defaults.string(forKey: "bottomIndicator") ?? "") ?? .status)
         super.init()
-        if demo { snapshot = .normal; return }
+        if demo {
+            snapshot = .normal
+            audioOutputs = [AudioOutput(id: "built-in", name: snapshot.sound.deviceName, selected: true, transport: kAudioDeviceTransportTypeBuiltIn),
+                            AudioOutput(id: "headphones", name: "Studio Headphones", selected: false, transport: kAudioDeviceTransportTypeBluetooth),
+                            AudioOutput(id: "display", name: "Studio Display", selected: false, transport: kAudioDeviceTransportTypeHDMI)]
+            return
+        }
         let locationManager = CLLocationManager()
         location = locationManager
         locationManager.delegate = self
         updateNetworkNameAccess()
         if CBManager.authorization == .allowedAlways { enableBluetooth() }
         refreshLoginStatus()
-        volumeSubscription = volumeChanges.throttle(for: .milliseconds(40), scheduler: DispatchQueue.main, latest: true)
-            .sink { [weak self] value in self?.writeVolume(value.0, expectedUID: value.1) }
-        audioMonitor = AudioChangeMonitor { [weak self] in self?.refreshSound() }
+        audioMonitor = AudioChangeMonitor(changed: { [weak self] in self?.refreshSound() }, outputsChanged: { [weak self] in self?.refreshAudioOutputs() })
         audioMonitor?.start()
         let center = NSWorkspace.shared.notificationCenter
         observers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
@@ -85,7 +100,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
 
     func stop() {
         audioMonitor?.stop(); audioMonitor = nil
-        volumeSubscription?.cancel(); volumeSubscription = nil
+        volumeWriter.cancelPending()
         wifiMonitor?.cancel(); wifiMonitor = nil
         timer?.invalidate(); timer = nil
         observers.forEach { NSWorkspace.shared.notificationCenter.removeObserver($0) }
@@ -185,30 +200,28 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     func setVolume(_ value: Double) {
-        guard !demo, value.isFinite else { return }
-        volumeChanges.send((min(1, max(0, value)), snapshot.sound.deviceUID))
-    }
-
-    private func writeVolume(_ value: Double, expectedUID: String?) {
+        guard !demo, !audioBusy, value.isFinite else { return }
+        errorMessage = nil
         soundRevision += 1
-        audioWorker.async { [weak self] in
-            let error = AudioDevice.setVolume(Float(value), expectedUID: expectedUID)
-            Task { @MainActor in
-                self?.errorMessage = error
-                self?.refreshSound()
-            }
-        }
+        volumeWriter.submit(VolumeWriteRequest(value: min(1, max(0, value)), deviceUID: snapshot.sound.deviceUID))
     }
 
     private func refreshSound() {
         guard !demo, !sleeping else { return }
+        guard !soundReading else { soundRefreshPending = true; return }
+        soundReading = true
         soundRevision += 1
         let revision = soundRevision
         audioWorker.async { [weak self] in
             let sound = AudioDevice.read()
             Task { @MainActor in
-                guard let self, self.soundRevision == revision else { return }
-                if self.snapshot.sound != sound { self.snapshot.sound = sound }
+                guard let self else { return }
+                self.soundReading = false
+                if self.soundRevision == revision, self.snapshot.sound != sound { self.snapshot.sound = sound }
+                if self.soundRefreshPending {
+                    self.soundRefreshPending = false
+                    self.refreshSound()
+                }
             }
         }
     }
@@ -219,7 +232,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         audioWorker.async { [weak self] in
             let error = AudioDevice.setMuted(muted)
             Task { @MainActor in
-                self?.audioBusy = false
+                self?.finishAudioOperation()
                 self?.errorMessage = error
                 self?.refreshSound()
             }
@@ -227,29 +240,47 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     func refreshAudioOutputs() {
-        guard !demo, !audioBusy else { return }
+        guard !demo else { return }
+        guard !audioBusy else { audioRefreshPending = true; return }
         audioBusy = true
         audioWorker.async { [weak self] in
-            let outputs = AudioDevice.outputs()
+            let outputs = AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
             Task { @MainActor in
                 self?.audioOutputs = outputs
-                self?.audioBusy = false
+                self?.finishAudioOperation()
             }
         }
     }
 
     func selectAudioOutput(_ output: AudioOutput) {
-        guard !demo, !audioBusy else { return }
+        guard !demo, !audioBusy, !output.selected else { return }
         audioBusy = true
-        audioWorker.async { [weak self] in
-            let error = AudioDevice.selectOutput(uid: output.id)
-            let outputs = AudioDevice.outputs()
+        audioSelectionID = output.id
+        errorMessage = nil
+        volumeWriter.cancelPending()
+        connectionWorker.async { [weak self] in
+            let error: String?
+            if let address = output.bluetoothAddress {
+                error = BluetoothAudioConnection.select(address: address)
+            } else {
+                error = AudioDevice.selectOutput(uid: output.id)
+            }
+            let outputs = AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
             Task { @MainActor in
                 self?.audioOutputs = outputs
-                self?.audioBusy = false
+                self?.finishAudioOperation()
                 self?.errorMessage = error
                 self?.refreshSound()
             }
+        }
+    }
+
+    private func finishAudioOperation() {
+        audioBusy = false
+        audioSelectionID = nil
+        if audioRefreshPending {
+            audioRefreshPending = false
+            refreshAudioOutputs()
         }
     }
 

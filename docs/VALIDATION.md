@@ -290,3 +290,63 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 五语设置与说明更新，设置预览重新生成，目视检查英文选项无重叠。截图为离屏渲染，未宣称桌面鼠标操作验收。
 - 61 项测试、0 失败（/private/tmp/fusebar-center-tests.log），包含新偏好默认值、保存/恢复、非法值回退、选中指标开关、未知/静音/高音量符号。构建通过（/private/tmp/fusebar-center-build.log）。
 - 构建及安装副本严格签名检查通过，已替换并启动本机 FuseBar；未提交/push 或发布版本。
+
+### 2026-09-21 — Wi-Fi / 声音 / 蓝牙系统菜单完善
+
+- 系统对照：电脑控制按 ControlCenter bundle ID 与系统路径两次读取都返回 `timeoutReached`；Finder 可读取，但未获得可操作的系统状态菜单。改以 Apple macOS Tahoe 官方控制中心、Wi-Fi、声音、蓝牙说明核对交互。具体来源、差异和能力边界见 [系统菜单对照](SYSTEM_MENU_REVIEW.md)。未把官方资料阅读记作本机菜单实测。
+- 三项子菜单消除重复标题与固定空白；统一设备行、状态图标、选中反馈和底部设置入口。Wi-Fi 既有授权后进入菜单按需扫描，刷新保留列表、连接失败保留目标且清除密码；关联标记在状态变化后只读更新，不追加周期扫描。声音菜单增加滑杆/静音、设备插拔与默认输出监听、行内切换进度和音量写失败恢复。蓝牙行明确委托系统管理，没有开放未实测直连或伪造系统电源开关。
+- 异步状态：Wi-Fi 请求使用版本号隔离过期结果；关闭面板/失去权限后清除网络缓存。蓝牙权限/电源状态变化优先清除设备名称，并拒绝旧结果。声音操作忙碌时收到设备刷新事件会延后处理，不丢弃事件；设备 UID 校验继续保护音量写入。
+- 最终 `zsh Scripts/test.sh` 通过：61 项 XCTest + 2 项 Swift Testing，共 63 项、0 失败。新增回归覆盖蓝牙权限撤销/电源关闭后名称清理、关闭 Wi-Fi 面板后缓存清理；没有扫描或改变用户设备。日志：`/private/tmp/fusebar-system-menus-final-tests.log`。
+- 已用 `xcodegen generate` 更新实际工程 `FuseBar.xcodeproj`（仓库旧说明中的 `MergeBar.xcodeproj` 已非当前工程名）。最终构建日志：`/private/tmp/fusebar-system-menus-final-build.log`。构建仍有既有 FileShortcuts actor-isolation / InputSources IconRef 弃用提示，无本轮新增编译错误。
+- 重新生成五语原生离屏预览，保存三菜单五语、三张英文深色与两张侧边组合，共 20 张相关预览。目视检查三菜单中文、声音/蓝牙英文深色及法文 Wi-Fi：无重叠；所有新菜单文案在五种语言中均存在。设备列表使用示例值；离屏非活动窗口控件着色不代表活动菜单着色。最终仅后续增加的忙碌指示及键盘处理没有改变这些正常态截图。
+- 尚未验证：实际鼠标/键盘打开系统菜单逐项对照、真实 Wi-Fi 扫描/连接/电源写入、输出切换与设备拔插、蓝牙连接/断开、VoiceOver 与多显示器组合。未更改用户无线连接或声音设备以完成测试；没有新增运行依赖/权限，未提交、push 或发布。
+- 最终构建及 `/Applications/FuseBar.app` 严格签名检查通过；旧应用备份至 `/private/tmp/FuseBar-before-system-menus.ojxOEF/FuseBar.app` 后完成替换。电脑控制启动新应用时 AX 读取仍超时，但进程核实已从 `/Applications/FuseBar.app/Contents/MacOS/FuseBar` 运行（PID 2941）。这只证明新应用启动，不代表原生菜单点击验收完成。
+
+### 2026-09-21 — 蓝牙直接连接与 HC3 名称修正
+
+- 用户明确要求设备行直接连接，已将点击从系统设置跳转替换为公开 `IOBluetoothDevice.openConnection` / `closeConnection`。后台串行执行，限制重复操作，连接/断开过程在对应设备行显示；以实际连接状态和刷新列表双重核验，不乐观勾选。失败留在原菜单，底部仍可打开系统设置。配对与电源控制不变。
+- 真实名称根因已复现：同一设备的 IOBluetooth `name` 与 `nameOrAddress` 均为 `AirPods Pro`，系统信息与 CoreAudio 名称为 `HC3`。在使用应用相同 bundle ID、Apple Development 签名和沙箱权限的独立验证程序中，系统信息命令返回空蓝牙列表，不能作为运行时方案；CoreAudio 的 Bluetooth `address:output` UID 精确匹配该设备地址，返回 HC3。
+- 新名称解析器只接受 Bluetooth / Bluetooth LE 输出且 UID 为完整设备地址加 `:output`，不按型号名或部分地址猜测；未知格式回退原蓝牙名称。别名仅本机 UserDefaults 缓存，在设备断开时仍可显示，重新连接读取新名称，取消配对后清理。主页蓝牙摘要和设备子菜单共用解析路径。未新增私有 API、权限、外部依赖或运行时系统信息命令。
+- 沙箱生产代码验证输出：`Raw name: AirPods Pro; resolved name: HC3; connected: true`；`PASS: production client resolves the paired headset to HC3 inside App Sandbox.` 验证程序 `/private/tmp/FuseBarBluetoothProbe.app`，只读运行未切换任何设备。
+- `zsh Scripts/test.sh`：61 项 XCTest + 10 项 Swift Testing，共 71 项、0 失败。新增 8 项覆盖连接/断开目标、真实回读与成功命令不一致、失败保留、重复点击、操作期间关电源后的过期结果、禁止/不存在设备、精确音频身份匹配、别名持久化/改名/歧义与取消配对清理。日志 `/private/tmp/fusebar-bt-direct-tests.log`。
+- `xcodegen generate`、`zsh Scripts/build.sh` 和严格签名检查通过；构建日志 `/private/tmp/fusebar-bt-direct-build.log`。五语权限说明、本地名称缓存隐私说明和蓝牙预览更新，中文预览已目视检查；均为离屏示例数据。
+- 已替换 `/Applications/FuseBar.app`，旧版备份 `/private/tmp/FuseBar-before-bt-direct.3gr5fR/FuseBar.app`。电脑控制启动后仍无法读取 AX 菜单，进程启动另行核实；未声称实际鼠标点击已经验证。
+- 已请求仅对 HC3 做一次短暂断开/重连与音频输出恢复验证；截至此记录尚未执行，等待用户确认。也未对键盘、鼠标、BLE 或其他硬件进行写入验证。命令链路连接不等于所有音频 profile、默认输出切换或声音播放都已验证。
+
+## Wi-Fi authorization / scan and paired audio output repair — 2026-09-21
+
+- Reproduced with a same-team signed App Sandbox probe: newly created CLLocationManager initially returned authorization 0, then 3 after its main run loop settled. With the previous entitlements, CoreWLAN returned no interfaces and sandboxd reported `deny mach-lookup com.apple.airportd`. Adding only the standard network-client entitlement restored en0, a visible current SSID, and 79 named scan results. No coordinates, network names, device addresses or credentials were written to the validation log.
+- Repeated with production StatusStore, SystemReader and WiFiPanelStore inside the signed sandbox: authorization allowed, SSID visible, 61 actual nearby network rows, failed=false, busy=false. Counts vary by scan. Production scan uses the long-lived authorization state. Log: `/private/tmp/fusebar-wifi-sound-probe.log`.
+- Production audio choices contained exactly one HC3 while no live HC3 output existed, with a connection action. The projection with all CoreAudio routes removed retained HC3; that specific projection is a fixture, not a hardware disconnection test.
+- **Live HC3 connection verified** using production BluetoothAudioConnection inside the signed sandbox. Initially connected=false; connection and selection returned no error; CoreAudio read back currentOutput=HC3 and the exact matching output UID selected=true. No test disconnection, Wi-Fi association change, or keyboard/mouse operation was performed. Log: `/private/tmp/fusebar-hc3-connect.log`.
+- `zsh Scripts/test.sh`: 61 XCTest + 15 Swift Testing = **76 tests passed**. Added cases cover disconnected audio-device visibility, keyboard exclusion, exact-address deduplication and selection, delayed route availability, route timeout, connection/selection errors and unpaired targets. Log: `/private/tmp/fusebar-wifi-sound-tests.log`.
+- Ran `zsh Scripts/build.sh` again after tests to remove test-host sandbox exceptions; verified the final app has App Sandbox + standard network-client entitlement, no temporary exceptions. Build and strict signature verification passed; `git diff --check` passed.
+- Installed updated app at `/Applications/FuseBar.app`; previous copy retained at `/private/tmp/FuseBar-before-wifi-sound.oUpY75/FuseBar.app`. CUA launch invoked successfully at the process level but its menu-only accessibility snapshot timed out again. These are production API/hardware validations, not a claim that GUI click traversal or system-menu visual comparison passed.
+
+## Reported menu unresponsiveness — 2026-09-21
+
+- Investigated installed FuseBar PID 54666 in place; did not restart it or alter product code during this investigation.
+- A 5-second `/usr/bin/sample` capture (`/private/tmp/fusebar-hang-sample.txt`) showed the main thread waiting normally in the AppKit event loop throughout. Background Wi-Fi/Bluetooth reads completed; no sampled main-thread lock wait or hardware API blockage was observed. This cannot rule out an earlier transient stall.
+- Attached LLDB to the signed debug build and traced AppDelegate.togglePanel / closeAllMenus. User clicks reached togglePanel, created the hosting controller, installed menu dismissal monitors, and subsequent toggles reached the expected close path. The user then confirmed the menu could open normally. Removed all breakpoints and detached; process remained running.
+- CUA getApp still timed out for the menu-only app, including after the user confirmed it was responsive. A CUA timeout is therefore not evidence of a FuseBar hang.
+- The original failure was not reproduced or explained; no speculative code change or confirmed bug-fix claim was made. Existing unit/hardware test results do not establish GUI responsiveness. Further diagnosis requires a trace captured while the actual failure is present.
+
+## Responsiveness risk fixes — 2026-09-21
+
+- Removed synchronous input-source, application-metadata and login-item refreshes from the menu's pre-show path. Application metadata/bookmark reads now execute on a serial background queue, with cached presentation, at most one follow-up refresh, and stale-result rejection. Application icons load off-main with a bounded cache; input-source icons are reused until enabled sources change.
+- CoreAudio listener installation/removal and device-property reads now run on a dedicated serial observation queue. Bursts are coalesced over 50 ms; session/facade generations reject late callbacks after stop/rebind. The main actor only receives completion notifications.
+- Bluetooth audio connection/route waiting now runs on its own queue. Volume writes have one in-flight operation plus one replaceable latest request; pending values and stale completions are invalidated on output selection. Both main and sound menus disable volume while audioBusy. Repeated audio reads are also coalesced.
+- Added four deterministic Swift Testing regressions with deliberately blocked fake backends: main actor progresses while listener installation is blocked; 100 device callbacks cause one rebind and stopped callbacks cannot resurrect registration; 250 queued volume values reduce to initial/latest; switching output drops pending old values/completions; application metadata reads run off-main and a removed pin cannot return through a late result (the latter cases are grouped into four test functions).
+- Default `zsh Scripts/build.sh` and `zsh Scripts/test.sh` could not proceed because the previously used Apple Development signing identity is no longer available with its private key. `security find-identity -v -p codesigning` listed distribution identities only. Project signing settings were preserved.
+- Used an isolated **ad-hoc test build only**, at `/private/tmp/FuseBarResponsivenessBuild`, via xcodebuild with `CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=`. Build passed and the final complete suite passed: **61 XCTest + 19 Swift Testing = 80 tests**, zero failures. Log: `/private/tmp/fusebar-responsiveness-final-tests.log`. This is not an equivalently signed production/hardware permission validation. No temporary signing exceptions or test build were installed over `/Applications/FuseBar.app`.
+- `git diff --check` passed. No new runtime dependencies or product permissions. Existing FileShortcuts actor-isolation and IconRef deprecation warnings remain. These changes address reviewed blocking risks; they do not establish the root cause of the earlier unreproduced transient menu report.
+
+### 2026-09-21 — 死锁风险加固、底部数字显示与电量圆环着色
+
+- 并发审查覆盖全部 Sources：未发现 ABBA 锁序或主线程同步等待（全仓库无 `dispatch sync`/信号量跨队列等待）。修复两处结构性风险：1）CoreAudio 属性监听器的安装/移除原先运行在 HAL 投递回调的同一串行队列上，现将投递队列与控制队列分离（`AudioObservationWorker`），`AudioObjectRemovePropertyListenerBlock` 不再从自身投递队列调用；既有 50ms 合并、revision 失效逻辑与四个阻塞假后端回归全部保持。2）`removeDismissalMonitors` 可由事件监视器自身回调经 `closeAllMenus` 触发，NSEvent 监视器的移除改为摘引用后在下一 runloop 执行，避免重入变更 AppKit 分发列表。`SystemBluetoothDeviceClient.setConnected` 在静态 `commandLock` 内等待蓝牙状态稳定（≤2s）为刻意的跨队列串行化，无锁序循环，保留不改。
+- 新增底部指示偏好 `bottomIndicator`（状态提醒与音量四点 / 电量百分比 / 音量百分比，键 `bottomIndicator` 持久化）。选择数字后圆环底部常显所选百分比，对应指标不可用或对应指示被隐藏时回落到默认提醒/四点管线。设置页"在圆环中显示"区新增选择器，五语文案各增 5 键（每目录现 307 键，目录间键一致）。
+- 圆环着色遵循 macOS 系统电池逻辑：充电为绿色，电池供电且 <10% 为红色，其余保持原墨色；仅作用于弹窗/图谱等彩色上下文，菜单栏 template 图标保持单色（`batteryRingTint` 默认关闭）。
+- `zsh Scripts/test.sh`：86 项全部通过（新增 7 项：数字模式取值/回落/隐藏指示、raw value 回环、充电-严重低电-仅低电着色边界、无电池不着色）。`zsh Scripts/build.sh` 成功；`git diff --check` 通过。
+- `Scripts/render-readme-previews.sh` 重新生成 64 张五语预览。另用一次性离屏渲染（滚动到设置页底部 + 五场景圆环）目视确认：Bottom slot 选择器与说明完整无截断；normal/charging/critical 分别为原色/绿/红，底部数字 82/42 显示清晰。离屏渲染不等于实机菜单栏像素验证。
+- 开发签名排查：`security find-identity -v -p codesigning` 列出 8 个有效身份（含 Apple Development A5BC7FE4…，OU=N9Q47Y2LQ4，有效期至 2026-10-29）；`security verify-cert` 链到 login 钥匙串 WWDR G3（2030 到期），OCSP 未吊销。本会话 Debug 与 Release 构建均以该 Apple Development 身份签名成功。上一条目记录的"开发身份不可用"为当时受限环境的钥匙串访问问题，非证书失效；证书 2026-10-29 到期，届时需在 Xcode 账户续期。System 钥匙串中存在 2013 版已过期 WWDR 中间证书（SKI 88:27:17:09…），不在本证书链上，未发现自定义信任设置，保留未动。
+- 已删除 `/Applications/FuseBar.app` 旧安装（今日 0:34 签名的 1.1.0(3)），以本会话 Apple Development 签名的新 1.1.0(3) 构建替换，`codesign --verify --deep --strict` 通过（Team N9Q47Y2LQ4），无隔离属性，启动确认进程运行。用户偏好 plist 未触动。仓库 build/ 与 DerivedData 中的旧构建产物为编译输出而非安装，未删除。

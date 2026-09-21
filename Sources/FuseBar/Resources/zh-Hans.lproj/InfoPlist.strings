@@ -1,3 +1,3 @@
-"NSBluetoothAlwaysUsageDescription" = "FuseBar 仅在本机读取蓝牙开关及已配对设备的连接状态。";
+"NSBluetoothAlwaysUsageDescription" = "FuseBar 显示已配对的蓝牙设备，并在你点击时连接或断开。设备名称和状态仅在本机处理。";
 "NSLocationUsageDescription" = "macOS 要求定位授权才能读取 Wi-Fi 名称并按需扫描附近网络。FuseBar 不采集位置，也不上传网络名称。";
 "NSLocationWhenInUseUsageDescription" = "macOS 要求定位授权才能读取 Wi-Fi 名称并按需扫描附近网络。FuseBar 不采集位置，也不上传网络名称。";

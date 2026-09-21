@@ -95,6 +95,11 @@
 "Wi-Fi · 中心" = "Wi-Fi · centre";
 "声音 · 四点音量与静音" = "Son · points de volume et silence";
 "平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。" = "Quatre points indiquent environ 25 %, 50 %, 75 % ou 100 % du volume. Une alerte prioritaire les remplace : batterie critique, Wi-Fi déconnecté, batterie faible, charge ou silence. Tous les états restent dans le panneau.";
+"底部显示" = "Zone inférieure";
+"状态提醒与音量四点" = "Alertes et points de volume";
+"电量百分比数字" = "Pourcentage de batterie";
+"音量百分比数字" = "Pourcentage de volume";
+"选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "Avec un chiffre choisi, le bas de l’anneau affiche en permanence ce pourcentage et revient aux alertes et aux points quand la valeur est indisponible. Dans le panneau, l’anneau suit les couleurs système de la batterie : vert en charge, rouge au niveau critique ; l’icône de la barre des menus reste monochrome.";
 "悬停摘要包含蓝牙状态" = "Inclure Bluetooth dans l’infobulle";
 "外观" = "Apparence";
 "登录时启动" = "Ouvrir à la connexion";
@@ -299,3 +304,29 @@
 "声音状态与音量" = "État sonore et volume";
 
 "切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。" = "Après un changement de source de saisie, son icône apparaît pendant 2 secondes, puis l’icône centrale choisie revient. L’affichage permanent de la source de saisie est prioritaire.";
+
+/* System device menus */
+"此设备由硬件控制音量。" = "Le volume se règle sur cet appareil.";
+"输出设备" = "Périphériques de sortie";
+"正在读取设备…" = "Chargement des appareils…";
+"需要定位权限以显示附近网络；不会读取设备位置。" = "Autorisez la localisation pour afficher les réseaux proches. Votre position n’est pas collectée.";
+"其他网络" = "Autres réseaux";
+"需要密码" = "Mot de passe requis";
+"状态未知" = "État inconnu";
+"我的设备" = "Mes appareils";
+"在系统设置中管理连接" = "Gérer la connexion dans Réglages Système";
+"选择设备以在系统设置中连接或断开。" = "Sélectionnez un appareil pour le connecter ou le déconnecter dans Réglages Système.";
+
+/* Direct Bluetooth connections */
+"断开" = "Déconnecter";
+"正在断开…" = "Déconnexion…";
+"设备已不在配对列表中，请刷新后重试。" = "Cet appareil n’est plus jumelé. Actualisez et réessayez.";
+"连接未完成，请确认设备已开机且在附近，然后重试。" = "Connexion impossible. Vérifiez que l’appareil est allumé et à proximité, puis réessayez.";
+"未能断开设备，请重试。" = "Déconnexion impossible. Réessayez.";
+"系统尚未确认设备状态，请刷新后重试。" = "L’état de l’appareil n’a pas pu être confirmé. Actualisez et réessayez.";
+
+// Wi-Fi service access and paired audio connection.
+"无法访问系统 Wi-Fi 服务，请重新启动 FuseBar 后重试。" = "Impossible d’accéder au service Wi-Fi. Redémarrez FuseBar et réessayez.";
+"Wi-Fi 已关闭，请开启后重新扫描。" = "Le Wi-Fi est désactivé. Activez-le et relancez la recherche.";
+"扫描未完成（%@ %ld），请重试。" = "Échec de la recherche (%@ %ld). Réessayez.";
+"耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "La sortie audio du casque est indisponible. Vérifiez qu’il est allumé et à proximité, puis réessayez.";

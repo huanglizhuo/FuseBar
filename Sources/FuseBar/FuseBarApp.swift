@@ -144,12 +144,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     }
 
     private func removeDismissalMonitors() {
-        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
-        if let localEventMonitor { NSEvent.removeMonitor(localEventMonitor) }
-        if let deactivateObserver { NotificationCenter.default.removeObserver(deactivateObserver) }
+        let outside = outsideClickMonitor
+        let local = localEventMonitor
+        let deactivate = deactivateObserver
         outsideClickMonitor = nil
         localEventMonitor = nil
         deactivateObserver = nil
+        // closeAllMenus() is reachable from inside these very event-monitor handlers;
+        // retiring a monitor on the next run-loop turn avoids mutating AppKit's
+        // dispatch list while it may still be walking it.
+        if let deactivate { NotificationCenter.default.removeObserver(deactivate) }
+        guard outside != nil || local != nil else { return }
+        DispatchQueue.main.async {
+            if let outside { NSEvent.removeMonitor(outside) }
+            if let local { NSEvent.removeMonitor(local) }
+        }
     }
 
     private func updateIcon(_ snapshot: StatusSnapshot, _ preferences: IndicatorPreferences, inputSource: KeyboardSource? = nil) {
@@ -204,11 +213,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             if let frontmost = NSWorkspace.shared.frontmostApplication, frontmost.bundleIdentifier != Bundle.main.bundleIdentifier {
                 previousApplication = frontmost
             }
-            inputSources.refresh()
-            ApplicationShelf.shared.refresh()
             resetPopoverContent(focusSearch: focusSearch)
-            store?.refresh()
-            store?.refreshLoginStatus()
             NSApp.activate(ignoringOtherApps: true)
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()

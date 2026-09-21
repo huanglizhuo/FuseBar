@@ -95,6 +95,11 @@
 "Wi-Fi · 中心" = "Wi-Fi · center";
 "声音 · 四点音量与静音" = "Sound · volume dots and mute";
 "平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。" = "Four dots show roughly 25%, 50%, 75%, or 100% volume. Priority alerts replace them: critical battery, disconnected Wi-Fi, low battery, charging, or mute. All states remain in the panel.";
+"底部显示" = "Bottom slot";
+"状态提醒与音量四点" = "Alerts & volume dots";
+"电量百分比数字" = "Battery percentage";
+"音量百分比数字" = "Volume percentage";
+"选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "When a number is chosen, the bottom of the orb always shows that percentage and falls back to alerts and dots when the value is unavailable. In the panel the ring follows the system battery colors: green while charging, red when critical; the menu-bar icon stays monochrome.";
 "悬停摘要包含蓝牙状态" = "Include Bluetooth in hover summary";
 "外观" = "Appearance";
 "登录时启动" = "Launch at login";
@@ -299,3 +304,29 @@
 "声音状态与音量" = "Sound status and volume";
 
 "切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。" = "After switching input sources, show its icon for 2 seconds, then restore the selected center icon. Always-show input source takes priority.";
+
+/* System device menus */
+"此设备由硬件控制音量。" = "Volume is controlled on this device.";
+"输出设备" = "Output Devices";
+"正在读取设备…" = "Loading devices…";
+"需要定位权限以显示附近网络；不会读取设备位置。" = "Allow Location Services to show nearby networks. Your location is not collected.";
+"其他网络" = "Other Networks";
+"需要密码" = "Password required";
+"状态未知" = "Status unknown";
+"我的设备" = "My Devices";
+"在系统设置中管理连接" = "Manage connection in System Settings";
+"选择设备以在系统设置中连接或断开。" = "Select a device to connect or disconnect in System Settings.";
+
+/* Direct Bluetooth connections */
+"断开" = "Disconnect";
+"正在断开…" = "Disconnecting…";
+"设备已不在配对列表中，请刷新后重试。" = "This device is no longer paired. Refresh and try again.";
+"连接未完成，请确认设备已开机且在附近，然后重试。" = "Could not connect. Make sure the device is on and nearby, then try again.";
+"未能断开设备，请重试。" = "Could not disconnect. Try again.";
+"系统尚未确认设备状态，请刷新后重试。" = "The device state could not be confirmed. Refresh and try again.";
+
+// Wi-Fi service access and paired audio connection.
+"无法访问系统 Wi-Fi 服务，请重新启动 FuseBar 后重试。" = "Cannot access the system Wi-Fi service. Restart FuseBar and try again.";
+"Wi-Fi 已关闭，请开启后重新扫描。" = "Wi-Fi is off. Turn it on and scan again.";
+"扫描未完成（%@ %ld），请重试。" = "Scan failed (%@ %ld). Try again.";
+"耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "The headphones have not provided an audio output. Make sure they are on and nearby, then try again.";

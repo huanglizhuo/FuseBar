@@ -79,14 +79,16 @@ struct PopoverView: View {
 
     private var submenuContent: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(submenuTitle).font(.headline)
-                Spacer()
-                Button { SideSubmenu.shared.close(restoreParent: true) } label: {
-                    Image(systemName: "xmark").frame(width: 20, height: 20)
-                }.buttonStyle(.plain).help(L("关闭子菜单")).accessibilityLabel(L("关闭子菜单"))
-            }.padding(16)
-            Divider()
+            if ![.wifi, .sound, .bluetooth].contains(page) {
+                HStack {
+                    Text(submenuTitle).font(.headline)
+                    Spacer()
+                    Button { SideSubmenu.shared.close(restoreParent: true) } label: {
+                        Image(systemName: "xmark").frame(width: 20, height: 20)
+                    }.buttonStyle(.plain).help(L("关闭子菜单")).accessibilityLabel(L("关闭子菜单"))
+                }.padding(16)
+                Divider()
+            }
             Group {
                 switch page {
                 case .battery:
@@ -95,9 +97,9 @@ struct PopoverView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         Button(L("打开电池系统设置")) { SettingsDestination.battery.open() }
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(18)
-                case .wifi: WiFiPanel(store: store)
+                case .wifi: WiFiPanel(store: store, preview: preview, isSubmenu: isSubmenu)
                 case .sound: soundOutputs
-                case .bluetooth: BluetoothPanel(store: store)
+                case .bluetooth: BluetoothPanel(store: store, preview: preview, isSubmenu: isSubmenu)
                 case .inputSources: inputSourceList
                 default: EmptyView()
                 }
@@ -106,7 +108,10 @@ struct PopoverView: View {
                 Text(error).font(.caption).foregroundStyle(.red).padding(12)
             }
         }.frame(width: 300)
-            .onKeyPress(.leftArrow) { SideSubmenu.shared.close(restoreParent: true); return .handled }
+            .onKeyPress(.leftArrow) {
+                guard page != .wifi && page != .sound else { return .ignored }
+                SideSubmenu.shared.close(restoreParent: true); return .handled
+            }
             .background(.regularMaterial).environment(\.locale, L10n.locale)
     }
 
@@ -125,7 +130,7 @@ struct PopoverView: View {
             }
             VStack(alignment: .leading, spacing: 7) {
                 HStack(spacing: 8) {
-                    OrbView(snapshot: store.snapshot, preferences: store.preferences).frame(width: 20, height: 20)
+                    OrbView(snapshot: store.snapshot, preferences: store.preferences, batteryRingTint: true).frame(width: 20, height: 20)
                         .accessibilityHidden(true)
                     Text("FuseBar").font(.system(size: 14, weight: .semibold))
                     Spacer(minLength: 4)
@@ -146,8 +151,8 @@ struct PopoverView: View {
                 }.padding(18)
             }
             else if page == .sound { soundOutputs }
-            else if page == .wifi { WiFiPanel(store: store) }
-            else if page == .bluetooth { BluetoothPanel(store: store) }
+            else if page == .wifi { WiFiPanel(store: store, preview: preview, isSubmenu: isSubmenu) }
+            else if page == .bluetooth { BluetoothPanel(store: store, preview: preview, isSubmenu: isSubmenu) }
             else if page == .files { FileShortcutsView() }
             else if page == .system { SystemControlsView(store: store) }
             else if page == .projects { ProjectEditorView(projects: projects) }
@@ -197,7 +202,7 @@ struct PopoverView: View {
         .onChange(of: page) { _, _ in SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload() }
         .onChange(of: files.error) { _, error in if let error { store.errorMessage = error } }
         .onKeyPress(.leftArrow) {
-            guard page != .status else { return .ignored }
+            guard page != .status && page != .wifi && page != .sound else { return .ignored }
             page = .status
             return .handled
         }
@@ -517,7 +522,7 @@ struct PopoverView: View {
             } label: {
                 HStack(spacing: 10) {
                     if let url = app.url {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 28, height: 28)
+                        ApplicationIcon(url: url).frame(width: 28, height: 28)
                     } else {
                         Image(systemName: "app.dashed").frame(width: 28, height: 28)
                     }
@@ -554,42 +559,7 @@ struct PopoverView: View {
     }
 
     private var soundOutputs: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                if !isSubmenu { Text(L("声音输出")).font(.headline) }
-                Spacer()
-                if store.audioBusy { ProgressView().controlSize(.small) }
-                Button(L("刷新")) { store.refreshAudioOutputs() }.disabled(store.audioBusy)
-            }
-            Toggle(L("静音"), isOn: Binding(get: { store.snapshot.sound.muted == true }, set: { store.setMuted($0) }))
-                .disabled(store.audioBusy || !store.snapshot.sound.canSetMute)
-            if !store.snapshot.sound.canSetMute {
-                Text(L("此设备不支持软件静音。")).font(.caption2).foregroundStyle(.secondary)
-            }
-            ScrollView {
-                VStack(spacing: 6) {
-                    if store.audioOutputs.isEmpty && !store.audioBusy {
-                        Text(L("没有可用的输出设备。请检查连接，或打开声音设置。"))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    ForEach(store.audioOutputs) { output in
-                        Button { store.selectAudioOutput(output) } label: {
-                            HStack {
-                                Image(systemName: "speaker.wave.2")
-                                Text(output.name).lineLimit(2)
-                                Spacer()
-                                if output.selected { Image(systemName: "checkmark") }
-                            }.padding(10).frame(maxWidth: .infinity).contentShape(Rectangle())
-                        }.buttonStyle(.plain).disabled(store.audioBusy)
-                            .accessibilityValue(output.selected ? L("当前输出") : "")
-                    }
-                }
-            }.frame(height: 230)
-            Text(L("切换媒体播放输出；系统提示音仍使用原来的设置。"))
-                .font(.caption2).foregroundStyle(.secondary)
-            Button(L("打开声音设置…")) { SettingsDestination.sound.open() }
-        }.padding(18)
-        .onAppear { if !preview { store.refreshAudioOutputs() } }
+        SoundPanel(store: store, preview: preview, isSubmenu: isSubmenu)
     }
 
     private var status: some View {
@@ -637,7 +607,7 @@ struct PopoverView: View {
                     editingVolume = editing
                     if !editing { store.setVolume(volume) }
                 })
-                .disabled(!store.snapshot.sound.canSetVolume)
+                .disabled(store.audioBusy || !store.snapshot.sound.canSetVolume)
                 .accessibilityLabel(L("输出音量"))
                 .accessibilityValue("\(Int(volume * 100))%")
                 Text(store.snapshot.sound.volume == nil ? "—" : "\(Int((volume * 100).rounded()))%")
@@ -667,7 +637,7 @@ struct PopoverView: View {
                         Button { if let url = app.url { history.record("app:" + app.id); onOpenApplication?(url) } } label: {
                             Group {
                                 if let url = app.url {
-                                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 28, height: 28)
+                                    ApplicationIcon(url: url).frame(width: 28, height: 28)
                                 } else { Image(systemName: "app.dashed").frame(width: 28, height: 28) }
                             }.frame(width: 38, height: 34)
                                 .background(shelf.frontmostID == app.id ? Color.accentColor.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 7))
@@ -780,8 +750,15 @@ struct PopoverView: View {
             Toggle(L("电池 · 外环"), isOn: $store.preferences.battery)
             Toggle(L("网络状态与提醒"), isOn: $store.preferences.wifi)
             Toggle(L("声音状态与音量"), isOn: $store.preferences.sound)
+            Picker(L("底部显示"), selection: $store.preferences.bottomIndicator) {
+                Text(L("状态提醒与音量四点")).tag(BottomIndicator.status)
+                Text(L("电量百分比数字")).tag(BottomIndicator.batteryLevel)
+                Text(L("音量百分比数字")).tag(BottomIndicator.volumeLevel)
+            }
             Text(L("平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。"))
                 .font(.caption).foregroundStyle(.secondary)
+            Text(L("选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。"))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Divider()
             Toggle(L("悬停摘要包含蓝牙状态"), isOn: $store.preferences.bluetooth)
             HStack { Text(L("外观")); Spacer(); Text("Compact Orb").foregroundStyle(.secondary) }
@@ -806,7 +783,7 @@ struct PopoverView: View {
             HStack(spacing: 13) {
                 ForEach(["wifi", StatusSymbols.bluetooth, "speaker.wave.2.fill", "battery.75percent"], id: \.self) { Image(systemName: $0) }
                 Image(systemName: "arrow.right").foregroundStyle(.tertiary)
-                OrbView(snapshot: .normal).frame(width: 32, height: 32)
+                OrbView(snapshot: .normal, batteryRingTint: true).frame(width: 32, height: 32)
             }.frame(maxWidth: .infinity).padding(.vertical, 8).accessibilityHidden(true)
             Text(L("外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。"))
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -834,8 +811,8 @@ struct OrbGallery: View {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(140)), count: 4), spacing: 24) {
                 ForEach(StatusSnapshot.scenarios, id: \.0) { title, snapshot in
                     VStack(spacing: 12) {
-                        OrbView(snapshot: snapshot).frame(width: 66, height: 66)
-                        OrbView(snapshot: snapshot).frame(width: 18, height: 18)
+                        OrbView(snapshot: snapshot, batteryRingTint: true).frame(width: 66, height: 66)
+                        OrbView(snapshot: snapshot, batteryRingTint: true).frame(width: 18, height: 18)
                         Text(title).font(.system(size: 12))
                     }.frame(width: 140, height: 145)
                 }

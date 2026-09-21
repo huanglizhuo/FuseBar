@@ -1,3 +1,3 @@
-"NSBluetoothAlwaysUsageDescription" = "FuseBar lit localement l’état de Bluetooth et des appareils jumelés.";
+"NSBluetoothAlwaysUsageDescription" = "FuseBar affiche les appareils Bluetooth jumelés et les connecte ou déconnecte à votre demande. Les noms et états restent sur votre Mac.";
 "NSLocationUsageDescription" = "macOS exige la localisation pour lire les noms Wi-Fi et rechercher les réseaux à votre demande. FuseBar ne collecte pas votre position et n’envoie pas les noms de réseau.";
 "NSLocationWhenInUseUsageDescription" = "macOS exige la localisation pour lire les noms Wi-Fi et rechercher les réseaux à votre demande. FuseBar ne collecte pas votre position et n’envoie pas les noms de réseau.";
