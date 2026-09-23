@@ -21,7 +21,6 @@
 "打开蓝牙隐私设置" = "Open Bluetooth privacy settings";
 "已连接" = "Connected";
 "未连接" = "Disconnected";
-"连接、断开、配对和蓝牙电源暂由系统设置管理。这里不扫描附近设备。" = "Use System Settings to connect, disconnect, pair, or turn Bluetooth on or off. This panel does not scan for nearby devices.";
 "管理蓝牙连接…" = "Manage Bluetooth connections…";
 "添加文件或文件夹到 FuseBar" = "Add a file or folder to FuseBar";
 "添加" = "Add";
@@ -66,7 +65,6 @@
 "显示应用" = "Show app";
 "在 Finder 中显示" = "Show in Finder";
 "静音" = "Mute";
-"此设备不支持软件静音。" = "This device does not support software mute.";
 "没有可用的输出设备。请检查连接，或打开声音设置。" = "No output devices. Check the connection or open Sound settings.";
 "当前输出" = "Current output";
 "切换媒体播放输出；系统提示音仍使用原来的设置。" = "Changes media output. System alerts keep their existing output setting.";
@@ -79,21 +77,13 @@
 "声音" = "Sound";
 "输出音量" = "Output volume";
 "系统静音已开启；调整音量不会自动取消静音。" = "System mute is on. Adjusting volume will not unmute it.";
-"启动器" = "Apps";
-"窗口" = "Windows";
 "文件夹" = "Files";
 "系统" = "System";
-"状态在本机读取" = "Read locally on your Mac";
 "暂无运行中的应用" = "No apps are running";
 "打开 %@" = "Open %@";
-"所有运行中的应用" = "All running apps";
-"查看所有运行中的应用" = "View all running apps";
 "打开电池系统设置" = "Open Battery settings";
-"打开%@面板" = "Open %@ panel";
 "在圆环中显示" = "Show in the ring";
 "电池 · 外环" = "Battery · outer ring";
-"Wi-Fi · 中心" = "Wi-Fi · center";
-"声音 · 四点音量与静音" = "Sound · volume dots and mute";
 "平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。" = "Four dots show roughly 25%, 50%, 75%, or 100% volume. Priority alerts replace them: critical battery, disconnected Wi-Fi, low battery, charging, or mute. All states remain in the panel.";
 "底部显示" = "Bottom slot";
 "状态提醒与音量四点" = "Alerts & volume dots";
@@ -110,7 +100,6 @@
 "帮助与反馈" = "Help and feedback";
 "开发版" = "Development";
 "FuseBar %@ · 免费\n声音变化即时监听；其他状态约每 3 秒更新。" = "FuseBar %@ · Free\nSound changes update live; other states refresh about every 3 seconds.";
-"四个图标，一个入口。" = "Four icons. One place.";
 "外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。" = "Battery on the ring; Wi-Fi or Personal Hotspot in the center. Below: an alert, charging, or mute. Otherwise, four dots show approximate volume; unreadable volume stays blank. Bluetooth details are in the panel.";
 "保留重要状态，收起重复图标。" = "Keep the essentials. Clear the duplicates.";
 "前往系统设置的“菜单栏”或“控制中心”，手动隐藏 Wi-Fi、蓝牙、声音和电池图标。先试用，再决定隐藏哪些。" = "In System Settings → Menu Bar (or Control Center), manually hide Wi-Fi, Bluetooth, Sound, and Battery icons. Try FuseBar first, then choose what to hide.";
@@ -191,32 +180,22 @@
 "打开%@…" = "Open %@…";
 "Spotlight：⌘ 空格。通知中心、隐私指示和当前应用菜单仍由系统提供。" = "Spotlight: ⌘ Space. Notification Center, privacy indicators, and the active app’s menus remain system features.";
 "无法打开%@，请从系统应用启动器打开。" = "Could not open %@. Use the system app launcher.";
-"已连接的蓝牙设备" = "Connected Bluetooth device";
-"点击扫描附近网络。网络名称需要定位授权。" = "Scan for nearby networks. Network names require location permission.";
 "请先允许定位读取网络名称，再点击扫描。不会读取设备位置。" = "Allow location access for network names, then scan. Device location is not read.";
 "正在扫描附近网络…" = "Scanning nearby networks…";
 "未找到可显示的网络。检查 Wi-Fi、定位服务或使用系统设置。" = "No networks to display. Check Wi-Fi and Location Services, or use System Settings.";
-"选择网络后确认连接；可能中断当前网络。" = "Select a network and confirm to connect. This may interrupt your current connection.";
-"扫描失败。请检查 Wi-Fi 电源和定位权限，或打开系统设置。" = "Scan failed. Check Wi-Fi power and location permission, or open System Settings.";
 "正在连接…" = "Connecting…";
 "已关联网络；互联网可用性请在使用时确认。" = "Joined the network. Check internet access when you use it.";
 "系统尚未确认关联，请刷新状态。" = "The connection is not confirmed yet. Refresh the status.";
 "连接未完成。请检查密码和网络，或使用系统 Wi-Fi 设置。" = "Could not connect. Check the password and network, or use Wi-Fi settings.";
-"Wi-Fi 已开启，请扫描网络。" = "Wi-Fi is on. Scan for networks.";
-"Wi-Fi 已关闭。" = "Wi-Fi is off.";
 "系统尚未确认 Wi-Fi 电源状态。" = "Wi-Fi power state is not confirmed yet.";
 "无法改变 Wi-Fi 电源，请使用系统设置。" = "Could not change Wi-Fi power. Use System Settings.";
 "扫描" = "Scan";
-"网络名称已授权" = "Network name access allowed";
-"正在确认权限…" = "Checking permission…";
 "检查定位权限" = "Check location access";
 "允许网络名称" = "Allow network names";
-"开启 Wi-Fi" = "Turn Wi-Fi on";
 "关闭 Wi-Fi" = "Turn Wi-Fi off";
 "连接到 %@？" = "Connect to %@?";
 "网络密码（不保存）" = "Network password (not saved)";
 "此网络未加密。" = "This network is unencrypted.";
-"连接可能中断当前网络。" = "Connecting may interrupt your current network.";
 "取消" = "Cancel";
 "连接" = "Connect";
 "企业或其他认证 · 系统设置" = "Enterprise or other authentication · System Settings";
@@ -224,8 +203,6 @@
 "关闭 Wi-Fi 会中断当前无线网络。" = "Turning Wi-Fi off will disconnect your current wireless network.";
 
 // Coding workspace
-"搜索应用…" = "Search apps…";
-"搜索常用安装目录和已固定应用；其他位置可手动添加。" = "Searches common app folders and pinned apps. Add apps from other locations manually.";
 "添加应用" = "Add apps";
 "项目工作台" = "Projects";
 "当前项目" = "Current project";
@@ -273,9 +250,7 @@
 "输入源未知" = "Unknown input source";
 "切换输入源" = "Switch input source";
 "中心常驻输入法图标" = "Always show the input source in the center";
-"默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "By default, show the icon for 2 seconds after switching, then restore Wi-Fi. Modes within an input method may not be detectable.";
 "无法切换输入源，请重试或使用系统输入菜单。" = "Could not switch input source. Try again or use the system input menu.";
-"未能返回原应用，请重新选择输入源。" = "Could not return to the previous app. Please select the input source again.";
 
 "关闭子菜单" = "Close submenu";
 
@@ -283,7 +258,6 @@
 
 "操作" = "Action";
 
-"最近操作" = "Recent actions";
 
 "已选择" = "Selected";
 
@@ -314,8 +288,6 @@
 "需要密码" = "Password required";
 "状态未知" = "Status unknown";
 "我的设备" = "My Devices";
-"在系统设置中管理连接" = "Manage connection in System Settings";
-"选择设备以在系统设置中连接或断开。" = "Select a device to connect or disconnect in System Settings.";
 
 /* Direct Bluetooth connections */
 "断开" = "Disconnect";

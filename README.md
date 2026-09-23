@@ -45,7 +45,7 @@ Current development source includes:
 - On-demand Wi-Fi scanning and joining supported personal networks, with explicit confirmation. Other authentication methods open System Settings.
 - Optional Bluetooth power and paired-device details; click a device to connect or disconnect with progress and verified state. Pairing and power changes remain in System Settings. Renamed Bluetooth audio devices use the system audio name when an exact device identity match is available.
 - Sound output selection, an inline mute button, supported volume controls, and immediate CoreAudio updates.
-- Unified search for discovered apps, saved file shortcuts, and actions, with three recent actions and keyboard navigation. History stays on your Mac.
+- Unified search for discovered apps, saved file shortcuts, and actions, with keyboard navigation; results appear only while typing.
 - Compact status rows with highlighted side-submenu selection, theme-aware icons, and hover feedback.
 - Up to two rows of pinned and running apps above search, ordered by recent use or launch, with an overflow button for the full list. Recent order stays on your Mac.
 - Choose Network connection or Sound output as the default center icon in Settings; changes apply immediately and persist locally.

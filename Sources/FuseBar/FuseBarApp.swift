@@ -88,6 +88,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             // AppKit invokes event monitors on the main thread. No deferred stale close action.
             MainActor.assumeIsolated {
                 guard let self, !self.mouseIsOverStatusButton else { return }
+                // An activation click can surface here even when it lands inside one of
+                // our own panels while activation/key state is settling; observed live
+                // as a popover-window click delivered to the global monitor first.
+                // Never dismiss for events that hit our own windows.
+                if self.pointFallsInsideOwnPanels(NSEvent.mouseLocation) { return }
                 self.closeAllMenus()
             }
         }
@@ -136,6 +141,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
               target.bundleIdentifier != Bundle.main.bundleIdentifier else { return }
         NSApp.yieldActivation(to: target)
         target.activate(options: [])
+    }
+
+    /// A screen point is "ours" when it lies inside the main popover or the side
+    /// submenu window; such clicks are never outside-click dismissals.
+    func pointFallsInsideOwnPanels(_ point: NSPoint) -> Bool {
+        if popover.isShown, let window = popover.contentViewController?.view.window,
+           window.frame.contains(point) { return true }
+        return sideSubmenu.frameContains(point)
     }
 
     private var mouseIsOverStatusButton: Bool {

@@ -21,6 +21,6 @@ Input-source artwork: [light](input-source-icons.png) · [dark](input-source-ico
 
 Status items now open separate side submenus; utility pages retain in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` and the released film describe earlier versions and were not resubmitted in this update.
 
-Compact panel validation previews: [dark theme](status-dark-en.png), [search result](search-en.png), [empty search](search-empty-en.png), [recent actions](recent-en.png). Recent actions in this preview are explicitly seeded sample entries in the isolated preference suite.
+Compact panel validation previews: [dark theme](status-dark-en.png), [search result](search-en.png), [empty search](search-empty-en.png).
 
 Device menu dark previews: [Wi-Fi](wifi-dark-en.png), [sound](sound-dark-en.png), [Bluetooth](bluetooth-dark-en.png). Device lists are sample fixtures and do not scan or control hardware. See the [system-menu comparison](../SYSTEM_MENU_REVIEW.md).

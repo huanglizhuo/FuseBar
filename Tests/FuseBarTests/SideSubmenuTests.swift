@@ -94,6 +94,28 @@ final class SideSubmenuTests: XCTestCase {
         XCTAssertFalse(child.simulatedShown)
     }
 
+    /// The activation click can leak into the global monitor even when it lands in
+    /// our own popover; screen-point hits inside either panel are never dismissals.
+    @MainActor func testOwnPanelHitsAreNotOutsideClicks() {
+        let root = SubmenuPopover()
+        root.contentViewController = NSViewController()
+        root.childWindow.contentViewController = root.contentViewController
+        root.simulatedShown = true
+        let child = SubmenuPopover()
+        child.contentViewController = NSViewController()
+        child.childWindow.contentViewController = child.contentViewController
+        child.simulatedShown = true
+        let submenu = SideSubmenu(popover: child)
+        let delegate = AppDelegate(popover: root, sideSubmenu: submenu)
+        root.childWindow.setFrame(NSRect(x: 100, y: 100, width: 300, height: 200), display: false)
+        XCTAssertTrue(delegate.pointFallsInsideOwnPanels(NSPoint(x: 250, y: 200)))
+        child.childWindow.setFrame(NSRect(x: 500, y: 100, width: 300, height: 200), display: false)
+        XCTAssertTrue(delegate.pointFallsInsideOwnPanels(NSPoint(x: 650, y: 200)))
+        XCTAssertFalse(delegate.pointFallsInsideOwnPanels(NSPoint(x: 20, y: 20)))
+        child.simulatedShown = false
+        XCTAssertFalse(delegate.pointFallsInsideOwnPanels(NSPoint(x: 650, y: 200)))
+    }
+
     @MainActor func testOwnedWindowSwitchingAndToggleClose() {
         let popover = SubmenuPopover()
         let submenu = SideSubmenu(popover: popover)

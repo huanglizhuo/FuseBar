@@ -21,7 +21,6 @@
 "打开蓝牙隐私设置" = "Confidentialité Bluetooth";
 "已连接" = "Connecté";
 "未连接" = "Déconnecté";
-"连接、断开、配对和蓝牙电源暂由系统设置管理。这里不扫描附近设备。" = "Utilisez Réglages Système pour connecter, déconnecter, jumeler ou activer Bluetooth. Ce panneau ne recherche pas les appareils à proximité.";
 "管理蓝牙连接…" = "Gérer les connexions Bluetooth…";
 "添加文件或文件夹到 FuseBar" = "Ajouter un fichier ou dossier à FuseBar";
 "添加" = "Ajouter";
@@ -66,7 +65,6 @@
 "显示应用" = "Afficher l’app";
 "在 Finder 中显示" = "Afficher dans le Finder";
 "静音" = "Silence";
-"此设备不支持软件静音。" = "Cet appareil ne prend pas en charge la mise en sourdine logicielle.";
 "没有可用的输出设备。请检查连接，或打开声音设置。" = "Aucune sortie audio. Vérifiez la connexion ou ouvrez les réglages Son.";
 "当前输出" = "Sortie actuelle";
 "切换媒体播放输出；系统提示音仍使用原来的设置。" = "Change la sortie multimédia. Les alertes système conservent leur sortie actuelle.";
@@ -79,21 +77,13 @@
 "声音" = "Son";
 "输出音量" = "Volume de sortie";
 "系统静音已开启；调整音量不会自动取消静音。" = "Le son est coupé par le système. Régler le volume ne réactive pas le son.";
-"启动器" = "Apps";
-"窗口" = "Fenêtres";
 "文件夹" = "Dossiers";
 "系统" = "Système";
-"状态在本机读取" = "Données lues sur ce Mac";
 "暂无运行中的应用" = "Aucune app ouverte";
 "打开 %@" = "Ouvrir %@";
-"所有运行中的应用" = "Toutes les apps ouvertes";
-"查看所有运行中的应用" = "Afficher toutes les apps ouvertes";
 "打开电池系统设置" = "Ouvrir les réglages Batterie";
-"打开%@面板" = "Ouvrir le panneau %@";
 "在圆环中显示" = "Afficher dans l’anneau";
 "电池 · 外环" = "Batterie · anneau extérieur";
-"Wi-Fi · 中心" = "Wi-Fi · centre";
-"声音 · 四点音量与静音" = "Son · points de volume et silence";
 "平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。" = "Quatre points indiquent environ 25 %, 50 %, 75 % ou 100 % du volume. Une alerte prioritaire les remplace : batterie critique, Wi-Fi déconnecté, batterie faible, charge ou silence. Tous les états restent dans le panneau.";
 "底部显示" = "Zone inférieure";
 "状态提醒与音量四点" = "Alertes et points de volume";
@@ -110,7 +100,6 @@
 "帮助与反馈" = "Aide et commentaires";
 "开发版" = "Développement";
 "FuseBar %@ · 免费\n声音变化即时监听；其他状态约每 3 秒更新。" = "FuseBar %@ · Gratuit\nLe son s’actualise en direct ; les autres états environ toutes les 3 secondes.";
-"四个图标，一个入口。" = "Quatre icônes. Un seul accès.";
 "外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。" = "La batterie sur l’anneau ; le Wi-Fi ou le partage de connexion au centre. En bas : alerte, charge ou silence. Sinon, quatre points indiquent le volume approximatif ; s’il est illisible, rien ne s’affiche. Les détails Bluetooth sont dans le panneau.";
 "保留重要状态，收起重复图标。" = "Gardez l’essentiel, retirez les doublons.";
 "前往系统设置的“菜单栏”或“控制中心”，手动隐藏 Wi-Fi、蓝牙、声音和电池图标。先试用，再决定隐藏哪些。" = "Dans Réglages Système → Barre des menus (ou Centre de contrôle), masquez manuellement Wi-Fi, Bluetooth, Son et Batterie. Essayez d’abord FuseBar, puis choisissez quoi masquer.";
@@ -191,32 +180,22 @@
 "打开%@…" = "Ouvrir %@…";
 "Spotlight：⌘ 空格。通知中心、隐私指示和当前应用菜单仍由系统提供。" = "Spotlight : ⌘ Espace. Le Centre de notifications, les indicateurs de confidentialité et les menus de l’app active restent gérés par le système.";
 "无法打开%@，请从系统应用启动器打开。" = "Impossible d’ouvrir %@. Utilisez le lanceur système.";
-"已连接的蓝牙设备" = "Appareil Bluetooth connecté";
-"点击扫描附近网络。网络名称需要定位授权。" = "Recherchez les réseaux à proximité. Leurs noms nécessitent l’autorisation de localisation.";
 "请先允许定位读取网络名称，再点击扫描。不会读取设备位置。" = "Autorisez la localisation pour les noms de réseau, puis recherchez. La position de l’appareil n’est pas lue.";
 "正在扫描附近网络…" = "Recherche des réseaux à proximité…";
 "未找到可显示的网络。检查 Wi-Fi、定位服务或使用系统设置。" = "Aucun réseau à afficher. Vérifiez le Wi-Fi et la localisation, ou utilisez Réglages Système.";
-"选择网络后确认连接；可能中断当前网络。" = "Sélectionnez un réseau et confirmez. Votre connexion actuelle peut être interrompue.";
-"扫描失败。请检查 Wi-Fi 电源和定位权限，或打开系统设置。" = "Échec de la recherche. Vérifiez le Wi-Fi et l’autorisation de localisation, ou ouvrez Réglages Système.";
 "正在连接…" = "Connexion…";
 "已关联网络；互联网可用性请在使用时确认。" = "Réseau rejoint. Vérifiez l’accès à Internet lors de son utilisation.";
 "系统尚未确认关联，请刷新状态。" = "La connexion n’est pas encore confirmée. Actualisez l’état.";
 "连接未完成。请检查密码和网络，或使用系统 Wi-Fi 设置。" = "Connexion impossible. Vérifiez le mot de passe et le réseau, ou utilisez les réglages Wi-Fi.";
-"Wi-Fi 已开启，请扫描网络。" = "Wi-Fi activé. Recherchez des réseaux.";
-"Wi-Fi 已关闭。" = "Wi-Fi désactivé.";
 "系统尚未确认 Wi-Fi 电源状态。" = "L’état du Wi-Fi n’est pas encore confirmé.";
 "无法改变 Wi-Fi 电源，请使用系统设置。" = "Impossible de modifier le Wi-Fi. Utilisez Réglages Système.";
 "扫描" = "Rechercher";
-"网络名称已授权" = "Accès au nom du réseau autorisé";
-"正在确认权限…" = "Vérification de l’autorisation…";
 "检查定位权限" = "Vérifier la localisation";
 "允许网络名称" = "Autoriser les noms de réseau";
-"开启 Wi-Fi" = "Activer le Wi-Fi";
 "关闭 Wi-Fi" = "Désactiver le Wi-Fi";
 "连接到 %@？" = "Se connecter à %@ ?";
 "网络密码（不保存）" = "Mot de passe (non enregistré)";
 "此网络未加密。" = "Ce réseau n’est pas chiffré.";
-"连接可能中断当前网络。" = "La connexion peut interrompre votre réseau actuel.";
 "取消" = "Annuler";
 "连接" = "Connecter";
 "企业或其他认证 · 系统设置" = "Authentification entreprise ou autre · Réglages Système";
@@ -224,8 +203,6 @@
 "关闭 Wi-Fi 会中断当前无线网络。" = "Désactiver le Wi-Fi déconnectera votre réseau sans fil actuel.";
 
 // Coding workspace
-"搜索应用…" = "Rechercher une app…";
-"搜索常用安装目录和已固定应用；其他位置可手动添加。" = "Recherche dans les dossiers d’apps courants et les favoris. Ajoutez manuellement les autres apps.";
 "添加应用" = "Ajouter des apps";
 "项目工作台" = "Projets";
 "当前项目" = "Projet actuel";
@@ -273,9 +250,7 @@
 "输入源未知" = "Source de saisie inconnue";
 "切换输入源" = "Changer de source de saisie";
 "中心常驻输入法图标" = "Toujours afficher la source de saisie au centre";
-"默认切换输入源后显示图标 2 秒，再恢复 Wi-Fi；输入法内部的中英文模式可能无法识别。" = "Par défaut, l’icône apparaît pendant 2 secondes après le changement, puis le Wi-Fi revient. Les modes internes peuvent ne pas être détectés.";
 "无法切换输入源，请重试或使用系统输入菜单。" = "Impossible de changer de source de saisie. Réessayez ou utilisez le menu de saisie du système.";
-"未能返回原应用，请重新选择输入源。" = "Impossible de revenir à l’application précédente. Sélectionnez à nouveau la source de saisie.";
 
 "关闭子菜单" = "Fermer le sous-menu";
 
@@ -283,7 +258,6 @@
 
 "操作" = "Action";
 
-"最近操作" = "Actions récentes";
 
 "已选择" = "Sélectionné";
 
@@ -314,8 +288,6 @@
 "需要密码" = "Mot de passe requis";
 "状态未知" = "État inconnu";
 "我的设备" = "Mes appareils";
-"在系统设置中管理连接" = "Gérer la connexion dans Réglages Système";
-"选择设备以在系统设置中连接或断开。" = "Sélectionnez un appareil pour le connecter ou le déconnecter dans Réglages Système.";
 
 /* Direct Bluetooth connections */
 "断开" = "Déconnecter";

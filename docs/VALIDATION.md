@@ -350,3 +350,32 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - `Scripts/render-readme-previews.sh` 重新生成 64 张五语预览。另用一次性离屏渲染（滚动到设置页底部 + 五场景圆环）目视确认：Bottom slot 选择器与说明完整无截断；normal/charging/critical 分别为原色/绿/红，底部数字 82/42 显示清晰。离屏渲染不等于实机菜单栏像素验证。
 - 开发签名排查：`security find-identity -v -p codesigning` 列出 8 个有效身份（含 Apple Development A5BC7FE4…，OU=N9Q47Y2LQ4，有效期至 2026-10-29）；`security verify-cert` 链到 login 钥匙串 WWDR G3（2030 到期），OCSP 未吊销。本会话 Debug 与 Release 构建均以该 Apple Development 身份签名成功。上一条目记录的"开发身份不可用"为当时受限环境的钥匙串访问问题，非证书失效；证书 2026-10-29 到期，届时需在 Xcode 账户续期。System 钥匙串中存在 2013 版已过期 WWDR 中间证书（SKI 88:27:17:09…），不在本证书链上，未发现自定义信任设置，保留未动。
 - 已删除 `/Applications/FuseBar.app` 旧安装（今日 0:34 签名的 1.1.0(3)），以本会话 Apple Development 签名的新 1.1.0(3) 构建替换，`codesign --verify --deep --strict` 通过（Team N9Q47Y2LQ4），无隔离属性，启动确认进程运行。用户偏好 plist 未触动。仓库 build/ 与 DerivedData 中的旧构建产物为编译输出而非安装，未删除。
+
+### 2026-09-21 — 蓝牙二级菜单被全局监视器误关：根因、修复与 recent 芯片移除
+
+- 用户报告点击蓝牙行有时直接关闭一级菜单、有时 recent actions 消失后二级菜单才展开。合成点击(NSApp.postEvent 全高扫描、AXPress、CGWindowList 轮询)无法复现；改为在产品内临时植入 UIProbe 文件日志（容器内 FuseBarProbe.log；系统 log stream 会把 NSLog 动态串脱敏为 `<private>`），由用户实际点击复现。
+- 日志证据（两例失败）：落在主弹窗内（LOCAL down root=true）的同一 mouse-down 先被 `addGlobalMonitorForEvents` 回调当作外部点击触发 `closeAllMenus`，事件 7–10 ms 后才到达本地分发，行点击来不及执行；失败轮面板打开瞬间 `makeKey` 未生效（key=false），与"激活/键状态切换期，落在自家窗口的激活点击会泄漏给全局监视器"的 AppKit 行为吻合。成功轮锚点均有效、`popover.show` 成功。
+- 修复：全局监视器判定外部点击前先做屏幕坐标命中测试——`pointFallsInsideOwnPanels`（主弹窗窗口 frame + SideSubmenu 新增 `frameContains`）命中即忽略；状态按钮原有守卫保留。新增回归测试 `testOwnPanelHitsAreNotOutsideClicks`（复用 SubmenuPopover 替身）。用户实测确认不再出现整面板关闭。
+- 按用户要求移除首页"最近操作"recent 芯片：`showingSearchResults` 仅在输入查询时为真，搜索结果区不再有空查询分支；输入时的结果列表与键盘导航保留；菜单动作历史记录逻辑保留但不再显示。预览脚本移除 recent 页并删除 recent-en.png，README/previews 索引同步。临时 UIProbe 探针全部移除。
+- 开发签名"不可用"根因同日实锤：钥匙串搜索列表被改写为 ios-signing.keychain-db（login.keychain-db 被移出，伴随移动设备描述文件于 23:33 更新），codesign/xcodebuild 按默认搜索列表找不到 Apple Development 身份并误报缺少旧式 "Mac Development" 证书；证书与私钥完好。已将 login.keychain-db 恢复至搜索列表首位（保留 ios-signing）。若复发，先执行 `security list-keychains` 检查，勿误判证书失效。证书 2026-10-29 到期。
+- `zsh Scripts/test.sh`：87 项全部通过；`zsh Scripts/build.sh` 成功；安装至 /Applications 并以 Apple Development 签名验证通过、已启动。五语预览重新生成。
+- 状态行与输入源行的子菜单指示符由 `chevron.right` 改为 macOS 原生菜单的实心三角形 `arrowtriangle.right.fill`（8 pt、tertiary 色）；Wi-Fi 面板"其他网络"折叠箭头属于展开/收起语义，保留 chevron。87 项测试通过，构建安装并重新生成五语预览。
+
+### 2026-09-22 — 选中行分割线隐藏与子菜单三角锚点
+
+- 状态列表五条行间分割线改为条件显示：任一相邻行被选中（二级菜单展开）即隐藏，圆角高亮胶囊不再与全宽分割线相交；行尾指示符沿用 macOS 原生实心三角形。
+- 用户报告电池二级菜单与一级面板接合处“指向部分不是三角形”。复现与逐像素追踪确认几何：NSPopover 子菜单与主面板右缘完全齐平、顶边与锚点行底边相接，接合处由两个圆角形成月牙形缺口。新增 `AnchorPointerView`：弹窗展示后在接合口叠加一个 9×13 pt 的材质三角小窗（NSVisualEffectView .popover 材质、CAShapeLayer 三角遮罩、忽略鼠标、与弹窗同层级），尖端指向父行/一级面板；行中心被钳制在弹窗高度内，屏幕边缘翻转时自动镜像方向；关闭时随弹窗一起移除。
+- 期间钥匙串搜索列表再次被改写（同前根因），恢复 login.keychain-db 后构建正常。
+- 87 项测试通过；构建、严格签名验证通过并安装；五语预览重新生成。三角锚点为真实 NSPopover 场景的离屏复现验证，非实机鼠标验收。
+
+### 2026-09-22 — 状态行分割线移除、apple-design 审查修复与代码清理
+
+- 按用户实测反馈（条件隐藏分割线未达预期），状态列表五条行间分割线全部移除，行间只保留圆角胶囊高亮，与 macOS 原生菜单一致。此前的条件隐藏方案已删除。
+- 依据 emilkowalski/skills 的 apple-design skill（WWDC 设计原则提炼）审查 UI/UX 并逐项处理：§1 响应——SystemControlsView 系统功能行、日历/天气/快捷指令行、应用管理页 applicationRow 主按钮由 .plain 改为 MenuButtonStyle，获得即时悬停/按压反馈；§16 一致性——设置页与引导页 7 个导航按钮统一为行样式，主面板错误提示与子菜单 MenuNotice 统一为橙色感叹图标 + 次要色文字（原先红色文字与子菜单两套样式）；§14 减弱动态——MenuButtonStyle 悬停动画已尊重 reduceMotion，确认无需修改；§7 空间一致——子菜单三角锚点沿用上一轮实现；§12 材质——弹窗内容 .regularMaterial 叠加于 NSPopover 材质之上属同材质层叠，预览渲染依赖该背景，评估后保留并在本报告注明。
+- 代码清理：移除 recent 芯片删除后遗留的死代码——MenuSearchHistory 类、全部 history.record 调用、MenuSearchModel 的空查询 recents 分支与 "menuRecentActions" 读写；测试同步更新（空查询无结果、去重保留）。
+- `zsh Scripts/test.sh` 通过（86 项，较上轮少 1 项为移除的 history 测试）；构建、严格签名验证通过并安装；五语预览重新生成；`git diff --check` 通过。
+
+### 2026-09-23 — 无用本地化键清理与收尾安装
+
+- 以 `L("…")` 字面键与五语目录全量比对,移除 28 个无代码引用的历史键(含"最近操作"、旧启动器/窗口文案、旧 Wi-Fi/蓝牙占位提示等),每目录由 307 键降至 279 键,目录间键一致性与格式占位测试通过。
+- 86 项测试通过;构建、严格签名验证通过,已替换安装并启动。InfoPlist.strings 为系统权限弹窗所用,未改动。

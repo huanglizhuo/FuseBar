@@ -39,13 +39,15 @@ struct SystemControlsView: View {
                                 Spacer()
                                 Text(L("设置")).font(.caption2).foregroundStyle(.secondary)
                                 Image(systemName: "arrow.up.forward").font(.caption2)
-                            }.padding(.vertical, 10).contentShape(Rectangle())
-                        }.buttonStyle(.plain)
+                            }.padding(.horizontal, 6).padding(.vertical, 8).contentShape(Rectangle())
+                        }.buttonStyle(MenuButtonStyle())
                     }
                     Divider()
                     ForEach([(L("日历"), "com.apple.iCal"), (L("天气"), "com.apple.weather"), (L("快捷指令"), "com.apple.shortcuts")], id: \.1) { title, bundleID in
-                        Button(L("打开%@…", title)) { open(bundleID, title: title) }
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
+                        Button { open(bundleID, title: title) } label: {
+                            Text(L("打开%@…", title)).frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 6).padding(.vertical, 8).contentShape(Rectangle())
+                        }.buttonStyle(MenuButtonStyle())
                     }
                 }
             }.frame(height: 320)
