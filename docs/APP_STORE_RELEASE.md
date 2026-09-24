@@ -11,7 +11,7 @@
 
 ## 上架前工程工作
 
-- [ ] 固定归属明确且可注册的 Bundle ID，配置开发者 Team、Release 分发签名和 provisioning。当前已注册 ID 为 `com.clothpath.mergebar`。
+- [ ] 固定归属明确且可注册的 Bundle ID，配置开发者 Team、Release 分发签名和 provisioning。当前 Bundle ID 为 `com.clothpath.fusebar`。
 - [ ] 开启 App Sandbox，仅添加功能所需 entitlement。核验蓝牙、读取 Wi-Fi 名称所需定位权限，以及 CoreAudio 输出音量、IOKit 电池读取在沙箱中的实际行为。
 - [ ] 重点验证 IOBluetooth 已连接设备查询；若受沙箱限制，缩减可选蓝牙功能，避免使用私有 API 或未验证的临时例外。
 - [ ] 新增 `PrivacyInfo.xcprivacy`，逐项审计 required-reason API，包含当前 UserDefaults 偏好存储；按实际使用选择 Apple 允许的理由。

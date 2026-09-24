@@ -39,6 +39,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             frontmostBundleID: NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
             onScreenOwnerNames: AppDelegate.onScreenWindowOwnerNames())
     }
+    /// Injectable for tests; production reads the store's pending CoreLocation request.
+    var isLocationPermissionInFlight: () -> Bool = { false }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -50,6 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         }
         let store = StatusStore()
         self.store = store
+        isLocationPermissionInFlight = { [weak store] in store?.networkNamePermissionInFlight ?? false }
         GlobalShortcut.shared.onInvoke = { [weak self] in
             guard !SystemPanelPresentation.shared.isPresenting, NSApp.modalWindow == nil,
                   (NSApp.keyWindow?.firstResponder as? RecordingButton)?.recording != true else { return }
@@ -118,7 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 }
                 // The status button owns its own toggle. Never dismiss it in this monitor first.
                 if self.mouseIsOverStatusButton { return false }
-                self.dismissForOutsideClick(window: event.window)
+                self.handleLocalMouseDown(window: event.window)
                 return false
             }
             return consume ? nil : event
@@ -133,6 +136,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 self?.closeAllMenus()
             }
         }
+    }
+
+    /// CoreLocation's consent alert is owned by this process, unlike the Bluetooth
+    /// alert in UserNotificationCenter, so answering it arrives here as a click in
+    /// an unknown window of this app. That consent click must not dismiss the menus.
+    func handleLocalMouseDown(window: NSWindow?) {
+        if isLocationPermissionInFlight() { return }
+        dismissForOutsideClick(window: window)
     }
 
     func dismissForOutsideClick(window: NSWindow?) {
@@ -311,7 +322,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                     try data.write(to: url.appendingPathComponent("orb-gallery-\(name).png"))
                 }
             }
-            let demoDefaults = UserDefaults(suiteName: "com.mergebar.preview")!
+            let demoDefaults = UserDefaults(suiteName: "com.fusebar.preview")!
             let demoStore = StatusStore(defaults: demoDefaults, demo: true)
             // ImageRenderer cannot draw AppKit-backed sliders and checkboxes. Render those
             // through an offscreen hosting view instead of exporting placeholder symbols.

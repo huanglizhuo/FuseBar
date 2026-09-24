@@ -14,4 +14,4 @@ Requires **macOS 14+**. Includes **Apple Silicon and Intel**. The current app in
 
 Wi-Fi association does not guarantee internet access. Bluetooth enumeration and software volume control depend on the device. Updates are currently installed manually from GitHub Releases.
 
-The Mac App Store version is being prepared separately. See the [privacy policy](https://github.com/huanglizhuo/MergeBar/blob/main/docs/PRIVACY.md) and report issues through [GitHub Issues](https://github.com/huanglizhuo/MergeBar/issues).
+The Mac App Store version is being prepared separately. See the [privacy policy](https://github.com/huanglizhuo/FuseBar/blob/main/docs/PRIVACY.md) and report issues through [GitHub Issues](https://github.com/huanglizhuo/FuseBar/issues).

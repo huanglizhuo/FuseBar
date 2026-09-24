@@ -4,6 +4,3 @@ build/
 xcuserdata/
 *.xcuserstate
 .codebase-memory/
-
-# Obsolete generated project from the former app name.
-MergeBar.xcodeproj/

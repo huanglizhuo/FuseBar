@@ -20,6 +20,8 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         }
     }
     @Published private(set) var networkNameAccess: NetworkNameAccess = .unknown
+    /// True while the CoreLocation consent alert for network names awaits an answer.
+    private(set) var networkNamePermissionInFlight = false
     @Published var errorMessage: String?
     @Published private(set) var loginEnabled = false
     @Published private(set) var loginNeedsApproval = false
@@ -28,7 +30,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published private(set) var audioOutputs: [AudioOutput] = []
     @Published private(set) var audioBusy = false
     let defaults: UserDefaults
-    private let worker = DispatchQueue(label: "com.mergebar.status", qos: .utility)
+    private let worker = DispatchQueue(label: "com.fusebar.status", qos: .utility)
     private var audioRefreshPending = false
     private let audioWorker = DispatchQueue(label: "com.fusebar.audio", qos: .userInitiated)
     private let connectionWorker = DispatchQueue(label: "com.fusebar.audio-connection", qos: .userInitiated)
@@ -134,12 +136,17 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         case .authorizedAlways:
             refresh()
         default:
+            networkNamePermissionInFlight = true
             manager.requestWhenInUseAuthorization()
         }
     }
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        Task { @MainActor [weak self] in self?.updateNetworkNameAccess(); self?.refresh() }
+        Task { @MainActor [weak self] in
+            self?.networkNamePermissionInFlight = false
+            self?.updateNetworkNameAccess()
+            self?.refresh()
+        }
     }
 
     private func updateNetworkNameAccess() {

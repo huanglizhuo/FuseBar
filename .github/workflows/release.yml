@@ -40,7 +40,7 @@ jobs:
           test -d "$app"
           codesign --verify --deep --strict --verbose=2 "$app"
           codesign --verify -R='anchor apple generic and certificate leaf[subject.OU] = "N9Q47Y2LQ4" and certificate leaf[field.1.2.840.113635.100.6.1.13] exists' "$app"
-          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")" = com.clothpath.mergebar
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")" = com.clothpath.fusebar
           test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = "${RELEASE_TAG#v}"
           xcrun stapler validate "$app"
           spctl --assess --type execute --verbose=4 "$app"

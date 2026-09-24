@@ -87,7 +87,7 @@
 
 ## FuseBar 1.0 双渠道发行
 
-2026-09-16：产品改名 FuseBar，完全免费，无订阅或内购。README 默认英文，当前应用 UI 仍为简体中文，商店文案明确说明。保留用户已注册的 `com.clothpath.mergebar` 与 Team `N9Q47Y2LQ4`，仓库 URL 保持不变。商店与 GitHub 版共享沙箱配置和源码，以不同发行签名导出；补充 UserDefaults required-reason 隐私清单及隐私政策入口。
+2026-09-16：产品改名 FuseBar，完全免费，无订阅或内购。README 默认英文，当前应用 UI 仍为简体中文，商店文案明确说明。Bundle ID 统一为 `com.clothpath.fusebar`，Team 为 `N9Q47Y2LQ4`，仓库更名为 FuseBar。商店与 GitHub 版共享沙箱配置和源码，以不同发行签名导出；补充 UserDefaults required-reason 隐私清单及隐私政策入口。
 
 ## 四点音量与热点修复（2026-09-16）
 

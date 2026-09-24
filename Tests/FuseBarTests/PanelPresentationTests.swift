@@ -55,6 +55,18 @@ final class PanelPresentationTests: XCTestCase {
         XCTAssertEqual(popover.closeRequests, 1, "Normal outside dismissal resumes once the alert is answered")
     }
 
+    @MainActor func testLocationConsentClickInOwnAlertWindowKeepsMenusOpen() {
+        let popover = TrackingPopover()
+        let delegate = AppDelegate(popover: popover)
+        delegate.isLocationPermissionInFlight = { true }
+        let alertWindow = NSWindow(contentRect: .zero, styleMask: .borderless, backing: .buffered, defer: false)
+        delegate.handleLocalMouseDown(window: alertWindow)
+        XCTAssertEqual(popover.closeRequests, 0, "Answering the in-process CoreLocation consent alert must not dismiss the menus")
+        delegate.isLocationPermissionInFlight = { false }
+        delegate.handleLocalMouseDown(window: alertWindow)
+        XCTAssertEqual(popover.closeRequests, 1, "Normal own-window dismissal resumes once the alert is answered")
+    }
+
     @MainActor func testPermissionAlertPredicateMatchesFrontmostBundleAndWindowOwners() {
         XCTAssertTrue(AppDelegate.permissionAlertShowing(
             frontmostBundleID: AppDelegate.permissionAlertBundleID, onScreenOwnerNames: []))

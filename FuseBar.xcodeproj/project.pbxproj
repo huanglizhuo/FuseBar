@@ -88,7 +88,7 @@
 		78FE04020D253C9402DBF673 /* GlobalShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcut.swift; sourceTree = "<group>"; };
 		8342ADFA93E77F0CD39B268D /* OrbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbView.swift; sourceTree = "<group>"; };
 		8531FA293D44E6C5AB0149EC /* ApplicationShelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationShelfTests.swift; sourceTree = "<group>"; };
-		8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		90D23BD2CB279E665770C680 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		952CFA6D1167C6C8B5991471 /* BluetoothDevices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDevices.swift; sourceTree = "<group>"; };
 		9C9C1284DACA0391E328A0FC /* CenterIndicatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterIndicatorTests.swift; sourceTree = "<group>"; };
@@ -389,7 +389,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_APP_SANDBOX = YES;
@@ -407,7 +406,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -490,7 +489,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar.tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FuseBar.app/Contents/MacOS/FuseBar";
 			};
@@ -507,7 +506,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar.tests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FuseBar.app/Contents/MacOS/FuseBar";
 			};
@@ -578,7 +577,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
 				ENABLE_APP_SANDBOX = YES;
@@ -596,7 +594,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.mergebar;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar;
 				SDKROOT = macosx;
 			};
 			name = Release;

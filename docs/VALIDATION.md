@@ -69,7 +69,7 @@
 
 ## FuseBar 1.0 — 2026-09-16
 
-- Renamed product, scheme, source/test folders and executable to FuseBar. Preserved the user's registered `com.clothpath.mergebar` Bundle ID and Team `N9Q47Y2LQ4` in project.yml.
+- Renamed product, scheme, source/test folders and executable to FuseBar. Bundle ID is `com.clothpath.fusebar` with Team `N9Q47Y2LQ4` in project.yml.
 - Release Archive succeeded with arm64 and x86_64 slices. Verified signed entitlements: App Sandbox, Bluetooth and optional location access. Added PrivacyInfo.xcprivacy for app-only UserDefaults use.
 - 14 XCTest cases passed, 0 failures (`/private/tmp/fusebar-tests.log`). This is not full interactive permission or multi-device verification.
 - App Store Connect upload of version 1.0 build 1 succeeded (`/private/tmp/fusebar-upload.log`).
@@ -82,7 +82,7 @@
 - Developer ID export and stapling completed. `codesign --verify --deep --strict`, `stapler validate`, and Gatekeeper assessment all passed locally (`source=Notarized Developer ID`).
 - App Store Connect: three screenshots uploaded by the owner; version 1.0 (1), metadata, free pricing and published privacy declaration completed. Add for Review succeeded; UI explicitly shows **Ready for Review** and **added for review**. This is not yet **Waiting for Review** or App Store approval.
 - GitHub release pipeline uses local Xcode signing/notarization and hosted macOS verification. No Apple secrets are stored in Actions. First hosted run passed signature, Team ID, bundle/version, stapled ticket and Gatekeeper checks; its lipo command order was corrected before rerunning.
-- Hosted verification rerun succeeded: https://github.com/huanglizhuo/MergeBar/actions/runs/35002736988 . It published https://github.com/huanglizhuo/MergeBar/releases/tag/v1.0 with FuseBar-1.0-macOS.zip and SHA256SUMS.txt. Release is no longer a draft. ZIP SHA-256: `12897085eaa987cd90a920a2574ee08d05be8f6cf5613a17753ebad3f3f70adc`.
+- Hosted verification rerun succeeded: https://github.com/huanglizhuo/FuseBar/actions/runs/35002736988 . It published https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0 with FuseBar-1.0-macOS.zip and SHA256SUMS.txt. Release is no longer a draft. ZIP SHA-256: `12897085eaa987cd90a920a2574ee08d05be8f6cf5613a17753ebad3f3f70adc`.
 
 ## 2026-09-16 — FuseBar promotional video
 
@@ -297,7 +297,7 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 三项子菜单消除重复标题与固定空白；统一设备行、状态图标、选中反馈和底部设置入口。Wi-Fi 既有授权后进入菜单按需扫描，刷新保留列表、连接失败保留目标且清除密码；关联标记在状态变化后只读更新，不追加周期扫描。声音菜单增加滑杆/静音、设备插拔与默认输出监听、行内切换进度和音量写失败恢复。蓝牙行明确委托系统管理，没有开放未实测直连或伪造系统电源开关。
 - 异步状态：Wi-Fi 请求使用版本号隔离过期结果；关闭面板/失去权限后清除网络缓存。蓝牙权限/电源状态变化优先清除设备名称，并拒绝旧结果。声音操作忙碌时收到设备刷新事件会延后处理，不丢弃事件；设备 UID 校验继续保护音量写入。
 - 最终 `zsh Scripts/test.sh` 通过：61 项 XCTest + 2 项 Swift Testing，共 63 项、0 失败。新增回归覆盖蓝牙权限撤销/电源关闭后名称清理、关闭 Wi-Fi 面板后缓存清理；没有扫描或改变用户设备。日志：`/private/tmp/fusebar-system-menus-final-tests.log`。
-- 已用 `xcodegen generate` 更新实际工程 `FuseBar.xcodeproj`（仓库旧说明中的 `MergeBar.xcodeproj` 已非当前工程名）。最终构建日志：`/private/tmp/fusebar-system-menus-final-build.log`。构建仍有既有 FileShortcuts actor-isolation / InputSources IconRef 弃用提示，无本轮新增编译错误。
+- 已用 `xcodegen generate` 更新实际工程 `FuseBar.xcodeproj`。最终构建日志：`/private/tmp/fusebar-system-menus-final-build.log`。构建仍有既有 FileShortcuts actor-isolation / InputSources IconRef 弃用提示，无本轮新增编译错误。
 - 重新生成五语原生离屏预览，保存三菜单五语、三张英文深色与两张侧边组合，共 20 张相关预览。目视检查三菜单中文、声音/蓝牙英文深色及法文 Wi-Fi：无重叠；所有新菜单文案在五种语言中均存在。设备列表使用示例值；离屏非活动窗口控件着色不代表活动菜单着色。最终仅后续增加的忙碌指示及键盘处理没有改变这些正常态截图。
 - 尚未验证：实际鼠标/键盘打开系统菜单逐项对照、真实 Wi-Fi 扫描/连接/电源写入、输出切换与设备拔插、蓝牙连接/断开、VoiceOver 与多显示器组合。未更改用户无线连接或声音设备以完成测试；没有新增运行依赖/权限，未提交、push 或发布。
 - 最终构建及 `/Applications/FuseBar.app` 严格签名检查通过；旧应用备份至 `/private/tmp/FuseBar-before-system-menus.ojxOEF/FuseBar.app` 后完成替换。电脑控制启动新应用时 AX 读取仍超时，但进程核实已从 `/Applications/FuseBar.app/Contents/MacOS/FuseBar` 运行（PID 2941）。这只证明新应用启动，不代表原生菜单点击验收完成。
@@ -399,3 +399,10 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 修复：AppDelegate 新增可注入检测 `isPermissionAlertShowing`（生产实现为静态判定 `permissionAlertShowing(frontmostBundleID:onScreenOwnerNames:)`：前台 bundle id 为 `com.apple.UserNotificationCenter`，或 CGWindowList 屏上窗口属主含 "UserNotificationCenter" 即视为弹窗期间），并在两处守卫：resign-active 观察者弹窗期间不关闭；全局外部点击监视器不把弹窗上的点击当作"用完菜单"。回答弹窗后菜单保持打开以展示刷新后的状态；此后正常外部点击、状态项切换、Escape 仍按原逻辑关闭，通知横幅宿主 "NotificationCenter"（不同进程）不会误报。
 - 测试：新增 2 项——弹窗期间 resign-active 不关闭、弹窗消失后恢复原有关闭行为；判定函数对前台 bundle id / 屏上窗口属主组合（含大小写不敏感与 NotificationCenter 区分）的判定。共 88 项（63 XCTest + 25 Swift Testing）全部通过；`zsh Scripts/build.sh` 成功。
 - 真机端到端验证受限于会话中途显示器布局变化：外接屏断开后 FuseBar 状态项进入内建屏刘海收纳区（屏幕窗口列表无该项、`button.window` 为空导致 `popover.show` 无操作），程序化手段无法打开面板，真实 TCC 弹窗场景未能端到端驱动。CGWindowList 属主采样已实测可用（正确列出 Control Center 等进程）；判定所依据的 TCC 弹窗宿主（UserNotificationCenter / com.apple.UserNotificationCenter）为 macOS 固定行为。待用户实机点一次"允许读取蓝牙状态"确认：弹窗出现与点击回答期间面板应保持打开。
+
+### 2026-09-24 — Wi-Fi 授权回答后菜单保持打开；音量条并入选中输出设备行
+
+- 用户报告：蓝牙授权弹窗点"允许"菜单不关闭（符合预期），但 Wi-Fi（定位）授权弹窗点"允许"后菜单被关闭。根因：CoreLocation 授权弹窗窗口归属本应用进程（不同于蓝牙弹窗托管在 UserNotificationCenter），点击"允许"落入 AppDelegate 本地事件监视器，`dismissForOutsideClick` 把该未知自有窗口当作外部点击关菜单；既有 `isPermissionAlertShowing` 判定只识别 UserNotificationCenter，覆盖不到本进程弹窗。
+- 修复：StatusStore 新增 `networkNamePermissionInFlight`（`requestNetworkName` 发起 `requestWhenInUseAuthorization` 前置位，`locationManagerDidChangeAuthorization` 回调清除）；AppDelegate 新增可注入 `isLocationPermissionInFlight`，本地鼠标监视经新方法 `handleLocalMouseDown(window:)`，授权待答期间不把自有窗口点击当作关闭。
+- 主面板状态页声音区块：独立音量条行与"声音"状态行合并为单行——静音按钮 + 音量滑块（居中伸展）+ 输出设备名与 chevron（最右，点击打开声音子菜单）；声音子菜单（SoundPanel）布局保持原状。
+- 测试：新增 `testLocationConsentClickInOwnAlertWindowKeepsMenusOpen`（待答期间自有窗口点击不关菜单、回答后恢复关闭行为）。`zsh Scripts/test.sh` 全部通过；`zsh Scripts/build.sh` 成功。真机授权弹窗场景未端到端驱动（需真实 TCC 弹窗），待用户实机确认：Wi-Fi 页点"允许网络名称"→ 弹窗点"允许"后面板应保持打开并刷新网络列表。

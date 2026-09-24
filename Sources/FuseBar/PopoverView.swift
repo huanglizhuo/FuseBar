@@ -579,12 +579,10 @@ struct PopoverView: View {
                 }
             }
             inputSourcePicker
-            statusRow(L("声音"), detail: store.snapshot.sound.available ? store.snapshot.sound.deviceName : store.snapshot.sound.detail,
-                      symbol: StatusSymbols.sound(store.snapshot.sound), destination: .sound)
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 Button { store.setMuted(store.snapshot.sound.muted != true) } label: {
                     Image(systemName: store.snapshot.sound.muted == true ? "speaker.slash.fill" : "speaker.fill")
-                        .font(.system(size: 12)).frame(width: 24, height: 24)
+                        .font(.system(size: 14, weight: .medium)).frame(width: 24, height: 24)
                 }.buttonStyle(MenuButtonStyle(selected: store.snapshot.sound.muted == true))
                     .disabled(store.audioBusy || !store.snapshot.sound.canSetMute)
                     .help(L("静音")).accessibilityLabel(L("静音"))
@@ -599,9 +597,23 @@ struct PopoverView: View {
                 .disabled(store.audioBusy || !store.snapshot.sound.canSetVolume)
                 .accessibilityLabel(L("输出音量"))
                 .accessibilityValue("\(Int(volume * 100))%")
-                Text(store.snapshot.sound.volume == nil ? "—" : "\(Int((volume * 100).rounded()))%")
-                    .font(.caption2.monospacedDigit()).foregroundStyle(.secondary).frame(width: 32)
-            }.padding(.horizontal, 20).padding(.bottom, 12)
+                Button { openSubmenu(.sound) } label: {
+                    HStack(spacing: 4) {
+                        Text(store.snapshot.sound.available ? store.snapshot.sound.deviceName : store.snapshot.sound.detail)
+                            .font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
+                            .frame(maxWidth: 130, alignment: .trailing)
+                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
+                    }.contentShape(Rectangle())
+                }.buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 4))
+                    .help(fullStatusDetail(.sound))
+                    .accessibilityLabel(L("声音") + ": " + fullStatusDetail(.sound))
+                    .focusable().focused($focusedStatus, equals: statusPage(.sound))
+                    .onKeyPress(.rightArrow) { openSubmenu(.sound); return .handled }
+                    .onKeyPress(.return) { openSubmenu(.sound); return .handled }
+                    .onKeyPress(.downArrow) { moveStatusFocus(from: statusPage(.sound), offset: 1); return .handled }
+                    .onKeyPress(.upArrow) { moveStatusFocus(from: statusPage(.sound), offset: -1); return .handled }
+            }.padding(.horizontal, 16).padding(.bottom, 12)
+            .background(SideSubmenuAnchor(id: "sound"))
             if store.snapshot.sound.muted == true {
                 Text(L("系统静音已开启；调整音量不会自动取消静音。"))
                     .font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 18).padding(.bottom, 10)
