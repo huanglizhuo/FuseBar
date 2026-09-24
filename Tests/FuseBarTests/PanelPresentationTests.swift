@@ -41,4 +41,27 @@ final class PanelPresentationTests: XCTestCase {
         NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
         XCTAssertEqual(popover.closeRequests, 1, "Normal outside dismissal must resume after cancellation")
     }
+
+    @MainActor func testPermissionAlertActivationKeepsMenusOpenUntilAnswered() {
+        let popover = TrackingPopover()
+        let delegate = AppDelegate(popover: popover)
+        delegate.installDismissalMonitors()
+        defer { delegate.popoverDidClose(Notification(name: NSPopover.didCloseNotification)) }
+        delegate.isPermissionAlertShowing = { true }
+        NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+        XCTAssertEqual(popover.closeRequests, 0, "A system permission alert taking key focus must not dismiss the menus")
+        delegate.isPermissionAlertShowing = { false }
+        NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+        XCTAssertEqual(popover.closeRequests, 1, "Normal outside dismissal resumes once the alert is answered")
+    }
+
+    @MainActor func testPermissionAlertPredicateMatchesFrontmostBundleAndWindowOwners() {
+        XCTAssertTrue(AppDelegate.permissionAlertShowing(
+            frontmostBundleID: AppDelegate.permissionAlertBundleID, onScreenOwnerNames: []))
+        XCTAssertTrue(AppDelegate.permissionAlertShowing(
+            frontmostBundleID: "com.apple.Safari", onScreenOwnerNames: ["Finder", "userNotificationCenter"]))
+        XCTAssertFalse(AppDelegate.permissionAlertShowing(
+            frontmostBundleID: "com.apple.Safari", onScreenOwnerNames: ["Finder", "NotificationCenter"]))
+        XCTAssertFalse(AppDelegate.permissionAlertShowing(frontmostBundleID: nil, onScreenOwnerNames: []))
+    }
 }

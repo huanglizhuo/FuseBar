@@ -33,6 +33,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var localEventMonitor: Any?
     private var previousApplication: NSRunningApplication?
     private var deactivateObserver: NSObjectProtocol?
+    /// Injectable for tests; production samples live workspace and window state.
+    var isPermissionAlertShowing: () -> Bool = {
+        AppDelegate.permissionAlertShowing(
+            frontmostBundleID: NSWorkspace.shared.frontmostApplication?.bundleIdentifier,
+            onScreenOwnerNames: AppDelegate.onScreenWindowOwnerNames())
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -93,6 +99,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                 // as a popover-window click delivered to the global monitor first.
                 // Never dismiss for events that hit our own windows.
                 if self.pointFallsInsideOwnPanels(NSEvent.mouseLocation) { return }
+                // Answering a system permission alert is mid-consent, not "done with the menu".
+                if self.isPermissionAlertShowing() { return }
                 self.closeAllMenus()
             }
         }
@@ -119,6 +127,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
                                                                      object: NSApp, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard !SystemPanelPresentation.shared.isPresenting, NSApp.modalWindow == nil else { return }
+                // A permission alert taking key focus looks like a resignation but is
+                // the same consent flow; keep the menus up until it is answered.
+                guard self?.isPermissionAlertShowing() != true else { return }
                 self?.closeAllMenus()
             }
         }
@@ -149,6 +160,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
         if popover.isShown, let window = popover.contentViewController?.view.window,
            window.frame.contains(point) { return true }
         return sideSubmenu.frameContains(point)
+    }
+
+    /// System permission alerts (Bluetooth, location) live in the separate
+    /// UserNotificationCenter process, outside our windows. The consent flow is
+    /// started from our menu, so the alert's activation and its clicks belong to
+    /// that flow rather than to dismissal.
+    static let permissionAlertBundleID = "com.apple.UserNotificationCenter"
+    static let permissionAlertOwnerName = "UserNotificationCenter"
+
+    static func permissionAlertShowing(frontmostBundleID: String?, onScreenOwnerNames: [String]) -> Bool {
+        if frontmostBundleID == permissionAlertBundleID { return true }
+        return onScreenOwnerNames.contains { $0.caseInsensitiveCompare(permissionAlertOwnerName) == .orderedSame }
+    }
+
+    private static func onScreenWindowOwnerNames() -> [String] {
+        let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+        return list.compactMap { $0[kCGWindowOwnerName as String] as? String }
     }
 
     private var mouseIsOverStatusButton: Bool {

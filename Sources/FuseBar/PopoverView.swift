@@ -54,6 +54,9 @@ struct PopoverView: View {
             if isSubmenu { submenuContent }
             else { mainContent }
         }
+        // The system focus halo paints wide horizontal bands above and below any
+        // focused menu row; MenuButtonStyle already draws the selection outline.
+        .focusEffectDisabled()
     }
 
     private func openSubmenu(_ destination: Page, anchor: String? = nil) {

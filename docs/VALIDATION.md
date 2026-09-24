@@ -379,3 +379,23 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 
 - 以 `L("…")` 字面键与五语目录全量比对,移除 28 个无代码引用的历史键(含"最近操作"、旧启动器/窗口文案、旧 Wi-Fi/蓝牙占位提示等),每目录由 307 键降至 279 键,目录间键一致性与格式占位测试通过。
 - 86 项测试通过;构建、严格签名验证通过,已替换安装并启动。InfoPlist.strings 为系统权限弹窗所用,未改动。
+
+### 2026-09-24 — 选中行上下"宽分割带"根因修复：系统焦点光环
+
+- 用户报告点击菜单项后选中行上下各出现一条全宽水平色带（截图为 Wi-Fi 行）。审查 SwiftUI 源码无任何全宽横条绘制；状态行间 `Divider()` 已在前轮全部移除。色带颜色与选中态填充一致但直角、贯穿面板全宽，怀疑为系统级叠加。
+- 根因定位（独立复现 harness + 变体矩阵）：逐字复制 MenuButtonStyle 与 statusRow 修饰符链（buttonStyle → padding(8) → SideSubmenuAnchor → focusable/focused），装入 NSStatusItem + 父 NSPopover + 子 NSPopover 的真实弹窗结构，用 `screencapture -l` 抓合成后窗口像素对比：
+  - 键盘聚焦 + 选中（等价用户点击场景，`.focusable()` 行点击即取焦）→ 横带复现，与用户截图一致；
+  - 仅选中、无键盘焦点 → 干净圆角胶囊；
+  - 行级 `.focusEffectDisabled()` → 横带仍在；递归设置全部子视图 `focusRingType = .none` → 仍在（排除 AppKit 焦点环）；
+  - 根容器 `.focusEffectDisabled()` → 横带消失。
+  结论：横带是 macOS 26 系统焦点光环画在焦点视图外圈所致，非仓库代码、非子菜单源矩形指示（锚点缩到 4×4 后横带仍在）。
+- 修复：`PopoverView` body 根部加 `.focusEffectDisabled()`（部署目标 macOS 14 可用）。主面板、侧边子菜单、设置页等全部页面共用该视图，一处覆盖所有可聚焦行；应用自绘选中/焦点视觉（MenuButtonStyle `selected || focused` 圆角描边）不受影响，↑↓/Return 键盘导航与搜索框聚焦保留。
+- 真机验证：debug 构建临时写入 `quickOpenShortcut`（⌃⌥⌘G）经 CGEvent 开面板，真实鼠标点击 Wi-Fi 行复现"点击 → 选中 + 子菜单展开"场景，`screencapture -l` 抓主面板：选中行仅剩圆角胶囊与 1px 描边，上下横带消失；子菜单与三角锚点正常。验证后临时快捷键偏好已删除、调试实例退出、/Applications 安装版恢复运行。
+- `zsh Scripts/test.sh`：86 项全部通过（61 XCTest + 25 Swift Testing，与上轮一致）；`zsh Scripts/build.sh` 成功。
+
+### 2026-09-24 — 系统权限弹窗期间不再关闭菜单
+
+- 用户报告：申请蓝牙/定位（Wi-Fi 网络名）权限时，系统权限弹窗一出现菜单即被关闭。根因：弹窗宿主 UserNotificationCenter 进程取得激活 → FuseBar `didResignActiveNotification` 观察者执行 `closeAllMenus()`；随后点击弹窗"允许/不允许"又落入全局外部点击监视器，再次触发关闭。两条路径都会关。
+- 修复：AppDelegate 新增可注入检测 `isPermissionAlertShowing`（生产实现为静态判定 `permissionAlertShowing(frontmostBundleID:onScreenOwnerNames:)`：前台 bundle id 为 `com.apple.UserNotificationCenter`，或 CGWindowList 屏上窗口属主含 "UserNotificationCenter" 即视为弹窗期间），并在两处守卫：resign-active 观察者弹窗期间不关闭；全局外部点击监视器不把弹窗上的点击当作"用完菜单"。回答弹窗后菜单保持打开以展示刷新后的状态；此后正常外部点击、状态项切换、Escape 仍按原逻辑关闭，通知横幅宿主 "NotificationCenter"（不同进程）不会误报。
+- 测试：新增 2 项——弹窗期间 resign-active 不关闭、弹窗消失后恢复原有关闭行为；判定函数对前台 bundle id / 屏上窗口属主组合（含大小写不敏感与 NotificationCenter 区分）的判定。共 88 项（63 XCTest + 25 Swift Testing）全部通过；`zsh Scripts/build.sh` 成功。
+- 真机端到端验证受限于会话中途显示器布局变化：外接屏断开后 FuseBar 状态项进入内建屏刘海收纳区（屏幕窗口列表无该项、`button.window` 为空导致 `popover.show` 无操作），程序化手段无法打开面板，真实 TCC 弹窗场景未能端到端驱动。CGWindowList 属主采样已实测可用（正确列出 Control Center 等进程）；判定所依据的 TCC 弹窗宿主（UserNotificationCenter / com.apple.UserNotificationCenter）为 macOS 固定行为。待用户实机点一次"允许读取蓝牙状态"确认：弹窗出现与点击回答期间面板应保持打开。
