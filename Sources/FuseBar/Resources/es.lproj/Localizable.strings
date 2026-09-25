@@ -302,3 +302,4 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "El Wi-Fi está desactivado. Actívalo y vuelve a buscar.";
 "扫描未完成（%@ %ld），请重试。" = "La búsqueda ha fallado (%@ %ld). Inténtalo de nuevo.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "Los auriculares aún no ofrecen una salida de audio. Comprueba que estén encendidos y cerca e inténtalo de nuevo.";
+"已安装" = "Instaladas";

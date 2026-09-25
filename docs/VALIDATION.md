@@ -406,3 +406,14 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 修复：StatusStore 新增 `networkNamePermissionInFlight`（`requestNetworkName` 发起 `requestWhenInUseAuthorization` 前置位，`locationManagerDidChangeAuthorization` 回调清除）；AppDelegate 新增可注入 `isLocationPermissionInFlight`，本地鼠标监视经新方法 `handleLocalMouseDown(window:)`，授权待答期间不把自有窗口点击当作关闭。
 - 主面板状态页声音区块：独立音量条行与"声音"状态行合并为单行——静音按钮 + 音量滑块（居中伸展）+ 输出设备名与 chevron（最右，点击打开声音子菜单）；声音子菜单（SoundPanel）布局保持原状。
 - 测试：新增 `testLocationConsentClickInOwnAlertWindowKeepsMenusOpen`（待答期间自有窗口点击不关菜单、回答后恢复关闭行为）。`zsh Scripts/test.sh` 全部通过；`zsh Scripts/build.sh` 成功。真机授权弹窗场景未端到端驱动（需真实 TCC 弹窗），待用户实机确认：Wi-Fi 页点"允许网络名称"→ 弹窗点"允许"后面板应保持打开并刷新网络列表。
+- 应用页搜索现覆盖已安装应用：扫描结果 `installed`（/Applications、/System/Applications，沙箱只读可达，无需新权限）在输入关键词时作为"已安装"区列出，排除已固定/运行中重复项；空态判断同步更新。新增五语"已安装"文案，搜索框占位文案改用既有"搜索应用"。沙箱下 `homeDirectoryForCurrentUser` 返回容器路径，真实 ~/Applications 不在扫描范围（如需覆盖须经用户授权的 security-scope，不是 TCC 权限）。构建与测试通过，已重装 /Applications。
+- 主面板搜索结果的 App 条目此前固定用 SF Symbol `app`（圆角方块轮廓），现按 `destination == .application` 改用 `ApplicationIcon` 异步缓存加载真实图标。构建与测试通过，已重装 /Applications。
+- 搜索结果行与应用页列表行规格对齐：图标 28×28（含非 App 类符号位）、行内边距 horizontal 8 / vertical 4，行高约 36，与滚动区每行 36 的高度计算一致。构建与测试通过，已重装 /Applications。
+
+### 2026-09-25 — 应用图标消除占位符闪烁
+
+- 根因：`ApplicationIcon` 恒以 nil 起步、`.task` 异步加载，NSCache 命中也要绕 worker 队列，面板每次重建视图树就闪一帧 `app.dashed`。
+- A：`ApplicationIcon` init 同步查 `ApplicationIconCache.cached`，命中即首帧渲染；`.task` 仅在无缓存时异步加载。B：`ApplicationShelf.refresh` 完成后在 worker 预热 running + favorites 图标进缓存；`countLimit = 256` 移至缓存创建处。构建与测试通过，已重装 /Applications。
+- 菜单栏圆环底部开口 80° → 110°（弧起角 130°→145°、扫角 280°→250°）；底部元素随开口加深下移 17.7→18.1，音量四点分布加宽（起始角 117°→125°、步进 18°→23°）。经 `--render-gallery` 离屏渲染目视确认各状态无碰撞（模拟渲染，非真机截图）。测试通过，已重装 /Applications。
+- 主面板声音行 source 名不再定宽：去掉 `.frame(maxWidth: 130)`（该修饰符会吃满上限导致短名浪费空间），Text 改为内容自适应、超长截断；音量滑块加 `minWidth: 80` 保底。构建与测试通过，已重装 /Applications。
+- 危急电量（<10% 且未接电源，`battery.critical`）时菜单栏状态项加宽为 variableLength，图标旁显示内嵌 `battery.25percent` 模板符号 + 等宽半角数字百分比；危急解除后清空 title、恢复 28 固定宽度。符号与数字均随菜单栏深浅外观自动反色，无新增权限、无通知。真机低电场景未验证（需真实 <10% 电池），逻辑分支由既有 `critical` 判定驱动。构建与测试通过，已重装 /Applications。

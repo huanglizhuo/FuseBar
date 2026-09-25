@@ -369,15 +369,20 @@ struct PopoverView: View {
     private func searchResultButton(_ entry: MenuSearchEntry, index: Int, compact: Bool) -> some View {
         let anchor = "search:" + entry.id.replacingOccurrences(of: "action:", with: "")
         return Button { performSearchEntry(entry) } label: {
-            HStack(spacing: compact ? 4 : 8) {
-                Image(systemName: entry.symbol).frame(width: compact ? 14 : 20)
+            HStack(spacing: compact ? 4 : 10) {
+                if case .application(let url) = entry.destination {
+                    ApplicationIcon(url: url).frame(width: compact ? 14 : 28, height: compact ? 14 : 28)
+                } else {
+                    Image(systemName: entry.symbol).frame(width: compact ? 14 : 28, height: compact ? 14 : 28)
+                }
                 Text(entry.title).lineLimit(1).truncationMode(.tail)
                 if !compact {
                     Spacer(minLength: 4)
                     Text(entry.category).font(.caption2).foregroundStyle(.secondary)
                 }
             }.font(.system(size: compact ? 11 : 12))
-                .frame(maxWidth: .infinity, alignment: .leading).padding(compact ? 6 : 8).contentShape(Rectangle())
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, compact ? 6 : 8).padding(.vertical, compact ? 6 : 4).contentShape(Rectangle())
         }.buttonStyle(MenuButtonStyle(selected: index == searchIndex || submenu.selection == anchor))
             .background(SideSubmenuAnchor(id: anchor))
             .onKeyPress(.rightArrow) { performSearchEntry(entry); return .handled }
@@ -482,13 +487,16 @@ struct PopoverView: View {
                 Spacer()
                 Button(L("添加应用")) { store.errorMessage = shelf.addApplication() }
             }
-            TextField(L("搜索常用和运行中的应用"), text: $appQuery)
+            TextField(L("搜索应用"), text: $appQuery)
                 .textFieldStyle(.roundedBorder).accessibilityLabel(L("搜索应用"))
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     let favorites = ApplicationShelfModel.visible(shelf.favorites.filter { !runningOnly || $0.running }, query: appQuery)
                     let running = ApplicationShelfModel.visible(shelf.running.filter { !shelf.isPinned($0) }, query: appQuery)
-                    if favorites.isEmpty && running.isEmpty {
+                    let others = ApplicationShelfModel.visible(shelf.installed.filter { candidate in
+                        !shelf.isPinned(candidate) && !shelf.running.contains { $0.id == candidate.id }
+                    }, query: appQuery)
+                    if favorites.isEmpty && running.isEmpty && others.isEmpty {
                         Text(appQuery.isEmpty ? L("没有可显示的应用。") : L("没有匹配的应用。"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
@@ -499,6 +507,10 @@ struct PopoverView: View {
                     if !running.isEmpty {
                         Text(L("运行中")).font(.caption).foregroundStyle(.secondary)
                         ForEach(running) { app in applicationRow(app) }
+                    }
+                    if !appQuery.isEmpty && !others.isEmpty {
+                        Text(L("已安装")).font(.caption).foregroundStyle(.secondary)
+                        ForEach(others) { app in applicationRow(app) }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }.frame(height: 290)
@@ -594,6 +606,7 @@ struct PopoverView: View {
                     editingVolume = editing
                     if !editing { store.setVolume(volume) }
                 })
+                .frame(minWidth: 80)
                 .disabled(store.audioBusy || !store.snapshot.sound.canSetVolume)
                 .accessibilityLabel(L("输出音量"))
                 .accessibilityValue("\(Int(volume * 100))%")
@@ -601,7 +614,6 @@ struct PopoverView: View {
                     HStack(spacing: 4) {
                         Text(store.snapshot.sound.available ? store.snapshot.sound.deviceName : store.snapshot.sound.detail)
                             .font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
-                            .frame(maxWidth: 130, alignment: .trailing)
                         Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary)
                     }.contentShape(Rectangle())
                 }.buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 4))

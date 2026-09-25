@@ -143,6 +143,7 @@ final class ApplicationShelf: ObservableObject {
                     self.running = ApplicationShelfModel.recent(apps.filter(\.running), ids: self.recentIDs)
                     self.favorites = self.pins.compactMap { id in apps.first { $0.id == id } }
                     if frontmost != Bundle.main.bundleIdentifier { self.frontmostID = frontmost }
+                    ApplicationIconCache.prewarm(self.running.compactMap(\.url) + self.favorites.compactMap(\.url))
                 }
                 if self.refreshPending { self.refreshPending = false; self.refresh() }
             }
@@ -251,14 +252,21 @@ final class ApplicationShelf: ObservableObject {
 
 /// View rendering only reads cached images; filesystem icon lookup never runs in body.
 private enum ApplicationIconCache {
-    static let images = NSCache<NSURL, NSImage>()
+    static let images: NSCache<NSURL, NSImage> = { let cache = NSCache<NSURL, NSImage>(); cache.countLimit = 256; return cache }()
     static let worker = DispatchQueue(label: "com.fusebar.application-icons", qos: .utility)
+    static func cached(_ url: URL) -> NSImage? { images.object(forKey: url as NSURL) }
+    static func prewarm(_ urls: [URL]) {
+        worker.async {
+            for url in urls where images.object(forKey: url as NSURL) == nil {
+                images.setObject(NSWorkspace.shared.icon(forFile: url.path), forKey: url as NSURL)
+            }
+        }
+    }
     static func load(_ url: URL) async -> NSImage {
         await withCheckedContinuation { continuation in
             worker.async {
                 if let image = images.object(forKey: url as NSURL) { continuation.resume(returning: image); return }
                 let image = NSWorkspace.shared.icon(forFile: url.path)
-                images.countLimit = 256
                 images.setObject(image, forKey: url as NSURL)
                 continuation.resume(returning: image)
             }
@@ -269,11 +277,16 @@ private enum ApplicationIconCache {
 struct ApplicationIcon: View {
     let url: URL
     @State private var icon: NSImage?
+    init(url: URL) {
+        self.url = url
+        _icon = State(initialValue: ApplicationIconCache.cached(url))
+    }
     var body: some View {
         Group {
             if let icon { Image(nsImage: icon).resizable() }
             else { Image(systemName: "app.dashed").resizable() }
         }.task(id: url) {
+            guard icon == nil else { return }
             let image = await ApplicationIconCache.load(url)
             if !Task.isCancelled { icon = image }
         }

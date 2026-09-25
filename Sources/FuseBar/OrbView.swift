@@ -67,16 +67,16 @@ struct OrbView: View {
             }()
             func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
                 var path = Path()
-                // A symmetric 80° gap holds exactly one status symbol on the vertical axis.
+                // A symmetric 110° gap holds exactly one status symbol on the vertical axis.
                 path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
-                            startAngle: .degrees(130), endAngle: .degrees(130 + 280 * fraction), clockwise: false)
+                            startAngle: .degrees(145), endAngle: .degrees(145 + 250 * fraction), clockwise: false)
                 context.stroke(path, with: .color(ink.opacity(opacity)),
                                style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
             }
             func valueArc(_ fraction: Double) {
                 var path = Path()
                 path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
-                            startAngle: .degrees(130), endAngle: .degrees(130 + 280 * fraction), clockwise: false)
+                            startAngle: .degrees(145), endAngle: .degrees(145 + 250 * fraction), clockwise: false)
                 context.stroke(path, with: .color((ringTint ?? ink).opacity(1)),
                                style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round))
             }
@@ -113,19 +113,19 @@ struct OrbView: View {
             }
             if let number = snapshot.bottomNumber(preferences) {
                 context.draw(Text(number).font(.system(size: number.count > 2 ? 5.4 : 6, weight: .semibold)).monospacedDigit()
-                    .foregroundStyle(ink), at: CGPoint(x: 11, y: 17.7))
+                    .foregroundStyle(ink), at: CGPoint(x: 11, y: 18.1))
             } else {
                 switch snapshot.badge(preferences) {
                 case .critical, .networkWarning, .lowBattery:
-                    symbol("exclamationmark", x: 11, y: 17.7, size: 6.5, weight: .bold)
+                    symbol("exclamationmark", x: 11, y: 18.1, size: 6.5, weight: .bold)
                 case .charging:
-                    symbol(StatusSymbols.charging, x: 11, y: 17.7, size: 6.5, weight: .regular)
+                    symbol(StatusSymbols.charging, x: 11, y: 18.1, size: 6.5, weight: .regular)
                 case .muted:
-                    symbol("speaker.slash.fill", x: 11, y: 17.7, size: 5.5, weight: .regular)
+                    symbol("speaker.slash.fill", x: 11, y: 18.1, size: 5.5, weight: .regular)
                 case .none:
                     if let filled = snapshot.volumeDots(preferences) {
                         for index in 0..<4 {
-                            let angle = Double(117 - index * 18) * .pi / 180
+                            let angle = Double(125 - index * 23) * .pi / 180
                             let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
                             let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
                             context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : 0.22)))

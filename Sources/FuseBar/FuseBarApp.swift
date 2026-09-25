@@ -221,6 +221,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             image.isTemplate = true
             item?.button?.image = image
         }
+        // A critical battery gets a persistent symbol + level readout next to the
+        // orb; both template-rendered so they follow the menu bar appearance.
+        if preferences.battery && snapshot.battery.critical {
+            let attachment = NSTextAttachment()
+            let glyph = NSImage(systemSymbolName: "battery.25percent", accessibilityDescription: nil)?
+                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
+            glyph?.isTemplate = true
+            attachment.image = glyph
+            let title = NSMutableAttributedString(attachment: attachment)
+            title.append(NSAttributedString(string: " \(snapshot.battery.level)%", attributes: [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
+            ]))
+            item?.button?.imagePosition = .imageLeft
+            item?.button?.attributedTitle = title
+            item?.length = NSStatusItem.variableLength
+        } else if let item, !item.button!.attributedTitle.string.isEmpty {
+            item.button?.attributedTitle = NSAttributedString()
+            item.length = 28
+        }
         let summary = snapshot.accessibilitySummary(preferences) + (inputSource.map { " · " + $0.name } ?? "")
         item?.button?.toolTip = summary
         item?.button?.setAccessibilityLabel(summary)

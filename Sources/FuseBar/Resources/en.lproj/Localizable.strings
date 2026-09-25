@@ -302,3 +302,4 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "Wi-Fi is off. Turn it on and scan again.";
 "扫描未完成（%@ %ld），请重试。" = "Scan failed (%@ %ld). Try again.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "The headphones have not provided an audio output. Make sure they are on and nearby, then try again.";
+"已安装" = "Installed";
