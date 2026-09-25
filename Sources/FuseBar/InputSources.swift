@@ -7,7 +7,6 @@ struct KeyboardSource: Identifiable {
     let id: String
     let name: String
     let language: String
-    let icon: NSImage?
     var templateIcon: NSImage? = nil
 
     var fallback: String {
@@ -29,8 +28,8 @@ struct KeyboardSource: Identifiable {
 extension InputSourceClient { func invalidateIcons() {} }
 
 @MainActor struct SystemInputSourceClient: InputSourceClient {
-    private static var icons: [String: (icon: NSImage?, template: NSImage?)] = [:]
-    func invalidateIcons() { Self.icons.removeAll() }
+    private static var templates: [String: NSImage?] = [:]
+    func invalidateIcons() { Self.templates.removeAll() }
     private func property(_ source: TISInputSource, _ key: CFString) -> AnyObject? {
         guard let pointer = TISGetInputSourceProperty(source, key) else { return nil }
         return Unmanaged<AnyObject>.fromOpaque(pointer).takeUnretainedValue()
@@ -51,7 +50,7 @@ extension InputSourceClient { func invalidateIcons() {} }
         var seen = Set<String>()
         let sources = enabledSources().compactMap { source -> KeyboardSource? in
             guard let id = property(source, kTISPropertyInputSourceID) as? String, seen.insert(id).inserted else { return nil }
-            if Self.icons[id] == nil {
+            if Self.templates[id] == nil {
                 var icon: NSImage?
                 if let url = property(source, kTISPropertyIconImageURL) as? URL { icon = NSImage(contentsOf: url) }
                 if icon == nil, let ref = TISGetInputSourceProperty(source, kTISPropertyIconRef) {
@@ -59,12 +58,11 @@ extension InputSourceClient { func invalidateIcons() {} }
                     icon = NSImage(iconRef: OpaquePointer(ref))
                 }
                 icon?.size = NSSize(width: 16, height: 16)
-                Self.icons[id] = (icon, icon.flatMap(Self.template))
+                Self.templates[id] = icon.flatMap(Self.template)
             }
-            let cached = Self.icons[id]
             return KeyboardSource(id: id, name: property(source, kTISPropertyLocalizedName) as? String ?? id,
                                   language: (property(source, kTISPropertyInputSourceLanguages) as? [String])?.first ?? "",
-                                  icon: cached?.icon, templateIcon: cached?.template)
+                                  templateIcon: Self.templates[id] ?? nil)
         }
         return (sources, current.flatMap { property($0, kTISPropertyInputSourceID) as? String })
     }

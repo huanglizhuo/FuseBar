@@ -39,8 +39,10 @@ struct WiFiStatus: Equatable {
     // Network.framework marks Personal Hotspot-class Wi-Fi paths as expensive.
     // This is a network-cost signal, not proof of the phone manufacturer.
     var hotspotStyle = false
-    var bars: Int {
-        guard let rssi, rssi < 0 else { return 0 }
+    var bars: Int { rssi.map(Self.bars(forRSSI:)) ?? 0 }
+    /// Signal bars from RSSI, shared by status reads and nearby-network rows.
+    static func bars(forRSSI rssi: Int) -> Int {
+        guard rssi < 0 else { return 0 }
         return rssi >= -60 ? 3 : rssi >= -75 ? 2 : 1
     }
     var detail: String {
@@ -71,9 +73,12 @@ struct BluetoothStatus: Equatable {
     }
 }
 
+/// Fallback output-device name shared by reads that cannot resolve a device name.
+let defaultAudioDeviceName = L("声音输出")
+
 struct SoundStatus: Equatable {
     var available = false
-    var deviceName = L("声音输出")
+    var deviceName = defaultAudioDeviceName
     var volume: Float?
     var muted: Bool?
     var canSetVolume = false
@@ -87,12 +92,22 @@ struct SoundStatus: Equatable {
     var detail: String {
         guard available else { return L("无可用输出设备") }
         if effectivelyMuted { return L("%@ · 静音", deviceName) }
-        if let volume, volume.isFinite { return "\(deviceName) · \(Int((volume * 100).rounded()))%" }
+        if let volume, volume.isFinite { return "\(deviceName) · \(volumePercent(Double(volume)))%" }
         return L("%@ · 设备控制音量", deviceName)
     }
 }
 
 enum CenterIndicator: String, CaseIterable { case network, sound }
+
+/// Volume as a whole percentage for display, shared by the orb, rows and panels.
+func volumePercent(_ volume: Double) -> Int {
+    Int((min(1, max(0, volume)) * 100).rounded())
+}
+
+/// Locale-aware ascending comparison for display names, shared by device and app lists.
+func nameIsBefore(_ lhs: String, _ rhs: String) -> Bool {
+    lhs.localizedStandardCompare(rhs) == .orderedAscending
+}
 
 /// What the bottom slot of the orb shows: the default alert/dot pipeline or a
 /// persistent numeric readout of one metric.
@@ -141,7 +156,7 @@ struct StatusSnapshot: Equatable {
             return String(min(100, max(0, battery.level)))
         case .volumeLevel:
             guard preferences.sound, sound.available, let volume = sound.volume, volume.isFinite else { return nil }
-            return String(Int((Double(min(1, max(0, volume))) * 100).rounded()))
+            return String(volumePercent(Double(volume)))
         }
     }
 

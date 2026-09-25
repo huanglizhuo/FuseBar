@@ -5,8 +5,8 @@ import SwiftUI
 @testable import FuseBar
 
 @MainActor private final class InputClientFixture: InputSourceClient {
-    let entries = [KeyboardSource(id: "a", name: "ABC", language: "en", icon: nil),
-                   KeyboardSource(id: "b", name: "日本語", language: "ja", icon: nil)]
+    let entries = [KeyboardSource(id: "a", name: "ABC", language: "en"),
+                   KeyboardSource(id: "b", name: "日本語", language: "ja")]
     var selected = "a"
     var reject = false
     func read() -> (sources: [KeyboardSource], currentID: String?) { (entries, selected) }
@@ -39,15 +39,15 @@ final class InputSourceTests: XCTestCase {
         state.update("c", now: now.addingTimeInterval(1))
         XCTAssertTrue(state.visible(always: false, now: now.addingTimeInterval(2.5)))
         XCTAssertFalse(state.visible(always: false, now: now.addingTimeInterval(3)))
-        XCTAssertEqual(KeyboardSource(id: "a", name: "Chinese", language: "zh-Hans", icon: nil).fallback, "中")
-        XCTAssertEqual(KeyboardSource(id: "b", name: "Japanese", language: "ja", icon: nil).fallback, "あ")
-        XCTAssertEqual(KeyboardSource(id: "c", name: "Unknown", language: "", icon: nil).fallback, "A")
+        XCTAssertEqual(KeyboardSource(id: "a", name: "Chinese", language: "zh-Hans").fallback, "中")
+        XCTAssertEqual(KeyboardSource(id: "b", name: "Japanese", language: "ja").fallback, "あ")
+        XCTAssertEqual(KeyboardSource(id: "c", name: "Unknown", language: "").fallback, "A")
     }
     @MainActor func testInputSourceImageRendersInOrbCenter() throws {
         let image = NSImage(size: NSSize(width: 16, height: 16), flipped: false) { rect in
             NSColor.black.setFill(); rect.fill(); return true
         }
-        let source = KeyboardSource(id: "test", name: "Test", language: "en", icon: image,
+        let source = KeyboardSource(id: "test", name: "Test", language: "en",
                                     templateIcon: SystemInputSourceClient.template(image))
         let renderer = ImageRenderer(content: OrbView(snapshot: .normal,
             preferences: IndicatorPreferences(battery: false, wifi: false, bluetooth: false, sound: false),
@@ -60,7 +60,7 @@ final class InputSourceTests: XCTestCase {
         let image = NSImage(size: NSSize(width: 16, height: 16), flipped: false) { rect in
             NSColor.black.setFill(); rect.fill(); return true
         }
-        let source = KeyboardSource(id: "theme", name: "Theme", language: "en", icon: image,
+        let source = KeyboardSource(id: "theme", name: "Theme", language: "en",
                                     templateIcon: SystemInputSourceClient.template(image))
         for scheme in [ColorScheme.light, .dark] {
             let renderer = ImageRenderer(content: InputSourceGlyph(source: source).frame(width: 16, height: 16)

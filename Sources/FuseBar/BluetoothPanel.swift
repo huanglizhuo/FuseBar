@@ -137,35 +137,32 @@ struct BluetoothPanel: View {
                     Text(L("我的设备")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                     Spacer()
                     if controller.busy { ProgressView().controlSize(.small) }
-                    Button { controller.refresh(state: state) } label: {
-                        Image(systemName: "arrow.clockwise").frame(width: 24, height: 24)
-                    }.buttonStyle(MenuButtonStyle()).help(L("刷新")).accessibilityLabel(L("刷新"))
-                        .disabled(controller.busy)
+                    MenuRefreshButton(title: L("刷新"), disabled: controller.busy) { controller.refresh(state: state) }
                 }.padding(.horizontal, 16)
                 if !controller.devices.isEmpty {
                     ScrollView {
                         VStack(spacing: 2) {
                             ForEach(controller.devices) { device in
-                                Button { controller.setConnected(device, connected: !device.connected, state: state) { store.refresh(); store.refreshAudioOutputs() } } label: {
-                                    HStack(spacing: 10) {
-                                        DeviceMenuIcon(symbol: device.symbol, selected: device.connected)
+                                MenuListRow(action: { controller.setConnected(device, connected: !device.connected, state: state) { store.refresh(); store.refreshAudioOutputs() } },
+                                    disabled: controller.busy,
+                                    leading: { DeviceMenuIcon(symbol: device.symbol, selected: device.connected) },
+                                    title: {
                                         VStack(alignment: .leading, spacing: 3) {
                                             Text(device.name).font(.system(size: 13)).lineLimit(1).truncationMode(.middle)
                                             Text(controller.pendingDeviceID == device.id ? (controller.pendingConnection ? L("正在连接…") : L("正在断开…")) : (device.connected ? L("已连接") : L("未连接")))
                                                 .font(.caption).foregroundStyle(.secondary)
                                         }
-                                        Spacer(minLength: 4)
+                                    },
+                                    trailing: {
                                         if controller.pendingDeviceID == device.id { ProgressView().controlSize(.small) }
                                         else { Text(device.connected ? L("断开") : L("连接")).font(.caption).foregroundStyle(.secondary) }
-                                    }.padding(.horizontal, 8).padding(.vertical, 6).contentShape(Rectangle())
-                                }.buttonStyle(MenuButtonStyle())
-                                    .disabled(controller.busy)
+                                    })
                                     .help(device.name + " · " + (device.connected ? L("断开") : L("连接")))
                                     .accessibilityValue(device.connected ? L("已连接") : L("未连接"))
                                     .accessibilityHint(device.connected ? L("断开") : L("连接"))
                             }
                         }.padding(.horizontal, 8)
-                    }.frame(height: min(CGFloat(controller.devices.count) * 50, 250))
+                    }.frame(height: menuListHeight(count: controller.devices.count, rowHeight: 50, cap: 250))
                 }
                 if !controller.message.isEmpty { MenuNotice(text: controller.message, error: controller.failed) }
             } else {

@@ -47,7 +47,6 @@
 "退出" = "Quit";
 "运行中的应用" = "Running apps";
 "应用" = "Apps";
-"搜索常用和运行中的应用" = "Search favorite and running apps";
 "搜索应用" = "Search apps";
 "没有可显示的应用。" = "No apps to display.";
 "没有匹配的应用。" = "No matching apps.";
@@ -156,8 +155,6 @@
 "无法更新登录启动：%@" = "Could not update launch at login: %@";
 "应用启动器" = "App launcher";
 "所有窗口" = "All windows";
-"打开系统应用启动器（Apps 或 Launchpad）" = "Open the system app launcher (Apps or Launchpad)";
-"打开 Mission Control，查看所有窗口" = "Open Mission Control to see all windows";
 "显示器 / 镜像 / 亮度" = "Displays / mirroring / brightness";
 "专注模式" = "Focus";
 "AirDrop 与接力" = "AirDrop and Handoff";

@@ -8,7 +8,7 @@ struct NearbyNetwork: Identifiable, Equatable {
     let signal: Int
     let security: Security
     let connected: Bool
-    var signalFraction: Double { Double(WiFiStatus(rssi: signal).bars) / 3 }
+    var signalFraction: Double { Double(WiFiStatus.bars(forRSSI: signal)) / 3 }
 
     static func ordered(_ networks: [NearbyNetwork]) -> [NearbyNetwork] {
         // Merge access points only when both SSID bytes and security class agree.
@@ -319,34 +319,36 @@ struct WiFiPanel: View {
                 }.buttonStyle(.plain)
                 Spacer()
                 if controller.busy { ProgressView().controlSize(.small) }
-                Button { controller.scan(access: store.networkNameAccess) } label: {
-                    Image(systemName: "arrow.clockwise").frame(width: 24, height: 24)
-                }.buttonStyle(MenuButtonStyle()).help(L("扫描")).accessibilityLabel(L("扫描"))
-                    .disabled(controller.busy || selected != nil)
+                MenuRefreshButton(title: L("扫描"), disabled: controller.busy || selected != nil) {
+                    controller.scan(access: store.networkNameAccess)
+                }
             }.padding(.horizontal, 16)
             if expanded && !others.isEmpty {
                 ScrollView {
                     VStack(spacing: 2) {
                         ForEach(others) { network in
-                            Button {
-                                if network.security == .system { SettingsDestination.wifi.open() }
-                                else { password = ""; selected = network; passwordFocused = true }
-                            } label: {
-                                HStack(spacing: 10) {
+                            MenuListRow(action: {
+                                            if network.security == .system { SettingsDestination.wifi.open() }
+                                            else { password = ""; selected = network; passwordFocused = true }
+                                        },
+                                selected: selected?.id == network.id,
+                                disabled: controller.busy,
+                                verticalPadding: 9,
+                                leading: {
                                     Image(systemName: "wifi", variableValue: network.signalFraction)
                                         .font(.system(size: 15)).frame(width: 30)
-                                    Text(network.name).font(.system(size: 13)).lineLimit(1)
-                                    Spacer(minLength: 4)
+                                },
+                                title: { Text(network.name).font(.system(size: 13)).lineLimit(1) },
+                                trailing: {
                                     if controller.connectingID == network.id { ProgressView().controlSize(.small) }
                                     else if network.security == .system { Image(systemName: "arrow.up.forward").font(.caption) }
                                     if network.security != .open { Image(systemName: "lock.fill").font(.system(size: 10)).foregroundStyle(.secondary) }
-                                }.padding(.horizontal, 8).padding(.vertical, 9).contentShape(Rectangle())
-                            }.buttonStyle(MenuButtonStyle(selected: selected?.id == network.id))
-                                .disabled(controller.busy).help(network.name)
+                                })
+                                .help(network.name)
                                 .accessibilityValue(network.security == .open ? L("此网络未加密。") : network.security == .system ? L("企业或其他认证 · 系统设置") : L("需要密码"))
                         }
                     }.padding(.horizontal, 8)
-                }.frame(height: min(CGFloat(others.count) * 38, selected == nil ? 228 : 114))
+                }.frame(height: menuListHeight(count: others.count, rowHeight: 38, cap: selected == nil ? 228 : 114))
             }
         }
     }

@@ -28,7 +28,7 @@ extension AudioOutput {
             return AudioOutput(id: "bluetooth:" + address, name: device.name, selected: false,
                                transport: kAudioDeviceTransportTypeBluetooth, bluetoothAddress: device.id)
         }
-        return outputs + pending.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        return outputs + pending.sorted { nameIsBefore($0.name, $1.name) }
     }
 }
 
@@ -100,7 +100,7 @@ enum AudioDevice {
         var name: Unmanaged<CFString>?
         var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
         let nameResult = AudioObjectGetPropertyData(device, &nameProperty, 0, nil, &size, &name)
-        let deviceName = nameResult == noErr ? (name?.takeRetainedValue() as String? ?? L("声音输出")) : L("声音输出")
+        let deviceName = nameResult == noErr ? (name?.takeRetainedValue() as String? ?? defaultAudioDeviceName) : defaultAudioDeviceName
         let properties = volumeProperties(device)
         let volumes = properties.compactMap { scalar(device, $0, initial: Float(0)) }
         let mute: UInt32? = scalar(device, address(kAudioDevicePropertyMute), initial: UInt32(0))
@@ -137,9 +137,9 @@ enum AudioDevice {
         let selected = output()
         return outputDevices().compactMap { device in
             guard let uid = text(device, selector: kAudioDevicePropertyDeviceUID) else { return nil }
-            return AudioOutput(id: uid, name: text(device, selector: kAudioObjectPropertyName) ?? L("声音输出"), selected: selected == device,
+            return AudioOutput(id: uid, name: text(device, selector: kAudioObjectPropertyName) ?? defaultAudioDeviceName, selected: selected == device,
                                transport: scalar(device, address(kAudioDevicePropertyTransportType, scope: kAudioObjectPropertyScopeGlobal), initial: UInt32(0)) ?? 0)
-        }.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }.sorted { nameIsBefore($0.name, $1.name) }
     }
 
     static func selectOutput(uid: String) -> String? {
@@ -204,7 +204,7 @@ final class LatestVolumeWriter {
     private var scheduled = false
     private var generation = 0
 
-    init(queue: DispatchQueue = DispatchQueue(label: "com.fusebar.volume", qos: .userInitiated),
+    init(queue: DispatchQueue,
          write: @escaping @Sendable (VolumeWriteRequest) -> String? = {
              AudioDevice.setVolume(Float($0.value), expectedUID: $0.deviceUID)
          }, completed: @escaping (String?) -> Void) {

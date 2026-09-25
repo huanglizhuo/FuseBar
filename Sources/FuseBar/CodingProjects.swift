@@ -64,20 +64,18 @@ final class CodingProjects: ObservableObject {
         panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.title = L("选择项目目录")
         guard SystemPanelPresentation.shared.run(panel) == .OK, let url = panel.url else { return nil }
-        let scoped = url.startAccessingSecurityScopedResource()
-        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         do {
-            return (try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil), url.lastPathComponent)
+            return (try ScopedBookmark.readScope(for: url), url.lastPathComponent)
         } catch { self.error = L("无法授权目录，请重新选择。"); return nil }
     }
     func openFolder(_ project: CodingProject) {
         guard let bookmark = project.folder else { return }
         do {
-            var stale = false
-            let url = try URL(resolvingBookmarkData: bookmark, options: [.withSecurityScope, .withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
+            let resolved = try ScopedBookmark.resolve(bookmark)
+            let url = resolved.url
             guard url.startAccessingSecurityScopedResource() else { error = L("目录授权失效，请编辑项目并重新选择。"); return }
             // A stale scope is not silently used; the edit action gives a clear recovery path.
-            guard !stale else { url.stopAccessingSecurityScopedResource(); error = L("目录授权失效，请编辑项目并重新选择。"); return }
+            guard !resolved.stale else { url.stopAccessingSecurityScopedResource(); error = L("目录授权失效，请编辑项目并重新选择。"); return }
             NSWorkspace.shared.open(url, configuration: .init()) { [weak self] _, failure in
                 url.stopAccessingSecurityScopedResource()
                 Task { @MainActor in self?.error = failure == nil ? nil : L("无法打开项目入口，请检查路径或默认应用。") }

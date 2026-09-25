@@ -71,7 +71,7 @@ struct SystemBluetoothDeviceClient: BluetoothDeviceControlling {
                                          isAudioDevice: device.deviceClassMajor == 4 || BluetoothDeviceNames.addressKey(address).flatMap { aliases[$0] } != nil)
         }.sorted {
             if $0.connected != $1.connected { return $0.connected }
-            return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            return nameIsBefore($0.name, $1.name)
         }
     }
 

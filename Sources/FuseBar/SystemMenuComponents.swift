@@ -62,3 +62,46 @@ struct MenuNotice: View {
             .padding(.horizontal, 16).padding(.vertical, 8)
     }
 }
+
+/// Circular refresh action shown beside a panel list header.
+struct MenuRefreshButton: View {
+    let title: String
+    var disabled = false
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.clockwise").frame(width: 24, height: 24)
+        }.buttonStyle(MenuButtonStyle())
+            .help(title).accessibilityLabel(title)
+            .disabled(disabled)
+    }
+}
+
+/// Standard shape of a selectable row inside a panel list: a leading slot, a
+/// flexible title, trailing state, and the shared paddings and hit area.
+struct MenuListRow<Leading: View, Title: View, Trailing: View>: View {
+    let action: () -> Void
+    var selected = false
+    var disabled = false
+    var verticalPadding: CGFloat = 6
+    @ViewBuilder let leading: () -> Leading
+    @ViewBuilder let title: () -> Title
+    @ViewBuilder let trailing: () -> Trailing
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                leading()
+                title()
+                Spacer(minLength: 4)
+                trailing()
+            }.padding(.horizontal, 8).padding(.vertical, verticalPadding).contentShape(Rectangle())
+        }.buttonStyle(MenuButtonStyle(selected: selected))
+            .disabled(disabled)
+    }
+}
+
+/// Height for a capped menu list: one row per item, never above `cap`.
+func menuListHeight(count: Int, rowHeight: CGFloat, cap: CGFloat) -> CGFloat {
+    min(CGFloat(max(1, count)) * rowHeight, cap)
+}

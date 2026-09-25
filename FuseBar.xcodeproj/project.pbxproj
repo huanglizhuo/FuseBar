@@ -28,6 +28,7 @@
 		857958DDDA733269FF6F42DD /* AudioChangeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0E4C0D03AE1C6F491CB0A7 /* AudioChangeMonitor.swift */; };
 		9433E35A13CA6C83210232BE /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D3028E7FEB4239CB540A0FB8 /* AppIcon.icon */; };
 		A805B2A1696C996B324EE2DF /* PopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469583F7A7F18B35D8487E20 /* PopoverView.swift */; };
+		AE814E77EDFA52C15D9D7719 /* ScopedBookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6194F0A6CBDFA246CB25297 /* ScopedBookmark.swift */; };
 		B2CC0FE692A75EC5B940BF5E /* ApplicationShelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8531FA293D44E6C5AB0149EC /* ApplicationShelfTests.swift */; };
 		C0199EF0252C405DC9EC66F3 /* StatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B36A3F013F304EA79CAA7BA /* StatusStore.swift */; };
 		C72B0CC04AC06E74D59D02EC /* CodingProjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466C53E5FFE3A298F1B92534 /* CodingProjects.swift */; };
@@ -108,6 +109,7 @@
 		E5ED3E61F50A6479770E22D0 /* WiFiPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiPanel.swift; sourceTree = "<group>"; };
 		ED5B4894A6B62C9792ABDADD /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		EF4A9A8345D7D67C8A87AB87 /* BluetoothPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPanel.swift; sourceTree = "<group>"; };
+		F6194F0A6CBDFA246CB25297 /* ScopedBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScopedBookmark.swift; sourceTree = "<group>"; };
 		F80A7A30FF1E399B5609AB7B /* AudioDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioDevice.swift; sourceTree = "<group>"; };
 		FB17402A5892D9A93F826920 /* SystemMenuComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMenuComponents.swift; sourceTree = "<group>"; };
 		FBB14C694B03324F4BFD1D82 /* FuseBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FuseBarApp.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 				8342ADFA93E77F0CD39B268D /* OrbView.swift */,
 				469583F7A7F18B35D8487E20 /* PopoverView.swift */,
 				8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */,
+				F6194F0A6CBDFA246CB25297 /* ScopedBookmark.swift */,
 				4BDF0BEF2CB39819DD4B6579 /* SideSubmenu.swift */,
 				E53652A14845957284839ACC /* SoundPanel.swift */,
 				0DFA0F69787C1A46032EA337 /* StatusModel.swift */,
@@ -315,6 +318,7 @@
 				6BEE890B8D7DC5EFD869F9C8 /* MenuSearch.swift in Sources */,
 				D064D3060EFF05BA9CC2610A /* OrbView.swift in Sources */,
 				A805B2A1696C996B324EE2DF /* PopoverView.swift in Sources */,
+				AE814E77EDFA52C15D9D7719 /* ScopedBookmark.swift in Sources */,
 				E67155B198CAF8CF968C43E3 /* SideSubmenu.swift in Sources */,
 				7C920F2A274A53D05C992C40 /* SoundPanel.swift in Sources */,
 				FA279CC00530C0E3E7DF4E9C /* StatusModel.swift in Sources */,
@@ -391,7 +395,6 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
-				ENABLE_APP_SANDBOX = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -579,7 +582,6 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
-				ENABLE_APP_SANDBOX = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";

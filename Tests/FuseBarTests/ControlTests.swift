@@ -127,7 +127,7 @@ struct ResponsivenessTests {
 
     @Test func slowVolumeWriteKeepsOnlyLatestValue() async throws {
         let sink = SlowVolumeSink()
-        let writer = LatestVolumeWriter(write: { sink.write($0) }, completed: { _ in })
+        let writer = LatestVolumeWriter(queue: DispatchQueue(label: "test.volume"), write: { sink.write($0) }, completed: { _ in })
         defer { sink.gate.signal() }
         writer.submit(VolumeWriteRequest(value: 0.1, deviceUID: "one"))
         try await eventually { sink.values.count == 1 }
@@ -141,7 +141,7 @@ struct ResponsivenessTests {
     @Test func outputSwitchDiscardsPendingVolumeAndStaleCompletion() async throws {
         let sink = SlowVolumeSink()
         var completions = 0
-        let writer = LatestVolumeWriter(write: { sink.write($0) }, completed: { _ in completions += 1 })
+        let writer = LatestVolumeWriter(queue: DispatchQueue(label: "test.volume"), write: { sink.write($0) }, completed: { _ in completions += 1 })
         defer { sink.gate.signal() }
         writer.submit(VolumeWriteRequest(value: 0.1, deviceUID: "old"))
         try await eventually { sink.values.count == 1 }

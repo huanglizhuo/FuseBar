@@ -47,7 +47,6 @@
 "退出" = "Salir";
 "运行中的应用" = "Apps abiertas";
 "应用" = "Apps";
-"搜索常用和运行中的应用" = "Buscar apps favoritas y abiertas";
 "搜索应用" = "Buscar apps";
 "没有可显示的应用。" = "No hay apps que mostrar.";
 "没有匹配的应用。" = "No hay apps coincidentes.";
@@ -156,8 +155,6 @@
 "无法更新登录启动：%@" = "No se pudo cambiar el inicio de sesión: %@";
 "应用启动器" = "Lanzador de apps";
 "所有窗口" = "Todas las ventanas";
-"打开系统应用启动器（Apps 或 Launchpad）" = "Abrir el lanzador del sistema (Apps o Launchpad)";
-"打开 Mission Control，查看所有窗口" = "Abrir Mission Control para ver todas las ventanas";
 "显示器 / 镜像 / 亮度" = "Pantallas / duplicación / brillo";
 "专注模式" = "Modos de concentración";
 "AirDrop 与接力" = "AirDrop y Handoff";

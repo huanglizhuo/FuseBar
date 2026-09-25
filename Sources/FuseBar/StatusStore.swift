@@ -25,7 +25,6 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published var errorMessage: String?
     @Published private(set) var loginEnabled = false
     @Published private(set) var loginNeedsApproval = false
-    @Published private(set) var updatedAt: Date?
     @Published private(set) var audioSelectionID: String?
     @Published private(set) var audioOutputs: [AudioOutput] = []
     @Published private(set) var audioBusy = false
@@ -198,7 +197,6 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
                 var current = value
                 if self.soundRevision != revision { current.sound = self.snapshot.sound }
                 if self.snapshot != current { self.snapshot = current }
-                self.updatedAt = Date()
                 self.reading = false
                 // A first path update can arrive while the initial hardware read is in flight.
                 if self.wifiPath != path { self.refresh() }
@@ -246,12 +244,17 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         }
     }
 
+    /// Live CoreAudio outputs plus paired-but-disconnected Bluetooth audio devices.
+    nonisolated private static func currentAudioChoices() -> [AudioOutput] {
+        AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
+    }
+
     func refreshAudioOutputs() {
         guard !demo else { return }
         guard !audioBusy else { audioRefreshPending = true; return }
         audioBusy = true
         audioWorker.async { [weak self] in
-            let outputs = AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
+            let outputs = Self.currentAudioChoices()
             Task { @MainActor in
                 self?.audioOutputs = outputs
                 self?.finishAudioOperation()
@@ -272,7 +275,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
             } else {
                 error = AudioDevice.selectOutput(uid: output.id)
             }
-            let outputs = AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
+            let outputs = Self.currentAudioChoices()
             Task { @MainActor in
                 self?.audioOutputs = outputs
                 self?.finishAudioOperation()
@@ -336,9 +339,6 @@ enum QuickAction: CaseIterable {
 
     var title: String { self == .applications ? L("应用启动器") : L("所有窗口") }
     var symbol: String { self == .applications ? "square.grid.3x3.fill" : "rectangle.3.group" }
-    var help: String {
-        self == .applications ? L("打开系统应用启动器（Apps 或 Launchpad）") : L("打开 Mission Control，查看所有窗口")
-    }
 
     var applicationURL: URL? {
         let paths: [String]

@@ -20,8 +20,7 @@ struct PopoverView: View {
     @State private var appQuery = ""
     @State private var runningOnly = false
     @State private var page: Page = .status
-    @State private var editingVolume = false
-    @State private var volume = 0.0
+    @StateObject private var volumeEdit = VolumeEditModel()
     @AppStorage("onboardingComplete") private var onboardingComplete = false
     private let preview: Bool
     private let isSubmenu: Bool
@@ -144,19 +143,9 @@ struct PopoverView: View {
             if page == .settings { ScrollView { settings }.frame(height: 420) }
             else if page == .guide || (!preview && !onboardingComplete) { ScrollView { guide }.frame(height: 420) }
             else if page == .applications { applications }
-            else if page == .battery {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label(store.snapshot.battery.detail, systemImage: StatusSymbols.battery(store.snapshot.battery))
-                    Button(L("打开电池系统设置")) { SettingsDestination.battery.open() }
-                }.padding(18)
-            }
-            else if page == .sound { soundOutputs }
-            else if page == .wifi { WiFiPanel(store: store, preview: preview, isSubmenu: isSubmenu) }
-            else if page == .bluetooth { BluetoothPanel(store: store, preview: preview, isSubmenu: isSubmenu) }
             else if page == .files { FileShortcutsView() }
             else if page == .system { SystemControlsView(store: store) }
             else if page == .projects { ProjectEditorView(projects: projects) }
-            else if page == .inputSources { inputSourceList }
             else {
                 VStack(spacing: 0) {
                     runningApplications
@@ -190,13 +179,13 @@ struct PopoverView: View {
                     }.keyboardShortcut("q").help(L("退出")).accessibilityLabel(L("退出"))
                 }
                 footerActions
-            }.buttonStyle(MenuButtonStyle()).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary).padding(.horizontal, 18).padding(.vertical, 8)
+            }.footerButtonChrome().padding(.horizontal, 18).padding(.vertical, 8)
         }
         .frame(width: 320)
         .background(.regularMaterial)
         .environment(\.locale, L10n.locale)
         .onAppear {
-            volume = Double(store.snapshot.sound.volume ?? 0)
+            volumeEdit.sync(store.snapshot.sound)
             store.refresh()
             if !preview { shelf.refresh(); shelf.discoverApplications() }
             if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
@@ -210,8 +199,8 @@ struct PopoverView: View {
         }
         .onChange(of: codingLayout) { _, _ in SideSubmenu.shared.close() }
         .onChange(of: appQuery) { _, _ in SideSubmenu.shared.close() }
-        .onChange(of: store.snapshot.sound.volume) { _, value in
-            if !editingVolume { volume = Double(value ?? 0) }
+        .onChange(of: store.snapshot.sound) { _, sound in
+            if !volumeEdit.editing { volumeEdit.sync(sound) }
         }
     }
 
@@ -227,7 +216,7 @@ struct PopoverView: View {
                 Image(systemName: "folder").frame(width: 28, height: 28)
             }.help(L("文件夹")).accessibilityLabel(L("文件夹"))
 
-        }.buttonStyle(MenuButtonStyle()).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary)
+        }.footerButtonChrome()
     }
 
     private var inputSourcePicker: some View {
@@ -247,11 +236,7 @@ struct PopoverView: View {
         }.buttonStyle(MenuButtonStyle(selected: submenu.selection == "inputSources"))
             .padding(.horizontal, 8).help(inputSources.current?.name ?? L("切换输入源"))
             .background(SideSubmenuAnchor(id: "inputSources"))
-            .focusable().focused($focusedStatus, equals: .inputSources)
-            .onKeyPress(.rightArrow) { openSubmenu(.inputSources); return .handled }
-            .onKeyPress(.return) { openSubmenu(.inputSources); return .handled }
-            .onKeyPress(.downArrow) { focusedStatus = .sound; return .handled }
-            .onKeyPress(.upArrow) { focusedStatus = .bluetooth; return .handled }
+            .menuRowFocus(.inputSources, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
     }
 
     private var inputSourceList: some View {
@@ -276,7 +261,7 @@ struct PopoverView: View {
                             .disabled(!preview && onSelectInputSource == nil)
                     }
                 }
-            }.frame(height: isSubmenu ? min(240, CGFloat(max(1, inputSources.sources.count)) * 46) : 240)
+            }.frame(height: isSubmenu ? menuListHeight(count: inputSources.sources.count, rowHeight: 46, cap: 240) : 240)
         }.padding(18).onAppear {
             if !preview {
                 inputSources.refresh()
@@ -350,11 +335,6 @@ struct PopoverView: View {
             searchFocused = false
             appQuery = ""
             switch id {
-            case "battery": page = .battery
-            case "wifi": page = .wifi
-            case "sound": page = .sound
-            case "bluetooth": page = .bluetooth
-            case "inputSources": page = .inputSources
             case "settings": page = .settings; store.refreshLoginStatus()
             case "files": page = .files
             case "projects": page = .projects
@@ -366,23 +346,21 @@ struct PopoverView: View {
         }
     }
 
-    private func searchResultButton(_ entry: MenuSearchEntry, index: Int, compact: Bool) -> some View {
+    private func searchResultButton(_ entry: MenuSearchEntry, index: Int) -> some View {
         let anchor = "search:" + entry.id.replacingOccurrences(of: "action:", with: "")
         return Button { performSearchEntry(entry) } label: {
-            HStack(spacing: compact ? 4 : 10) {
+            HStack(spacing: 10) {
                 if case .application(let url) = entry.destination {
-                    ApplicationIcon(url: url).frame(width: compact ? 14 : 28, height: compact ? 14 : 28)
+                    ApplicationIcon(url: url).frame(width: 28, height: 28)
                 } else {
-                    Image(systemName: entry.symbol).frame(width: compact ? 14 : 28, height: compact ? 14 : 28)
+                    Image(systemName: entry.symbol).frame(width: 28, height: 28)
                 }
                 Text(entry.title).lineLimit(1).truncationMode(.tail)
-                if !compact {
-                    Spacer(minLength: 4)
-                    Text(entry.category).font(.caption2).foregroundStyle(.secondary)
-                }
-            }.font(.system(size: compact ? 11 : 12))
+                Spacer(minLength: 4)
+                Text(entry.category).font(.caption2).foregroundStyle(.secondary)
+            }.font(.system(size: 12))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, compact ? 6 : 8).padding(.vertical, compact ? 6 : 4).contentShape(Rectangle())
+                .padding(.horizontal, 8).padding(.vertical, 4).contentShape(Rectangle())
         }.buttonStyle(MenuButtonStyle(selected: index == searchIndex || submenu.selection == anchor))
             .background(SideSubmenuAnchor(id: anchor))
             .onKeyPress(.rightArrow) { performSearchEntry(entry); return .handled }
@@ -396,11 +374,11 @@ struct PopoverView: View {
                 ScrollView {
                     LazyVStack(spacing: 2) {
                         ForEach(Array(searchMatches.enumerated()), id: \.element.id) { index, entry in
-                            searchResultButton(entry, index: index, compact: false).id(index)
+                            searchResultButton(entry, index: index).id(index)
                         }
                         if searchMatches.isEmpty { Text(L("没有匹配结果")).font(.caption).padding(8) }
                     }
-                }.frame(height: min(220, CGFloat(max(1, searchMatches.count)) * 36))
+                }.frame(height: menuListHeight(count: searchMatches.count, rowHeight: 36, cap: 220))
                 .onChange(of: searchIndex) { _, index in reader.scrollTo(index) }
             }
             Text(L("↑↓ 选择 · Return 打开")).font(.caption2).foregroundStyle(.secondary)
@@ -414,45 +392,25 @@ struct PopoverView: View {
                     Label(store.snapshot.battery.availability == .available ? "\(store.snapshot.battery.level)%" : "—", systemImage: StatusSymbols.battery(store.snapshot.battery))
                 }.help(store.snapshot.battery.detail).background(SideSubmenuAnchor(id: "battery"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "battery", inset: 6))
-                    .focusable().focused($focusedStatus, equals: .battery)
-                    .onKeyPress(.rightArrow) { openSubmenu(.battery); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.battery); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: .battery, offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: .battery, offset: -1); return .handled }
+                    .menuRowFocus(.battery, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                 Button { openSubmenu(.wifi) } label: { Image(systemName: StatusSymbols.wifi(store.snapshot.wifi)) }.help(store.snapshot.wifi.detail).background(SideSubmenuAnchor(id: "wifi"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "wifi", inset: 6))
-                    .focusable().focused($focusedStatus, equals: .wifi)
-                    .onKeyPress(.rightArrow) { openSubmenu(.wifi); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.wifi); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: .wifi, offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: .wifi, offset: -1); return .handled }
+                    .menuRowFocus(.wifi, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                     .accessibilityLabel("Wi-Fi")
                 Button { openSubmenu(.sound) } label: { Image(systemName: StatusSymbols.sound(store.snapshot.sound)) }.help(store.snapshot.sound.detail).background(SideSubmenuAnchor(id: "sound"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 6))
-                    .focusable().focused($focusedStatus, equals: .sound)
-                    .onKeyPress(.rightArrow) { openSubmenu(.sound); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.sound); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: .sound, offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: .sound, offset: -1); return .handled }
+                    .menuRowFocus(.sound, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                     .accessibilityLabel(L("声音"))
                 Button { openSubmenu(.bluetooth) } label: { Image(systemName: StatusSymbols.bluetooth) }.help(store.snapshot.bluetooth.detail).background(SideSubmenuAnchor(id: "bluetooth"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "bluetooth", inset: 6))
-                    .focusable().focused($focusedStatus, equals: .bluetooth)
-                    .onKeyPress(.rightArrow) { openSubmenu(.bluetooth); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.bluetooth); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: .bluetooth, offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: .bluetooth, offset: -1); return .handled }
+                    .menuRowFocus(.bluetooth, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                     .accessibilityLabel(L("蓝牙"))
                 Button { openSubmenu(.inputSources) } label: {
                     if let current = inputSources.current { InputSourceGlyph(source: current).frame(width: 14, height: 14) }
                     else { Image(systemName: "keyboard") }
                 }.help(L("切换输入源")).accessibilityLabel(L("输入源")).background(SideSubmenuAnchor(id: "inputSources"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "inputSources", inset: 6))
-                    .focusable().focused($focusedStatus, equals: .inputSources)
-                    .onKeyPress(.rightArrow) { openSubmenu(.inputSources); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.inputSources); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: .inputSources, offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: .inputSources, offset: -1); return .handled }
+                    .menuRowFocus(.inputSources, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
             }.controlSize(.small).foregroundStyle(.primary).padding(.horizontal, 18).padding(.bottom, 10)
             Divider()
             VStack(alignment: .leading, spacing: 10) {
@@ -592,24 +550,14 @@ struct PopoverView: View {
             }
             inputSourcePicker
             HStack(spacing: 12) {
-                Button { store.setMuted(store.snapshot.sound.muted != true) } label: {
-                    Image(systemName: store.snapshot.sound.muted == true ? "speaker.slash.fill" : "speaker.fill")
-                        .font(.system(size: 14, weight: .medium)).frame(width: 24, height: 24)
-                }.buttonStyle(MenuButtonStyle(selected: store.snapshot.sound.muted == true))
-                    .disabled(store.audioBusy || !store.snapshot.sound.canSetMute)
-                    .help(L("静音")).accessibilityLabel(L("静音"))
-                    .accessibilityValue(store.snapshot.sound.muted == true ? L("已开启") : L("已关闭"))
-                Slider(value: Binding(get: { volume }, set: { value in
-                    volume = value
-                    store.setVolume(value)
-                }), in: 0...1, onEditingChanged: { editing in
-                    editingVolume = editing
-                    if !editing { store.setVolume(volume) }
-                })
-                .frame(minWidth: 80)
-                .disabled(store.audioBusy || !store.snapshot.sound.canSetVolume)
-                .accessibilityLabel(L("输出音量"))
-                .accessibilityValue("\(Int(volume * 100))%")
+                MuteButton(sound: store.snapshot.sound, store: store,
+                           iconFont: .system(size: 14, weight: .medium), iconSize: 24)
+                Slider(value: volumeEdit.binding(sound: store.snapshot.sound, store: store), in: 0...1,
+                       onEditingChanged: { volumeEdit.setEditing($0, sound: store.snapshot.sound, store: store) })
+                    .frame(minWidth: 80)
+                    .disabled(store.audioBusy || !store.snapshot.sound.canSetVolume)
+                    .accessibilityLabel(L("输出音量"))
+                    .accessibilityValue("\(volumePercent(volumeEdit.volume))%")
                 Button { openSubmenu(.sound) } label: {
                     HStack(spacing: 4) {
                         Text(store.snapshot.sound.available ? store.snapshot.sound.deviceName : store.snapshot.sound.detail)
@@ -619,22 +567,18 @@ struct PopoverView: View {
                 }.buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 4))
                     .help(fullStatusDetail(.sound))
                     .accessibilityLabel(L("声音") + ": " + fullStatusDetail(.sound))
-                    .focusable().focused($focusedStatus, equals: statusPage(.sound))
-                    .onKeyPress(.rightArrow) { openSubmenu(.sound); return .handled }
-                    .onKeyPress(.return) { openSubmenu(.sound); return .handled }
-                    .onKeyPress(.downArrow) { moveStatusFocus(from: statusPage(.sound), offset: 1); return .handled }
-                    .onKeyPress(.upArrow) { moveStatusFocus(from: statusPage(.sound), offset: -1); return .handled }
+                    .menuRowFocus(statusPage(.sound), focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
             }.padding(.horizontal, 16).padding(.bottom, 12)
             .background(SideSubmenuAnchor(id: "sound"))
             if store.snapshot.sound.muted == true {
-                Text(L("系统静音已开启；调整音量不会自动取消静音。"))
-                    .font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 18).padding(.bottom, 10)
+                MutedNotice().padding(.horizontal, 18).padding(.bottom, 10)
             }
         }
     }
 
     private var runningApplications: some View {
         let apps = ApplicationShelfModel.home(favorites: shelf.favorites, running: shelf.running, includeFavorites: includeFavoriteApps, recentIDs: shelf.recentIDs)
+        let tiles = ApplicationShelfModel.gridTiles(apps)
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(includeFavoriteApps ? L("固定与运行应用") : L("运行中的应用")).font(.caption2).foregroundStyle(.secondary)
@@ -646,7 +590,7 @@ struct PopoverView: View {
                 Text(L("暂无运行中的应用")).font(.caption).foregroundStyle(.secondary)
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 5) {
-                    ForEach(Array(apps.prefix(apps.count > 12 ? 11 : 12))) { app in
+                    ForEach(tiles.apps) { app in
                         Button { if let url = app.url { onOpenApplication?(url) } } label: {
                             Group {
                                 if let url = app.url {
@@ -668,7 +612,7 @@ struct PopoverView: View {
                             .contextMenu { applicationMenu(app) }
                             .disabled(app.url == nil || (!preview && onOpenApplication == nil))
                     }
-                    if apps.count > 12 {
+                    if tiles.overflow {
                         Button { appQuery = ""; runningOnly = !includeFavoriteApps; page = .applications } label: {
                             Image(systemName: "ellipsis").frame(width: 38, height: 34).contentShape(Rectangle())
                         }.buttonStyle(.plain).help(L("管理常用应用"))
@@ -701,11 +645,7 @@ struct PopoverView: View {
             .padding(.horizontal, 8).help(fullStatusDetail(destination))
             .accessibilityLabel(title + ": " + fullStatusDetail(destination))
             .background(SideSubmenuAnchor(id: String(describing: destination)))
-            .focusable().focused($focusedStatus, equals: statusPage(destination))
-            .onKeyPress(.rightArrow) { openSubmenu(statusPage(destination)); return .handled }
-            .onKeyPress(.return) { openSubmenu(statusPage(destination)); return .handled }
-            .onKeyPress(.downArrow) { moveStatusFocus(from: statusPage(destination), offset: 1); return .handled }
-            .onKeyPress(.upArrow) { moveStatusFocus(from: statusPage(destination), offset: -1); return .handled }
+            .menuRowFocus(statusPage(destination), focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
     }
 
     private func fullStatusDetail(_ destination: SettingsDestination) -> String {
@@ -826,6 +766,25 @@ struct PopoverView: View {
             Button(L("开始使用")) { onboardingComplete = true; page = .status }
                 .buttonStyle(.bordered).controlSize(.large).frame(maxWidth: .infinity, alignment: .trailing)
         }.padding(18)
+    }
+}
+
+private extension View {
+    /// Shared chrome for the bar of footer icon buttons.
+    func footerButtonChrome() -> some View {
+        buttonStyle(MenuButtonStyle()).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary)
+    }
+
+    /// Standard keyboard navigation for status rows: → and Return open the row's
+    /// submenu; ↑ and ↓ move focus through the status rows in layout order.
+    func menuRowFocus(_ page: PopoverView.Page, focus: FocusState<PopoverView.Page?>.Binding,
+                      open: @escaping (PopoverView.Page) -> Void,
+                      move: @escaping (PopoverView.Page, Int) -> Void) -> some View {
+        focusable().focused(focus, equals: page)
+            .onKeyPress(.rightArrow) { open(page); return .handled }
+            .onKeyPress(.return) { open(page); return .handled }
+            .onKeyPress(.downArrow) { move(page, 1); return .handled }
+            .onKeyPress(.upArrow) { move(page, -1); return .handled }
     }
 }
 

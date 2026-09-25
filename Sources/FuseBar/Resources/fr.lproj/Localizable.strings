@@ -47,7 +47,6 @@
 "退出" = "Quitter";
 "运行中的应用" = "Apps ouvertes";
 "应用" = "Apps";
-"搜索常用和运行中的应用" = "Rechercher parmi vos apps";
 "搜索应用" = "Rechercher des apps";
 "没有可显示的应用。" = "Aucune app à afficher.";
 "没有匹配的应用。" = "Aucune app correspondante.";
@@ -156,8 +155,6 @@
 "无法更新登录启动：%@" = "Impossible de modifier l’ouverture à la connexion : %@";
 "应用启动器" = "Lanceur d’apps";
 "所有窗口" = "Toutes les fenêtres";
-"打开系统应用启动器（Apps 或 Launchpad）" = "Ouvrir le lanceur système (Apps ou Launchpad)";
-"打开 Mission Control，查看所有窗口" = "Ouvrir Mission Control pour voir toutes les fenêtres";
 "显示器 / 镜像 / 亮度" = "Écrans / recopie / luminosité";
 "专注模式" = "Concentration";
 "AirDrop 与接力" = "AirDrop et Handoff";

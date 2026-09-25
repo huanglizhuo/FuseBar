@@ -32,9 +32,7 @@ final class FileShortcuts: ObservableObject {
         do {
             var additions: [FileShortcut] = []
             for url in panel.urls {
-                let access = url.startAccessingSecurityScopedResource()
-                defer { if access { url.stopAccessingSecurityScopedResource() } }
-                let data = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+                let data = try ScopedBookmark.readScope(for: url)
                 additions.append(FileShortcut(id: UUID(), name: url.lastPathComponent, bookmark: data))
             }
             let updated = items + additions
@@ -51,15 +49,15 @@ final class FileShortcuts: ObservableObject {
 
     func open(_ item: FileShortcut) {
         do {
-            var stale = false
-            let url = try URL(resolvingBookmarkData: item.bookmark, options: [.withSecurityScope, .withoutUI], relativeTo: nil, bookmarkDataIsStale: &stale)
+            let resolved = try ScopedBookmark.resolve(item.bookmark)
+            let url = resolved.url
             guard url.startAccessingSecurityScopedResource() else {
                 error = L("访问授权已失效，请移除此入口并重新添加。")
                 return
             }
-            if stale {
+            if resolved.stale {
                 do {
-                    let bookmark = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+                    let bookmark = try ScopedBookmark.readScope(for: url)
                     if let index = items.firstIndex(where: { $0.id == item.id }) { items[index].bookmark = bookmark }
                     try save()
                 } catch {

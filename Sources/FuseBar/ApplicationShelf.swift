@@ -28,6 +28,13 @@ enum ApplicationShelfModel {
         recent(visible((includeFavorites ? favorites : []) + running.filter(\.running), query: ""), ids: recentIDs)
     }
 
+    /// The home grid shows at most `capacity` tiles; on overflow one slot collapses
+    /// into the trailing ellipsis tile.
+    static func gridTiles(_ apps: [ShelfApplication], capacity: Int = 12) -> (apps: [ShelfApplication], overflow: Bool) {
+        let overflow = apps.count > capacity
+        return (Array(apps.prefix(overflow ? capacity - 1 : capacity)), overflow)
+    }
+
     static func recent(_ apps: [ShelfApplication], ids: [String]) -> [ShelfApplication] {
         let apps = visible(apps, query: "")
         let byID = Dictionary(uniqueKeysWithValues: apps.map { ($0.id, $0) })
@@ -62,7 +69,7 @@ enum ApplicationShelfModel {
 final class ApplicationShelf: ObservableObject {
     static let shared = ApplicationShelf()
     @Published private(set) var installed: [ShelfApplication] = []
-    @Published private(set) var scanning = false
+    private var scanning = false
     @Published private(set) var frontmostID: String?
     @Published private(set) var recentIDs: [String]
     private var scanned = false
@@ -182,7 +189,7 @@ final class ApplicationShelf: ObservableObject {
                     } else if url.pathComponents.count - root.pathComponents.count >= 2 { entries.skipDescendants() }
                 }
             }
-            let result = ApplicationShelfModel.visible(found.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }, query: "")
+            let result = ApplicationShelfModel.visible(found.sorted { nameIsBefore($0.name, $1.name) }, query: "")
             Task { @MainActor in self?.installed = result; self?.scanning = false; self?.scanned = true }
         }
     }
@@ -197,9 +204,7 @@ final class ApplicationShelf: ObservableObject {
         var invalid = false
         for url in panel.urls {
             guard let id = Bundle(url: url)?.bundleIdentifier else { invalid = true; continue }
-            let scoped = url.startAccessingSecurityScopedResource()
-            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-            guard let bookmark = try? url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil) else { invalid = true; continue }
+            guard let bookmark = try? ScopedBookmark.readScope(for: url) else { invalid = true; continue }
             bookmarks[id] = bookmark
             if !pins.contains(id) { pins.append(id) }
         }
@@ -211,10 +216,9 @@ final class ApplicationShelf: ObservableObject {
 
     nonisolated private static func applicationURL(_ id: String, bookmarks: [String: Data]) -> URL? {
         if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) { return url }
-        guard let data = bookmarks[id] else { return nil }
-        var stale = false
-        guard let url = try? URL(resolvingBookmarkData: data, options: [.withSecurityScope, .withoutUI, .withoutMounting], relativeTo: nil, bookmarkDataIsStale: &stale), !stale else { return nil }
-        return url
+        guard let data = bookmarks[id],
+              let resolved = try? ScopedBookmark.resolve(data, withoutMounting: true), !resolved.stale else { return nil }
+        return resolved.url
     }
 
     var searchable: [ShelfApplication] {
