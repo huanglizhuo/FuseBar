@@ -31,9 +31,9 @@ With the version bumped in `project.yml` (and `xcodegen generate` run), the rele
 zsh Scripts/release.sh v1.2.0
 ```
 
-The script verifies the tag matches `MARKETING_VERSION` and that the tree is clean and pushed, then runs tests, archives, uploads for notarization, waits and exports the stapled Developer ID app, packages the ZIP (`Scripts/prepare-release.sh`), and creates a **draft** release. Creating the draft also creates the tag on the remote, which automatically triggers **Actions → Verify and publish release** — no manual workflow run needed.
+The script verifies the tag matches `MARKETING_VERSION` and that the tree is clean and pushed, then runs tests, archives, uploads for notarization, waits and exports the stapled Developer ID app, packages the ZIP (`Scripts/prepare-release.sh`), pushes the git tag and creates a **draft** release with it.
 
-Pushing a matching tag any other way also triggers the Action, as long as the draft release with the ZIP already exists; `workflow_dispatch` remains available as a manual retry with the tag as input.
+Pushing a matching tag any other way also triggers the Action, as long as the draft release with the ZIP already exists; `workflow_dispatch` with a tag input is the manual retry path.
 
 The Action waits briefly for the draft to be visible, downloads the signed asset, and verifies the Developer ID Team, bundle ID, version, universal architectures, signature and stapled notarization ticket. Only after all checks pass does it attach SHA256SUMS.txt and publish the release.
 

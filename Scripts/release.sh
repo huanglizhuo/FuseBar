@@ -50,8 +50,15 @@ zsh Scripts/prepare-release.sh
 
 asset="build/release/FuseBar-${version}-macOS.zip"
 
-print "==> Create draft release (also creates tag $tag, triggering the verify-and-publish Action)"
-gh release create "$tag" "$asset" --draft --title "FuseBar $version" --notes-file "$notes"
+print "==> Push tag (triggers the verify-and-publish Action)"
+# A tag created via the releases API does not fire push-tag workflows;
+# push a real git tag first so the Action starts, then attach the draft.
+git tag "$tag"
+git push origin "$tag"
+
+print "==> Create draft release with the signed asset"
+# The Action waits briefly for this draft to appear after the tag push.
+gh release create "$tag" "$asset" --draft --verify-tag --title "FuseBar $version" --notes-file "$notes"
 
 print "==> Release pipeline started."
 print "The tag push triggers Actions → Verify and publish release, which verifies the"
