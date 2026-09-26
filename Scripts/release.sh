@@ -31,8 +31,19 @@ xcodebuild -exportArchive -archivePath build/FuseBar.xcarchive \
   -allowProvisioningUpdates
 
 print "==> Wait for notarization and export stapled app"
-xcodebuild -exportNotarizedApp -archivePath build/FuseBar.xcarchive \
-  -exportPath build/DeveloperID
+# exportNotarizedApp does not wait for Apple to finish processing; poll until ready.
+rm -rf build/DeveloperID
+for attempt in {1..40}; do
+  xcodebuild -exportNotarizedApp -archivePath build/FuseBar.xcarchive \
+    -exportPath build/DeveloperID > build/notarize-wait.log 2>&1 && break
+  if ! grep -q 'processing and not ready for distribution' build/notarize-wait.log; then
+    cat build/notarize-wait.log >&2
+    exit 1
+  fi
+  [[ "$attempt" == 40 ]] && { print -u2 "Notarization did not complete in time; see build/notarize-wait.log"; exit 1; }
+  print "Notarization still processing (attempt $attempt); waiting 30s"
+  sleep 30
+done
 
 print "==> Verify and package"
 zsh Scripts/prepare-release.sh
