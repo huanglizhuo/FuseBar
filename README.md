@@ -8,13 +8,22 @@ FuseBar brings system status, recently used apps, input sources, and project sho
 
 ## Preview
 
-<img src="docs/previews/status-en.png" alt="FuseBar status layout with recent apps, input-source selection, and a centered shortcut footer" width="352">
-<img src="docs/previews/coding-en.png" alt="FuseBar coding layout with recent apps, compact system controls, and project links" width="352">
+<img src="docs/previews/fusebar-intro.webp" alt="20-second FuseBar intro: crowded menu bar icons fuse into one orb, the panel and Wi-Fi submenu open, a shortcut searches apps, the Coding layout opens a project preview, and the orb becomes the app icon" width="800">
+
+*20-second intro with Chinese and English captions (silent preview). [Watch with sound (MP4)](https://github.com/huanglizhuo/FuseBar/releases/download/v1.2.0/FuseBar-intro-20s.mp4). Built with [HyperFrames](https://github.com/heygen-com/hyperframes) from the app's own panel renders; the orb animation reuses the choreography in `OrbMorphAnimation.swift`.*
+
+<img src="docs/previews/side-wifi-en.png" alt="FuseBar main panel with running apps, search, and status rows, next to the Wi-Fi side submenu" width="664">
+
+<img src="docs/previews/coding-en.png" alt="FuseBar coding layout with running apps, compact status icons, and project links" width="352">
+<img src="docs/previews/search-en.png" alt="FuseBar unified search with a keyboard-selectable result" width="352">
 
 <details>
-<summary>Side submenus, input sources, preferences, projects, and system controls</summary>
+<summary>Status layout, side submenus, input sources, preferences, projects, and system controls</summary>
 
 <img src="docs/previews/side-input-sources-en.png" alt="Composed layout preview of the main panel with an input-source side submenu" width="664">
+
+<img src="docs/previews/status-en.png" alt="FuseBar status layout with running apps, search, status rows, and a centered shortcut footer" width="352">
+<img src="docs/previews/status-dark-en.png" alt="FuseBar status layout in dark appearance" width="352">
 
 <img src="docs/previews/input-sources-en.png" alt="Input-source selection with native icons and the current selection" width="352">
 <img src="docs/previews/settings-en.png" alt="Coding layout, quick-open shortcut, and input-source display preferences" width="352">
@@ -23,11 +32,11 @@ FuseBar brings system status, recently used apps, input sources, and project sho
 
 </details>
 
-*Native UI previews of the current development source (1.1.0), rendered with sample status, local running apps, and local input-source names/icons. They are not live hardware verification captures. See the [screenshot index](docs/previews/README.md) for all five interface languages. The film above shows the earlier icon-fusion design.*
+*Native UI previews rendered from FuseBar 1.2.0 source on September 27, 2026, with sample status, local running apps, and local input-source names/icons. They are not live hardware verification captures. See the [screenshot index](docs/previews/README.md) for all five interface languages.*
 
 ## Download and use
 
-Download the latest published build, [FuseBar 1.0.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-1.0.1-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.0.1). **The screenshots and features below describe development source, not the published 1.0.1 binary.** A new signed/notarized GitHub release has not been published. This update does not change the existing Mac App Store submission.
+Download the latest published build, [FuseBar 1.2.0 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.2.0/FuseBar-1.2.0-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.2.0). The screenshots and features below describe this release. This update does not change the existing Mac App Store submission.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. **English, Simplified Chinese, Japanese, French, and Spanish** are supported. FuseBar follows your Mac’s preferred language list (including regional variants), falling back to English when none match. Chinese variants use Simplified Chinese. Restart FuseBar after changing the system or per-app language.
 
@@ -35,7 +44,7 @@ You can manually hide redundant system icons in System Settings → Menu Bar (Co
 
 ## Features
 
-Current development source includes:
+FuseBar 1.2.0 includes:
 
 - Battery ring with charging, low-battery, unknown, and no-internal-battery states.
 - Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon.
@@ -43,9 +52,9 @@ Current development source includes:
 - On-demand Wi-Fi scanning and joining supported personal networks, with explicit confirmation. Other authentication methods open System Settings.
 - Optional Bluetooth power and paired-device details; click a device to connect or disconnect with progress and verified state. Pairing and power changes remain in System Settings. Renamed Bluetooth audio devices use the system audio name when an exact device identity match is available.
 - Sound output selection, an inline mute button, supported volume controls, and immediate CoreAudio updates.
-- Unified search for discovered apps, saved file shortcuts, and actions, with keyboard navigation; results appear only while typing.
+- Unified search for installed apps, saved file shortcuts, and actions, with real app icons and keyboard navigation; results appear only while typing.
 - Compact status rows with highlighted side-submenu selection, theme-aware icons, and hover feedback.
-- Up to two rows of pinned and running apps above search, ordered by recent use or launch, with an overflow button for the full list. Recent order stays on your Mac.
+- Up to 12 running apps above search, ordered by recent use or launch. Right-click an app to Force Quit it. Recent order stays on your Mac.
 - Choose Network connection or Sound output as the default center icon in Settings; changes apply immediately and persist locally.
 - Input-source selection with native icons. Switching briefly shows the source in the center for two seconds; Settings can keep it visible. Internal input-method modes may not be detectable.
 - Centered footer shortcuts for the app launcher, Mission Control, and files. Settings is at the lower left, Quit uses a power icon at the lower right, and help is at the upper right.
@@ -56,17 +65,17 @@ Current development source includes:
 
 ## Make room for coding
 
-Enable **Coding layout** in Settings for compact status, up to two rows of pinned/running apps above search, and a selected project's folder, preview, and repository links. Pin tools before hiding the Dock so they stay accessible even when closed. Use **Add apps** for tools that are not running, or search common application folders from the home panel.
+Enable **Coding layout** in Settings for compact status icons, running apps above search, and a selected project's folder, preview, and repository links. Apps that are not running are one search away: type in the home panel to find anything installed in your application folders.
 
 In **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Search focuses when the panel opens. Use ↑/↓ and Return to choose a result, → to expand a focused status, and ← to close its submenu. Escape closes the submenu first, then the main panel; Escape during recording cancels recording.
 
-Enable Dock auto-hide yourself through the supplied **Dock auto-hide settings** link, and restore it there at any time. Project links open only the entries you save; they do not start servers or restore editor sessions. These features are not in the latest published 1.0.1 release. See the [implementation scope](docs/CODING_WORKSPACE_PLAN.md) and [validation limits](docs/VALIDATION.md).
+Enable Dock auto-hide yourself through the supplied **Dock auto-hide settings** link, and restore it there at any time. Project links open only the entries you save; they do not start servers or restore editor sessions. See the [implementation scope](docs/CODING_WORKSPACE_PLAN.md) and [validation limits](docs/VALIDATION.md).
 
 ## Input sources and navigation
 
 Input Source sits alongside Battery, Wi-Fi, Bluetooth, and Sound. Click its row (or its compact button in Coding layout) to choose an enabled input source. The selected source is marked with a check. Its native icon appears in the ring for two seconds after a change; enable **Always show the input source in the center** in Settings to keep it there. Icons follow light/dark appearance and fall back to a language label when unavailable. Switching modes inside a third-party input method may not change the system input source.
 
-App icons are ordered by recent activation or launch, even while the panel is closed. Up to 100 app identifiers are stored locally to preserve that order. Unrecorded running apps use launch time as a fallback; fixed favorites remain available after quitting.
+App icons are ordered by recent activation or launch, even while the panel is closed. Up to 100 app identifiers are stored locally to preserve that order. Unrecorded running apps use launch time as a fallback. Quit apps leave the shelf and stay reachable through search.
 
 Battery, Wi-Fi, Bluetooth, Sound, and Input Source open in a separate side submenu while the main panel stays visible. Click another status to switch the submenu; click the same status again or press Escape to close it. Escape again closes the main panel. AppKit places the submenu on the left when the right edge has insufficient room. Battery includes a link to macOS settings. Settings, project editing, and other utility pages keep in-panel navigation.
 

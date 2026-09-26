@@ -454,3 +454,17 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 
 - 删除 `videos/`（HyperFrames 启动视频工程，34 个跟踪文件，约 20 MB），仓库不再携带视频源文件；已发布的 release 附件（v1.0.1 的 mp4）不受影响。
 - README 移除视频链接与指向 `videos/fusebar-launch/THIRD_PARTY_NOTICES.md` 的致谢句；CircleStatusBar 署名保留。历史验证记录中对该目录的引用保留作为存档。
+
+## 2026-09-27：README 预览重新渲染（1.2.0）
+
+- 环境：macOS 26.7 (25G229)。`xcodebuild` Debug 构建成功（exit 0），`Scripts/render-readme-previews.sh docs/previews` 成功（exit 0），5 种语言全部页面及英文深色/搜索/侧边子菜单组合图已重新输出。
+- 预览工具 Info.plist 版本号更新为 1.2.0；源码与已发布 v1.2.0 标签一致（此后仅有发布脚本与文档提交）。
+- 首页运行中应用区在本次渲染中显示 8 个本机应用（两行），侧边子菜单组合图同步更新。
+- 这些仍是离屏原生渲染和样例状态，不是实机菜单栏截图，也不代表硬件行为验证。
+
+## 2026-09-27：应用图标 v2（The Orb）与 20 秒介绍片
+
+- 图标改用概念 A（`Design/AppIcon/concepts/A-orb.svg`）：三组 Icon Composer 图层 `01-orbit` / `02-status-dots` / `03-signal`，背景源色 `#2F63E8`。
+- `Scripts/render-app-icon.sh` 经 Icon Composer `ictool` 渲染成功（exit 0），六种外观与 16–256 px 预览已更新；Debug 构建成功（exit 0），`Design/AppIcon/FuseBar.icns` 从新构建的应用包复制。
+- 目视检查：默认、透明、染色外观保留轨道/数值弧与两亮两暗状态点的层次；深色外观由系统着色为单一蓝色，轨道与数值弧的明暗差减弱，属自动适配结果。
+- 介绍片由 HyperFrames 0.8.78 渲染（1920×1080、30 fps、20 s、中英字幕、原创合成配乐），结尾卡使用上述 `ictool` 默认外观渲染图；README 使用其无声 WebP 预览，带声音的 MP4 作为 v1.2.0 release 附件 `FuseBar-intro-20s.mp4`。

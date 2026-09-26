@@ -1,15 +1,15 @@
 {
   "fill": {
-    "automatic-gradient": "srgb:0.03529,0.42745,0.54902,1.00000"
+    "automatic-gradient": "srgb:0.18431,0.38824,0.90980,1.00000"
   },
   "groups": [
     {
-      "name": "Unified orbit",
+      "name": "Orb ring",
       "layers": [
         {
           "glass": true,
           "image-name": "01-orbit.svg",
-          "name": "Unified orbit"
+          "name": "Orb ring"
         }
       ],
       "shadow": {
@@ -18,16 +18,16 @@
       },
       "translucency": {
         "enabled": true,
-        "value": 0.38
+        "value": 0.2
       }
     },
     {
-      "name": "Converging signals",
+      "name": "Status dots",
       "layers": [
         {
           "glass": true,
-          "image-name": "02-converging-signals.svg",
-          "name": "Converging signals"
+          "image-name": "02-status-dots.svg",
+          "name": "Status dots"
         }
       ],
       "shadow": {
@@ -36,16 +36,16 @@
       },
       "translucency": {
         "enabled": true,
-        "value": 0.16
+        "value": 0.12
       }
     },
     {
-      "name": "One status",
+      "name": "Network signal",
       "layers": [
         {
           "glass": true,
-          "image-name": "03-merged-core.svg",
-          "name": "One status"
+          "image-name": "03-signal.svg",
+          "name": "Network signal"
         }
       ],
       "shadow": {
@@ -54,7 +54,7 @@
       },
       "translucency": {
         "enabled": true,
-        "value": 0.08
+        "value": 0.06
       }
     }
   ],

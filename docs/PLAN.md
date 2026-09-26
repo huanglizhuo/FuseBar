@@ -83,7 +83,7 @@
 
 ## 应用图标
 
-应用身份采用“汇聚之环”：蓝绿色背景、玻璃状态环、两段汇聚信号和中心节点。使用 1024 px 原创矢量分层及原生 Icon Composer `.icon` 文档；Xcode 编译分层资源和兼容 `.icns`。见 [设计源文件说明](../Design/AppIcon/DESIGN.md)。菜单栏动态图标保持单色，以免 Liquid Glass 材质影响 18 pt 状态读取。
+应用身份采用“The Orb”：亮蓝色背景、开口圆环（半透明轨道加数值弧）、底部四个状态点和中心网络信号，与菜单栏里的圆环一一对应。使用 1024 px 原创矢量分层及原生 Icon Composer `.icon` 文档；Xcode 编译分层资源和兼容 `.icns`。见 [设计源文件说明](../Design/AppIcon/DESIGN.md)。菜单栏动态图标保持单色，以免 Liquid Glass 材质影响 18 pt 状态读取。
 
 ## FuseBar 1.0 双渠道发行
 

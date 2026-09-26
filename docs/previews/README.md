@@ -1,6 +1,6 @@
 # FuseBar UI previews
 
-Wi-Fi, sound and Bluetooth previews refreshed from development source 1.1.0 on September 21, 2026; other pages retain their previous renders. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
+All previews re-rendered from FuseBar 1.2.0 source on September 27, 2026. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
 
 Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script uses an isolated preference suite and does not change the system language, input source, Dock settings, or saved app preferences.
 
@@ -19,7 +19,9 @@ Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script
 
 Input-source artwork: [light](input-source-icons.png) · [dark](input-source-icons-dark.png). These enlarged comparison diagrams show the same source artwork in the ring and standalone controls.
 
-Status items now open separate side submenus; utility pages retain in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` and the released film describe earlier versions and were not resubmitted in this update.
+Status items now open separate side submenus; utility pages retain in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` describe earlier versions and were not resubmitted in this update.
+
+Intro film: [fusebar-intro.webp](fusebar-intro.webp) is a silent 800 px, 15 fps preview of the 20-second bilingual intro rendered with HyperFrames on September 27, 2026; the panel shots use the zh-Hans renders above.
 
 Compact panel validation previews: [dark theme](status-dark-en.png), [search result](search-en.png), [empty search](search-empty-en.png).
 

@@ -15,7 +15,7 @@ cat > "$preview_app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleExecutable</key><string>FuseBarPreview</string>
 <key>CFBundleIdentifier</key><string>com.fusebar.readme-preview</string>
 <key>CFBundleDevelopmentRegion</key><string>en</string>
-<key>CFBundleShortVersionString</key><string>1.1.0</string>
+<key>CFBundleShortVersionString</key><string>1.2.0</string>
 </dict></plist>
 PLIST
 sources=(Sources/FuseBar/*.swift)
