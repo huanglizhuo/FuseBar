@@ -187,6 +187,13 @@ struct StatusSnapshot: Equatable {
         sound: SoundStatus(available: true, deviceName: L("MacBook 扬声器"), volume: 0.42, muted: false, canSetVolume: true)
     )
 
+    /// The guide hero shows a full battery: the value arc closes the ring completely.
+    static var hero: StatusSnapshot {
+        var snapshot = normal
+        snapshot.battery.level = 100
+        return snapshot
+    }
+
     static var scenarios: [(String, StatusSnapshot)] {
         var charging = normal; charging.battery.charging = true; charging.battery.externalPower = true
         var low = normal; low.battery.level = 16

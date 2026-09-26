@@ -25,6 +25,20 @@ This uploads using the signed-in Xcode account. In App Store Connect, select the
 
 ## GitHub
 
+With the version bumped in `project.yml` (and `xcodegen generate` run), the release commit pushed, and release notes written, the whole GitHub release is one local command:
+
+```sh
+zsh Scripts/release.sh v1.2.0
+```
+
+The script verifies the tag matches `MARKETING_VERSION` and that the tree is clean and pushed, then runs tests, archives, uploads for notarization, waits and exports the stapled Developer ID app, packages the ZIP (`Scripts/prepare-release.sh`), and creates a **draft** release. Creating the draft also creates the tag on the remote, which automatically triggers **Actions → Verify and publish release** — no manual workflow run needed.
+
+Pushing a matching tag any other way also triggers the Action, as long as the draft release with the ZIP already exists; `workflow_dispatch` remains available as a manual retry with the tag as input.
+
+The Action waits briefly for the draft to be visible, downloads the signed asset, and verifies the Developer ID Team, bundle ID, version, universal architectures, signature and stapled notarization ticket. Only after all checks pass does it attach SHA256SUMS.txt and publish the release.
+
+The individual notarization and export steps (also used by the script) are:
+
 ```sh
 xcodebuild -exportArchive -archivePath build/FuseBar.xcarchive \
   -exportOptionsPlist Distribution/Notarize.plist -exportPath build/Notarization \
@@ -32,18 +46,6 @@ xcodebuild -exportArchive -archivePath build/FuseBar.xcarchive \
 xcodebuild -exportNotarizedApp -archivePath build/FuseBar.xcarchive \
   -exportPath build/DeveloperID
 zsh Scripts/prepare-release.sh
-```
-
-Wait for notarization to complete before exporting; a pending result is not permission to publish an unsigned fallback. The ZIP preserves the app signature and stapled ticket. Users unzip it, move FuseBar.app to Applications, and launch it from there.
-
-Create a draft release with the existing tag and the ZIP, then run **Actions → Verify and publish release → Run workflow**, entering the tag. The Action verifies the Developer ID Team, bundle ID, version, universal architectures, signature and stapled notarization ticket. Only after all checks pass does it attach SHA256SUMS.txt and publish the release.
-
-Example, after creating and pushing the intended release tag:
-
-```sh
-gh release create v1.0 build/release/FuseBar-1.0-macOS.zip \
-  --draft --verify-tag --title 'FuseBar 1.0' --notes-file Distribution/RELEASE_NOTES.md
-gh workflow run release.yml -f tag=v1.0
 ```
 
 This is intentionally a local-build / hosted-verification pipeline. A future fully hosted signing pipeline would require separately provisioning Apple signing and notarization secrets.

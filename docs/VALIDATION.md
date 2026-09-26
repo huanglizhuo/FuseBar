@@ -426,3 +426,25 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 工程与资产：删除未跟踪的改名残留 `MergeBar.xcodeproj/`；`project.yml` 移除 `MACOSX_DEPLOYMENT_TARGET` 重复项、`ASSETCATALOG_COMPILER_APPICON_NAME`（无 .xcassets）、`ENABLE_APP_SANDBOX`（entitlements 为准，构建产物 entitlements 核验含 sandbox 及全部能力）；`xcodegen generate` 后构建通过；删除零引用的 `docs/previews/coding/`（7 张过期渲染图）、`interface-preview.png`、`orb-gallery-*.png`。
 - 验证：`zsh Scripts/build.sh` 成功；`zsh Scripts/test.sh` 89 项全部通过（64 XCTest + 25 Swift Testing）；`Scripts/render-readme-previews.sh` 用 git worktree 检出重构前 HEAD 与当前代码背靠背各渲染一次（同环境消除运行中应用差异），62 张输出中 60 张逐字节一致，仅 `system-*.png` 2 张在时钟文本位置（12×16/45×16 像素框）因 TimelineView 跨分钟而异——均为离屏模拟渲染，非真机截图。UserDefaults 键全量保留。
 - 重装记录：清理重构后 Debug 构建经 ditto 换入 /Applications/FuseBar.app，`codesign --verify --deep --strict` 通过（Apple Development: Huang Lizhuo，Team N9Q47Y2LQ4），`com.clothpath.mergebar` 偏好保留，`open -a FuseBar` 正常启动。
+
+### 2026-09-25 — Onboarding 只显示一次 + guide 汇聚动画
+
+- Onboarding：`onboardingComplete` 改为 guide 首次**出现**即写入（`onboardingDue` 每次打开面板时从 defaults 初始化一次，控制显示；持久标记在 onAppear 落盘，preview 守卫不变）。用户用 Esc/外击关闭、点页内任何入口（含底栏齿轮，旧行为会被 onboarding 条件挡住）都视为已看过；键盘 ← 离开同样结束引导。`?` 手动进入不受影响。三个 guide 按钮不再承担置位职责，仅导航。
+- 汇聚动画（参考 MIT 许可的 CircleStatusBar 逐帧架构，本地重实现）：新增 `OrbMorphAnimation.swift`——`OrbMorphPose(time:)` 纯函数 + `OrbMorphChoreography` 时间轴（2.6s：蓝牙淡出 → 喇叭化为 4 音量点沿贝塞尔弧飞入环底 → wifi 飞入中心带阻尼回弹 → 电池收缩 → 数值弧生长 → 背景轨道淡入 → 末段 0.3s 交叉溶解到真实 OrbView）+ 纯函数缓动工具箱。orb 几何提为 `OrbGeometry` 共享常量（OrbView 与动画单一事实来源），最终画面逐项落在真实 orb 几何上（像素测试断言）。
+- 驱动：`TimelineView(.animation)` + 每次进入 guide 重播；Reduce Motion 与 preview（画廊/README 渲染）走原静态行——离屏渲染窗口的 TimelineView 不跳帧，preview 静态路径同时保证 guide-*.png 渲染与既有版本一致（实测：图标行与文本逐字节相同，仅两处 orb 有 46/8 个抗锯齿边缘像素亚像素差异）。
+- 验证：新增 OrbMorphTests 4 项（起点=图标行、终点=OrbView 几何逐项相等含 2 实心点、时间轴单调、缓动原语），共 93 项测试全绿；屏上冒烟 harness（真实窗口 + 定时抓帧）确认时间轴跳帧、early 帧含 4 图标、final 帧为带底部开口环 + 中心 wifi + 四点的单一 orb；视觉模型复核 final 帧符合预期。模拟渲染与离屏冒烟均为非实机交互验证。
+- 重装记录：Debug 构建换入 /Applications/FuseBar.app，codesign 校验通过（Team N9Q47Y2LQ4），偏好保留，正常启动。真实 onboarding 流程需全新 defaults 才会触发，未在用户环境重置偏好验证（避免改动用户数据），待自然场景观察。
+
+### 2026-09-25 — Hero 满电居中 + 消除结尾沉降 + guide 页精简
+
+- Hero 快照改为 `StatusSnapshot.hero`（level 100）：值弧走满 250° 扫角（底部开口保持设计），预览静态行同样显示满电环。
+- 合并目标改为水平居中（`orbCenter.x = width/2`，原为靠右）。
+- 结尾沉降根因：真实 OrbView 的环心在 22 单位空间位于 (11,10)，即帧中心上方 1×scale（32pt 帧约 1.45pt）；交叉溶解时 OrbView 以帧中心对位导致完成后环心上跳。修复：新增 `layout.orbFrameCenter`，OrbView 帧中心下移 (22/2−10)×scale 使环心精确落在 pose 的 orbCenter。屏上冒烟验证：t=2.49s（溶解将尽）与 t=3.47s（定格）两帧 0 像素差、亮色簇 x 中心=窗口正中。
+- guide 页精简：移除长图解段（动画本身已演示映射，键"外环读电量…"成为孤儿并从五语删除）、"系统功能/管理常用应用/快速打开快捷键"三个导航按钮与"Dock 自动隐藏设置"按钮；保留标题、动画、"保留重要状态，收起重复图标。"、隐藏原生图标指引、打开菜单栏设置、开始使用。去掉 ScrollView 与 420 定高，页面高度自适应（渲染 1138→932px）。"快速打开快捷键"与"Dock 自动隐藏设置 ↗"仍被设置页/快捷键视图使用，键保留。
+- 验证：93 项测试全绿（pose 测试改用 .hero 并新增满电/居中/环心偏移断言）；背靠背 worktree 渲染对照 57/62 逐字节一致，仅 5 张 guide 页因改版不同；docs/previews/guide-*.png 已用新渲染更新；重装 /Applications（codesign 通过，Team N9Q47Y2LQ4）。
+
+### 2026-09-25 — 应用访问收敛：移除固定体系，首页纯运行网格 + 搜索，右键新增强制退出
+
+- 范围：首页应用区改为仅“运行中的应用”（最近使用排序，prefix 12 格，无省略号/无"+"按钮）；删除独立应用管理页（Page.applications）、“首页包含固定应用”开关、“管理常用应用”入口；ApplicationShelf 移除 pins/bookmarks/favorites/addApplication/togglePin/move/isPinned/applicationURL，读取仅运行应用；`searchable` = 运行 + 已安装（搜索可打开，不允许固定）。右键菜单：移除固定/取消固定/前后移动，保留隐藏/显示/在 Finder 中显示，新增“强制退出”（forceTerminate，读回确认，失败报“系统未接受强制退出，请重试。”）。旧偏好键停止读写（数据保留）。
+- 本地化：删除 18 个孤儿键×5 语言（固定/管理/移动/已安装等），新增“强制退出”与错误文案×5。
+- 验证：89 项测试全绿（ApplicationShelfTests 重写为运行语义、删除 pin/compact/moving 用例，ControlTests 应用元数据并发测试改经 refresh/stop 驱动并修正 reads 精确相等断言为 ≥）；背靠背渲染对照：status 页差异精确限定在网格标签行（y141-161@2x），coding/search/settings/side 为同因预期差异，guide 为上一轮未提交改版，其余一致。docs/previews 已更新 22 张代码相关图（回滚 7 张环境噪声图）。PLAN.md 已记录范围变更。重装 /Applications（codesign 通过）。

@@ -2,16 +2,13 @@ import XCTest
 @testable import FuseBar
 
 final class ApplicationShelfTests: XCTestCase {
-    func testRecentOrderMergesPinnedAndRunningWithoutDuplicates() {
-        let pinned = ShelfApplication(id: "pin", name: "Pin", url: nil, running: false)
+    func testHomeOrdersRunningAppsByRecencyWithoutDuplicates() {
         let editor = ShelfApplication(id: "editor", name: "Editor", url: nil, running: true)
         let browser = ShelfApplication(id: "browser", name: "Browser", url: nil, running: true)
-        let recent = ["browser", "gone", "editor", "browser", "pin"]
-        XCTAssertEqual(ApplicationShelfModel.home(favorites: [pinned, editor], running: [editor, browser],
-            includeFavorites: true, recentIDs: recent).map(\.id), ["browser", "editor", "pin"])
-        XCTAssertEqual(ApplicationShelfModel.home(favorites: [pinned], running: [editor, browser],
-            includeFavorites: false, recentIDs: recent).map(\.id), ["browser", "editor"])
-        XCTAssertEqual(ApplicationShelfModel.recent([editor, browser, pinned], ids: ["browser"]).map(\.id), ["browser", "editor", "pin"])
+        let stopped = ShelfApplication(id: "stopped", name: "Stopped", url: nil, running: false)
+        let recent = ["browser", "gone", "editor", "browser"]
+        XCTAssertEqual(ApplicationShelfModel.home(running: [editor, browser, stopped], recentIDs: recent).map(\.id), ["browser", "editor"])
+        XCTAssertEqual(ApplicationShelfModel.recent([editor, browser, stopped], ids: ["browser"]).map(\.id), ["browser", "editor", "stopped"])
     }
 
     @MainActor func testRecentUsePersistsAndIgnoresFuseBarAndRefresh() throws {
@@ -32,27 +29,8 @@ final class ApplicationShelfTests: XCTestCase {
         XCTAssertEqual(shelf.recentIDs.first, "app.109")
     }
 
-    func testCompactGridBoundaryAndOverflowSlot() {
-        let apps = (0..<13).map { ShelfApplication(id: "app.\($0)", name: "App \($0)", url: nil, running: true) }
-        XCTAssertEqual(ApplicationShelfModel.compact(Array(apps.prefix(6))).apps.count, 6)
-        let exactlyTwoRows = ApplicationShelfModel.compact(Array(apps.prefix(12)))
-        XCTAssertEqual(exactlyTwoRows.apps.count, 12)
-        XCTAssertFalse(exactlyTwoRows.overflow)
-        let overflow = ApplicationShelfModel.compact(apps)
-        XCTAssertEqual(overflow.apps.count, 11)
-        XCTAssertTrue(overflow.overflow)
-        XCTAssertEqual(overflow.apps.last?.id, "app.10")
-    }
-
-    func testCompactGridExcludesStoppedAppsAndDuplicateProcesses() {
-        let active = ShelfApplication(id: "active", name: "Active", url: nil, running: true)
-        let stopped = ShelfApplication(id: "stopped", name: "Stopped", url: nil, running: false)
-        XCTAssertEqual(ApplicationShelfModel.compact([active, stopped, active]).apps, [active])
-        XCTAssertFalse(ApplicationShelfModel.compact([]).overflow)
-    }
-
-    func testPinsKeepFirstOccurrenceAndOrder() {
-        XCTAssertEqual(ApplicationShelfModel.normalizedPins(["b", "", "a", "b", "c"]), ["b", "a", "c"])
+    func testOrderNormalizationKeepsFirstOccurrence() {
+        XCTAssertEqual(ApplicationShelfModel.normalizedOrder(["b", "", "a", "b", "c"]), ["b", "a", "c"])
     }
 
     func testSearchTrimsWhitespaceAndMatchesNameOrIdentifier() {
@@ -63,26 +41,9 @@ final class ApplicationShelfTests: XCTestCase {
         XCTAssertTrue(ApplicationShelfModel.visible(apps, query: "not-installed").isEmpty)
     }
 
-    func testUnavailableFavoriteSurvivesAndDuplicateProcessesCollapse() {
-        let unavailable = ShelfApplication(id: "missing.app", name: "Missing", url: nil, running: false)
+    func testDuplicateProcessesCollapseInSearchableList() {
         let running = ShelfApplication(id: "running.app", name: "Running", url: URL(fileURLWithPath: "/Applications/Running.app"), running: true)
-        XCTAssertEqual(ApplicationShelfModel.visible([unavailable, running, running], query: "  "), [unavailable, running])
-    }
-
-    @MainActor func testPinsPersistWithoutModifyingOtherPreferences() throws {
-        let suite = "FuseBarTests.Shelf.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
-        defaults.set(false, forKey: "showBattery")
-        let shelf = ApplicationShelf(defaults: defaults)
-        let missing = ShelfApplication(id: "test.fusebar.missing", name: "Missing", url: nil, running: false)
-        shelf.togglePin(missing)
-        let restored = ApplicationShelf(defaults: defaults)
-        restored.refresh()
-        XCTAssertEqual(restored.favorites.map(\.id), [missing.id])
-        XCTAssertNil(restored.favorites.first?.url)
-        restored.togglePin(missing)
-        XCTAssertEqual(defaults.stringArray(forKey: "pinnedApplications"), [])
-        XCTAssertFalse(defaults.bool(forKey: "showBattery"))
+        let installed = ShelfApplication(id: "running.app", name: "Running", url: URL(fileURLWithPath: "/Applications/Running.app"), running: false)
+        XCTAssertEqual(ApplicationShelfModel.visible([running, installed, running], query: "  "), [running])
     }
 }

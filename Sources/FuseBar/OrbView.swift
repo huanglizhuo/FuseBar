@@ -35,6 +35,24 @@ enum StatusSymbols {
     }
 }
 
+/// Orb geometry in the 22-unit canvas space, shared by the status item, the guide
+/// hero animation and the fixture gallery so every rendering lands on the same orb.
+enum OrbGeometry {
+    /// The 22-unit canvas space the geometry is expressed in.
+    static let canvasSpace: CGFloat = 22
+    static let center = CGPoint(x: 11, y: 10)
+    static let ringRadius: CGFloat = 7.5
+    static let ringLineWidth: CGFloat = 1.4
+    static let emphasizedRingLineWidth: CGFloat = 1.7
+    static let ringStartAngle: Double = 145
+    static let ringSweep: Double = 250
+    static let dotAngles: [Double] = [125, 102, 79, 56]
+    static let dotDiameter: CGFloat = 1.3
+    static let dimDotOpacity: Double = 0.22
+    static let trackOpacity: Double = 0.18
+    static let wifiSymbolSize: CGFloat = 8
+}
+
 /// Single geometry shared by the actual status item, onboarding and the fixture gallery.
 struct OrbView: View {
     let snapshot: StatusSnapshot
@@ -68,17 +86,19 @@ struct OrbView: View {
             func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
                 var path = Path()
                 // A symmetric 110° gap holds exactly one status symbol on the vertical axis.
-                path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
-                            startAngle: .degrees(145), endAngle: .degrees(145 + 250 * fraction), clockwise: false)
+                path.addArc(center: OrbGeometry.center, radius: OrbGeometry.ringRadius,
+                            startAngle: .degrees(OrbGeometry.ringStartAngle),
+                            endAngle: .degrees(OrbGeometry.ringStartAngle + OrbGeometry.ringSweep * fraction), clockwise: false)
                 context.stroke(path, with: .color(ink.opacity(opacity)),
-                               style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round, dash: dashed ? [1, 2] : []))
+                               style: StrokeStyle(lineWidth: emphasized ? OrbGeometry.emphasizedRingLineWidth : OrbGeometry.ringLineWidth, lineCap: .round, dash: dashed ? [1, 2] : []))
             }
             func valueArc(_ fraction: Double) {
                 var path = Path()
-                path.addArc(center: CGPoint(x: 11, y: 10), radius: 7.5,
-                            startAngle: .degrees(145), endAngle: .degrees(145 + 250 * fraction), clockwise: false)
+                path.addArc(center: OrbGeometry.center, radius: OrbGeometry.ringRadius,
+                            startAngle: .degrees(OrbGeometry.ringStartAngle),
+                            endAngle: .degrees(OrbGeometry.ringStartAngle + OrbGeometry.ringSweep * fraction), clockwise: false)
                 context.stroke(path, with: .color((ringTint ?? ink).opacity(1)),
-                               style: StrokeStyle(lineWidth: emphasized ? 1.7 : 1.4, lineCap: .round))
+                               style: StrokeStyle(lineWidth: emphasized ? OrbGeometry.emphasizedRingLineWidth : OrbGeometry.ringLineWidth, lineCap: .round))
             }
             if preferences.battery {
                 switch snapshot.battery.availability {
@@ -102,7 +122,7 @@ struct OrbView: View {
             } else if preferences.center == .network && preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
-                    symbol(StatusSymbols.wifi(snapshot.wifi), x: 11, y: 10, size: snapshot.wifi.hotspotStyle ? 6.5 : 8,
+                    symbol(StatusSymbols.wifi(snapshot.wifi), x: OrbGeometry.center.x, y: OrbGeometry.center.y, size: snapshot.wifi.hotspotStyle ? 6.5 : OrbGeometry.wifiSymbolSize,
                            value: snapshot.wifi.hotspotStyle || snapshot.wifi.bars == 0 ? nil : Double(snapshot.wifi.bars) / 3)
                 case .disconnected:
                     // The full wifi.exclamationmark is reserved for the larger popover row.
@@ -125,10 +145,12 @@ struct OrbView: View {
                 case .none:
                     if let filled = snapshot.volumeDots(preferences) {
                         for index in 0..<4 {
-                            let angle = Double(125 - index * 23) * .pi / 180
-                            let center = CGPoint(x: 11 + 7.5 * cos(angle), y: 10 + 7.5 * sin(angle))
-                            let dot = Path(ellipseIn: CGRect(x: center.x - 0.65, y: center.y - 0.65, width: 1.3, height: 1.3))
-                            context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : 0.22)))
+                            let angle = OrbGeometry.dotAngles[index] * .pi / 180
+                            let center = CGPoint(x: OrbGeometry.center.x + OrbGeometry.ringRadius * cos(angle),
+                                                 y: OrbGeometry.center.y + OrbGeometry.ringRadius * sin(angle))
+                            let dot = Path(ellipseIn: CGRect(x: center.x - OrbGeometry.dotDiameter / 2, y: center.y - OrbGeometry.dotDiameter / 2,
+                                                             width: OrbGeometry.dotDiameter, height: OrbGeometry.dotDiameter))
+                            context.fill(dot, with: .color(ink.opacity(index < filled ? 1 : OrbGeometry.dimDotOpacity)))
                         }
                     }
                 }

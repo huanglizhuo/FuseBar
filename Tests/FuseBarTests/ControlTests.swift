@@ -44,14 +44,6 @@ final class ControlTests: XCTestCase {
         XCTAssertTrue(NearbyNetwork.ordered([]).isEmpty)
     }
 
-    func testPinMovementAtBoundariesAndMissingIdentity() {
-        XCTAssertEqual(ApplicationShelfModel.moving(["a", "b", "c"], id: "b", offset: -1), ["b", "a", "c"])
-        XCTAssertEqual(ApplicationShelfModel.moving(["a", "b", "c"], id: "b", offset: 1), ["a", "c", "b"])
-        XCTAssertEqual(ApplicationShelfModel.moving(["a", "b"], id: "a", offset: -1), ["a", "b"])
-        XCTAssertEqual(ApplicationShelfModel.moving(["a", "b"], id: "b", offset: 1), ["a", "b"])
-        XCTAssertEqual(ApplicationShelfModel.moving(["a"], id: "missing", offset: 1), ["a"])
-    }
-
     @MainActor func testFileShortcutInvalidBookmarkFailsWithoutDeletingEntry() throws {
         let suite = "FuseBarTests.Files.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
@@ -161,20 +153,20 @@ struct ResponsivenessTests {
         let defaults = try #require(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let source = SlowApplicationReader()
-        let shelf = ApplicationShelf(defaults: defaults, readApplications: { pins, _ in source.read(pins) })
+        let shelf = ApplicationShelf(defaults: defaults, readApplications: { source.read() })
         defer { source.gate.signal(); shelf.stop() }
-        let app = ShelfApplication(id: "test.slow", name: "Slow", url: nil, running: false)
-        shelf.togglePin(app)
+        shelf.refresh()
         try await eventually { source.reads == 1 }
         #expect(!source.usedMain)
-        #expect(shelf.favorites.first?.id == app.id)
-        shelf.togglePin(app) // Remove while the original read is blocked.
-        for _ in 0..<100 { shelf.refresh() }
+        shelf.stop() // Supersede the blocked read; its result must be discarded.
         source.gate.signal()
-        try await eventually { source.reads == 2 }
-        try await Task.sleep(for: .milliseconds(30))
-        #expect(source.reads == 2)
-        #expect(shelf.favorites.isEmpty)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(shelf.running.isEmpty)
+        for _ in 0..<100 { shelf.refresh() } // All coalesce into a single pending read.
+        try await eventually { source.reads >= 2 }
+        try await Task.sleep(for: .milliseconds(50))
+        #expect(source.reads < 10, "coalesced refreshes must not fan out reads")
+        #expect(shelf.running.map(\.id) == ["resolved.app"])
     }
 }
 
@@ -287,9 +279,9 @@ private final class SlowApplicationReader: @unchecked Sendable {
     private var main = false
     var reads: Int { lock.withLock { count } }
     var usedMain: Bool { lock.withLock { main } }
-    func read(_ pins: [String]) -> [ShelfApplication] {
+    func read() -> [ShelfApplication] {
         let first = lock.withLock { count += 1; main = main || Thread.isMainThread; return count == 1 }
         if first { _ = gate.wait(timeout: .now() + 2) }
-        return pins.map { ShelfApplication(id: $0, name: "Resolved", url: nil, running: false) }
+        return [ShelfApplication(id: "resolved.app", name: "Resolved", url: nil, running: true)]
     }
 }

@@ -6,15 +6,10 @@ final class CodingWorkspaceTests: XCTestCase {
     private func app(_ id: String, running: Bool = true) -> ShelfApplication {
         ShelfApplication(id: id, name: id, url: nil, running: running)
     }
-    func testHomeIncludesStoppedFavoritesAndDeduplicatesRunningPins() {
-        let favorites = [app("editor", running: false), app("browser")]
-        let running = [app("browser"), app("terminal")]
-        XCTAssertEqual(ApplicationShelfModel.home(favorites: favorites, running: running, includeFavorites: true).map(\.id), ["editor", "browser", "terminal"])
-        XCTAssertEqual(ApplicationShelfModel.home(favorites: favorites, running: running, includeFavorites: false).map(\.id), ["browser", "terminal"])
-        let many = (0..<13).map { app("\($0)", running: false) }
-        let compact = ApplicationShelfModel.home(favorites: many, running: [], includeFavorites: true)
-        XCTAssertEqual(compact.count, 13)
-        XCTAssertEqual(compact.map(\.id), many.map(\.id))
+    func testHomeDeduplicatesRunningAppsAndKeepsRecencyOrder() {
+        let running = [app("browser"), app("terminal"), app("browser")]
+        XCTAssertEqual(ApplicationShelfModel.home(running: running).map(\.id), ["browser", "terminal"])
+        XCTAssertEqual(ApplicationShelfModel.home(running: running, recentIDs: ["terminal"]).map(\.id), ["terminal", "browser"])
     }
     func testStableOrderingPreservesSurvivorsAndAppendsNewApps() {
         let previous = [app("b"), app("a"), app("closed")]

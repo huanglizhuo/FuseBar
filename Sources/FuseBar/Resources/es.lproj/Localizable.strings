@@ -47,21 +47,11 @@
 "退出" = "Salir";
 "运行中的应用" = "Apps abiertas";
 "应用" = "Apps";
-"搜索应用" = "Buscar apps";
-"没有可显示的应用。" = "No hay apps que mostrar.";
-"没有匹配的应用。" = "No hay apps coincidentes.";
-"常用应用" = "Favoritas";
-"运行中" = "Abiertas";
-"点击打开，右键管理与排序。● 表示正在运行。" = "Haz clic para abrir; clic derecho para gestionar y ordenar. ● indica que está abierta.";
-"应用不可用，可取消固定" = "App no disponible; puedes desfijarla";
 "正在运行" = "Abierta";
-"取消固定" = "Desfijar";
-"固定" = "Fijar";
-"固定到 FuseBar" = "Fijar en FuseBar";
-"向前移动" = "Mover antes";
-"向后移动" = "Mover después";
 "隐藏应用" = "Ocultar app";
 "显示应用" = "Mostrar app";
+"强制退出" = "Forzar salida";
+"系统未接受强制退出，请重试。" = "El sistema no aceptó el cierre forzado. Inténtalo de nuevo.";
 "在 Finder 中显示" = "Mostrar en Finder";
 "静音" = "Silenciar";
 "没有可用的输出设备。请检查连接，或打开声音设置。" = "No hay dispositivos de salida. Comprueba la conexión o abre los ajustes de Sonido.";
@@ -93,13 +83,11 @@
 "外观" = "Aspecto";
 "登录时启动" = "Abrir al iniciar sesión";
 "在系统设置中批准登录启动" = "Permitir el inicio en Ajustes del Sistema";
-"管理常用应用" = "Gestionar apps favoritas";
 "如何隐藏原生菜单栏图标" = "Ocultar iconos del sistema";
 "隐私政策" = "Política de privacidad";
 "帮助与反馈" = "Ayuda y comentarios";
 "开发版" = "Desarrollo";
 "FuseBar %@ · 免费\n声音变化即时监听；其他状态约每 3 秒更新。" = "FuseBar %@ · Gratis\nEl sonido se actualiza al instante; los demás estados, cada 3 segundos aproximadamente.";
-"外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。" = "Batería en el anillo; Wi-Fi o punto de acceso personal en el centro. Abajo: alerta, carga o silencio. Si no, cuatro puntos indican el volumen aproximado; si no puede leerse, queda vacío. Los detalles de Bluetooth están en el panel.";
 "保留重要状态，收起重复图标。" = "Conserva lo esencial. Quita lo repetido.";
 "前往系统设置的“菜单栏”或“控制中心”，手动隐藏 Wi-Fi、蓝牙、声音和电池图标。先试用，再决定隐藏哪些。" = "En Ajustes del Sistema → Barra de menús (o Centro de control), oculta manualmente Wi-Fi, Bluetooth, Sonido y Batería. Prueba FuseBar antes de decidir qué ocultar.";
 "打开菜单栏设置" = "Ajustes de la barra de menús";
@@ -200,18 +188,15 @@
 "关闭 Wi-Fi 会中断当前无线网络。" = "Desactivar Wi-Fi desconectará tu red inalámbrica actual.";
 
 // Coding workspace
-"添加应用" = "Añadir apps";
 "项目工作台" = "Proyectos";
 "当前项目" = "Proyecto actual";
 "目录" = "Carpeta";
 "预览" = "Vista previa";
 "仓库" = "Repositorio";
 "添加项目入口" = "Añadir un proyecto";
-"固定与运行应用" = "Apps fijadas y abiertas";
 "当前应用" = "App actual";
 "编码工作台" = "Espacio de desarrollo";
 "编码布局：优先显示应用和项目" = "Vista de código: apps y proyectos primero";
-"首页包含固定应用" = "Mostrar apps fijadas en el inicio";
 "Dock 自动隐藏设置 ↗" = "Ocultar el Dock automáticamente ↗";
 "在系统设置中开启自动隐藏 Dock，为代码和预览腾出空间；也可在那里恢复。" = "Oculta el Dock en Ajustes del Sistema para dejar más espacio al código y las vistas previas. Puedes restaurarlo allí.";
 "把屏幕留给代码。" = "Más espacio para crear.";
@@ -239,7 +224,6 @@
 "保存" = "Guardar";
 "移除项目" = "Quitar proyecto";
 "移除项目只删除此处配置，不删除文件。" = "Quitar un proyecto solo elimina esta configuración, nunca tus archivos.";
-"部分项目不是可用的应用。" = "Algunos elementos no son apps válidas.";
 
 // Input sources
 "输入源" = "Fuente de entrada";
@@ -299,4 +283,3 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "El Wi-Fi está desactivado. Actívalo y vuelve a buscar.";
 "扫描未完成（%@ %ld），请重试。" = "La búsqueda ha fallado (%@ %ld). Inténtalo de nuevo.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "Los auriculares aún no ofrecen una salida de audio. Comprueba que estén encendidos y cerca e inténtalo de nuevo.";
-"已安装" = "Instaladas";

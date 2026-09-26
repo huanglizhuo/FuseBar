@@ -7,26 +7,26 @@ struct PopoverView: View {
     private let onSelectInputSource: ((String) -> Void)?
     @StateObject private var shelf: ApplicationShelf
     @AppStorage("codingLayout") private var codingLayout = false
-    @AppStorage("includeFavoriteApps") private var includeFavoriteApps = true
     @StateObject private var projects: CodingProjects
     @FocusState private var searchFocused: Bool
     @State private var searchIndex = 0
     @ObservedObject private var submenu = SideSubmenu.shared
     @StateObject private var files: FileShortcuts
-    @State private var hoveredApp: String?
     @FocusState private var focusedStatus: Page?
     @FocusState private var focusedSource: String?
     private let focusSearch: Bool
     @State private var appQuery = ""
-    @State private var runningOnly = false
     @State private var page: Page = .status
     @StateObject private var volumeEdit = VolumeEditModel()
     @AppStorage("onboardingComplete") private var onboardingComplete = false
+    /// True when this presentation opened because onboarding has not been seen yet.
+    /// The durable flag is written on first appearance so even an Esc-dismiss counts.
+    @State private var onboardingDue: Bool
     private let preview: Bool
     private let isSubmenu: Bool
     private let onOpenApplication: ((URL) -> Void)?
     private let onQuickAction: ((QuickAction) -> Void)?
-    enum Page: Hashable { case battery, status, settings, guide, applications, sound, wifi, bluetooth, files, system, projects, inputSources }
+    enum Page: Hashable { case battery, status, settings, guide, sound, wifi, bluetooth, files, system, projects, inputSources }
 
     init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
         _shelf = StateObject(wrappedValue: shelf ?? ApplicationShelf.shared)
@@ -38,7 +38,6 @@ struct PopoverView: View {
         if preview { sources.refresh() }
         _inputSources = ObservedObject(wrappedValue: sources)
         _codingLayout = AppStorage(wrappedValue: false, "codingLayout", store: store.defaults)
-        _includeFavoriteApps = AppStorage(wrappedValue: true, "includeFavoriteApps", store: store.defaults)
         self.store = store
         self.preview = preview
         self.isSubmenu = isSubmenu
@@ -46,6 +45,7 @@ struct PopoverView: View {
         self.onOpenApplication = onOpenApplication
         _page = State(initialValue: initialPage)
         _appQuery = State(initialValue: initialQuery)
+        _onboardingDue = State(initialValue: !UserDefaults.standard.bool(forKey: "onboardingComplete"))
     }
 
     var body: some View {
@@ -141,8 +141,10 @@ struct PopoverView: View {
             }.padding(.horizontal, 18).padding(.vertical, 10)
             Divider()
             if page == .settings { ScrollView { settings }.frame(height: 420) }
-            else if page == .guide || (!preview && !onboardingComplete) { ScrollView { guide }.frame(height: 420) }
-            else if page == .applications { applications }
+            else if page == .guide || (!preview && onboardingDue) {
+                guide
+                    .onAppear { if !preview && onboardingDue { onboardingComplete = true } }
+            }
             else if page == .files { FileShortcutsView() }
             else if page == .system { SystemControlsView(store: store) }
             else if page == .projects { ProjectEditorView(projects: projects) }
@@ -190,7 +192,11 @@ struct PopoverView: View {
             if !preview { shelf.refresh(); shelf.discoverApplications() }
             if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
         }
-        .onChange(of: page) { _, _ in SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload() }
+        .onChange(of: page) { _, newPage in
+            SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload()
+            // Navigating away from the onboarding guide ends the guided first run.
+            if newPage != .guide { onboardingDue = false }
+        }
         .onChange(of: files.error) { _, error in if let error { store.errorMessage = error } }
         .onKeyPress(.leftArrow) {
             guard page != .status && page != .wifi && page != .sound else { return .ignored }
@@ -438,89 +444,6 @@ struct PopoverView: View {
         }
     }
 
-    private var applications: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(runningOnly ? L("运行中的应用") : L("应用")).font(.headline)
-                Spacer()
-                Button(L("添加应用")) { store.errorMessage = shelf.addApplication() }
-            }
-            TextField(L("搜索应用"), text: $appQuery)
-                .textFieldStyle(.roundedBorder).accessibilityLabel(L("搜索应用"))
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    let favorites = ApplicationShelfModel.visible(shelf.favorites.filter { !runningOnly || $0.running }, query: appQuery)
-                    let running = ApplicationShelfModel.visible(shelf.running.filter { !shelf.isPinned($0) }, query: appQuery)
-                    let others = ApplicationShelfModel.visible(shelf.installed.filter { candidate in
-                        !shelf.isPinned(candidate) && !shelf.running.contains { $0.id == candidate.id }
-                    }, query: appQuery)
-                    if favorites.isEmpty && running.isEmpty && others.isEmpty {
-                        Text(appQuery.isEmpty ? L("没有可显示的应用。") : L("没有匹配的应用。"))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    if !favorites.isEmpty {
-                        Text(L("常用应用")).font(.caption).foregroundStyle(.secondary)
-                        ForEach(favorites) { app in applicationRow(app) }
-                    }
-                    if !running.isEmpty {
-                        Text(L("运行中")).font(.caption).foregroundStyle(.secondary)
-                        ForEach(running) { app in applicationRow(app) }
-                    }
-                    if !appQuery.isEmpty && !others.isEmpty {
-                        Text(L("已安装")).font(.caption).foregroundStyle(.secondary)
-                        ForEach(others) { app in applicationRow(app) }
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }.frame(height: 290)
-            Text(L("点击打开，右键管理与排序。● 表示正在运行。"))
-                .font(.caption2).foregroundStyle(.secondary)
-        }.padding(18)
-
-    }
-
-    private func applicationRow(_ app: ShelfApplication) -> some View {
-        HStack(spacing: 8) {
-            Button {
-                if let url = app.url { onOpenApplication?(url) }
-            } label: {
-                HStack(spacing: 10) {
-                    if let url = app.url {
-                        ApplicationIcon(url: url).frame(width: 28, height: 28)
-                    } else {
-                        Image(systemName: "app.dashed").frame(width: 28, height: 28)
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(app.name).lineLimit(1)
-                        if app.url == nil { Text(L("应用不可用，可取消固定")).font(.caption2).foregroundStyle(.secondary) }
-                    }
-                    Spacer(minLength: 0)
-                    if app.running { Image(systemName: "circle.fill").font(.system(size: 5)).accessibilityLabel(L("正在运行")) }
-                }.contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle()).disabled(app.url == nil || onOpenApplication == nil)
-            Button { shelf.togglePin(app) } label: {
-                Image(systemName: shelf.isPinned(app) ? "pin.fill" : "pin")
-            }.buttonStyle(.borderless)
-                .accessibilityLabel("\(shelf.isPinned(app) ? L("取消固定") : L("固定")) \(app.name)")
-        }.font(.system(size: 12)).padding(.vertical, 4)
-        .contextMenu { applicationMenu(app) }
-    }
-
-    @ViewBuilder private func applicationMenu(_ app: ShelfApplication) -> some View {
-            Button(shelf.isPinned(app) ? L("取消固定") : L("固定到 FuseBar")) { shelf.togglePin(app) }
-            if shelf.isPinned(app) {
-                Button(L("向前移动")) { shelf.move(app, offset: -1) }.disabled(!shelf.canMove(app, offset: -1))
-                Button(L("向后移动")) { shelf.move(app, offset: 1) }.disabled(!shelf.canMove(app, offset: 1))
-            }
-            Divider()
-            if app.running {
-                Button(L("隐藏应用")) { store.errorMessage = shelf.setHidden(true, app: app) }
-                Button(L("显示应用")) { store.errorMessage = shelf.setHidden(false, app: app) }
-            }
-            Button(L("在 Finder 中显示")) {
-                if let url = app.url { NSWorkspace.shared.activateFileViewerSelecting([url]) }
-            }.disabled(app.url == nil)
-    }
-
     private var soundOutputs: some View {
         SoundPanel(store: store, preview: preview, isSubmenu: isSubmenu)
     }
@@ -577,20 +500,17 @@ struct PopoverView: View {
     }
 
     private var runningApplications: some View {
-        let apps = ApplicationShelfModel.home(favorites: shelf.favorites, running: shelf.running, includeFavorites: includeFavoriteApps, recentIDs: shelf.recentIDs)
-        let tiles = ApplicationShelfModel.gridTiles(apps)
+        let apps = ApplicationShelfModel.home(running: shelf.running, recentIDs: shelf.recentIDs)
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(includeFavoriteApps ? L("固定与运行应用") : L("运行中的应用")).font(.caption2).foregroundStyle(.secondary)
+                Text(L("运行中的应用")).font(.caption2).foregroundStyle(.secondary)
                 Spacer()
-                Button { appQuery = ""; runningOnly = false; page = .applications } label: { Image(systemName: "plus") }
-                    .buttonStyle(.plain).accessibilityLabel(L("管理常用应用"))
             }
             if apps.isEmpty {
                 Text(L("暂无运行中的应用")).font(.caption).foregroundStyle(.secondary)
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 5) {
-                    ForEach(tiles.apps) { app in
+                    ForEach(Array(apps.prefix(12))) { app in
                         Button { if let url = app.url { onOpenApplication?(url) } } label: {
                             Group {
                                 if let url = app.url {
@@ -600,27 +520,28 @@ struct PopoverView: View {
                                 .background(shelf.frontmostID == app.id ? Color.accentColor.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 7))
                                 .overlay(alignment: .bottom) {
                                     if app.running { Circle().fill(.secondary).frame(width: 3, height: 3) }
-                                }
-                                .overlay(alignment: .topTrailing) {
-                                    if hoveredApp == app.id && shelf.isPinned(app) {
-                                        Image(systemName: "pin.fill").font(.system(size: 8)).padding(2)
-                                            .background(.regularMaterial, in: Circle()).accessibilityHidden(true)
-                                    }
                                 }.contentShape(Rectangle())
-                        }.buttonStyle(MenuButtonStyle()).onHover { hoveredApp = $0 ? app.id : nil }.help(app.name).accessibilityLabel(L("打开 %@", app.name))
-                            .accessibilityValue(shelf.frontmostID == app.id ? L("当前应用") : app.running ? L("正在运行") : L("固定"))
+                        }.buttonStyle(MenuButtonStyle())
+                            .help(app.name).accessibilityLabel(L("打开 %@", app.name))
+                            .accessibilityValue(shelf.frontmostID == app.id ? L("当前应用") : L("正在运行"))
                             .contextMenu { applicationMenu(app) }
                             .disabled(app.url == nil || (!preview && onOpenApplication == nil))
-                    }
-                    if tiles.overflow {
-                        Button { appQuery = ""; runningOnly = !includeFavoriteApps; page = .applications } label: {
-                            Image(systemName: "ellipsis").frame(width: 38, height: 34).contentShape(Rectangle())
-                        }.buttonStyle(.plain).help(L("管理常用应用"))
-                            .accessibilityLabel(L("管理常用应用"))
                     }
                 }
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18).padding(.vertical, 8)
+    }
+
+    @ViewBuilder private func applicationMenu(_ app: ShelfApplication) -> some View {
+            if app.running {
+                Button(L("隐藏应用")) { store.errorMessage = shelf.setHidden(true, app: app) }
+                Button(L("显示应用")) { store.errorMessage = shelf.setHidden(false, app: app) }
+                Button(L("强制退出")) { store.errorMessage = shelf.forceTerminate(app) }
+                Divider()
+            }
+            Button(L("在 Finder 中显示")) {
+                if let url = app.url { NSWorkspace.shared.activateFileViewerSelecting([url]) }
+            }.disabled(app.url == nil)
     }
 
     private func statusRow(_ title: String, detail: String, symbol: String, destination: SettingsDestination) -> some View {
@@ -684,7 +605,6 @@ struct PopoverView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(L("编码工作台")).font(.headline)
             Toggle(L("编码布局：优先显示应用和项目"), isOn: $codingLayout)
-            Toggle(L("首页包含固定应用"), isOn: $includeFavoriteApps)
             Button { page = .projects } label: {
                 Text(L("项目工作台")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
             }.buttonStyle(MenuButtonStyle())
@@ -725,9 +645,6 @@ struct PopoverView: View {
             Button { page = .system } label: {
                 Text(L("系统功能")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
             }.buttonStyle(MenuButtonStyle())
-            Button { appQuery = ""; runningOnly = false; page = .applications } label: {
-                Text(L("管理常用应用")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
             Button { page = .guide } label: {
                 Text(L("如何隐藏原生菜单栏图标")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
             }.buttonStyle(MenuButtonStyle())
@@ -741,29 +658,15 @@ struct PopoverView: View {
     private var guide: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(L("把屏幕留给代码。")).font(.system(size: 21, weight: .semibold))
-            HStack(spacing: 13) {
-                ForEach(["wifi", StatusSymbols.bluetooth, "speaker.wave.2.fill", "battery.75percent"], id: \.self) { Image(systemName: $0) }
-                Image(systemName: "arrow.right").foregroundStyle(.tertiary)
-                OrbView(snapshot: .normal, batteryRingTint: true).frame(width: 32, height: 32)
-            }.frame(maxWidth: .infinity).padding(.vertical, 8).accessibilityHidden(true)
-            Text(L("外环读电量，中心看 Wi-Fi 或个人热点。底部居中显示警告、充电或静音；正常时四点表示大致音量；不可读取音量时留空。蓝牙连接状态可在详情中查看。"))
-                .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Button { page = .system } label: {
-                Text(L("系统功能")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            Button { onboardingComplete = true; page = .applications } label: {
-                Text(L("管理常用应用")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            Button { onboardingComplete = true; page = .settings } label: {
-                Text(L("快速打开快捷键")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            Button(L("Dock 自动隐藏设置 ↗")) { SettingsDestination.desktop.open() }
+            OrbMorphHero(snapshot: .hero, preview: preview)
+                .frame(height: 48)
+                .frame(maxWidth: .infinity).accessibilityHidden(true)
             Text(L("保留重要状态，收起重复图标。"))
                 .font(.system(size: 13, weight: .medium))
             Text(L("前往系统设置的“菜单栏”或“控制中心”，手动隐藏 Wi-Fi、蓝牙、声音和电池图标。先试用，再决定隐藏哪些。"))
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Button(L("打开菜单栏设置")) { SettingsDestination.menuBar.open() }
-            Button(L("开始使用")) { onboardingComplete = true; page = .status }
+            Button(L("开始使用")) { page = .status }
                 .buttonStyle(.bordered).controlSize(.large).frame(maxWidth: .infinity, alignment: .trailing)
         }.padding(18)
     }

@@ -1,6 +1,9 @@
 name: Verify and publish release
-run-name: Publish ${{ inputs.tag }}
+run-name: Publish ${{ inputs.tag || github.ref_name }}
 on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+*'
   workflow_dispatch:
     inputs:
       tag:
@@ -10,7 +13,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: release-${{ inputs.tag }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 jobs:
   publish:
@@ -19,7 +22,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - name: Validate draft and download signed asset
         shell: bash
@@ -27,7 +30,15 @@ jobs:
           set -euo pipefail
           [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || exit 1
           gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" > /dev/null
-          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          # The tag push and draft release are created together by `gh release create`;
+          # retry briefly in case the workflow starts before the draft is visible.
+          for attempt in 1 2 3 4 5 6; do
+            if gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft 2>/dev/null | grep -qx true; then
+              break
+            fi
+            [[ "$attempt" == 6 ]] && { echo "Draft release $RELEASE_TAG not found" >&2; exit 1; }
+            sleep 10
+          done
           mkdir -p payload
           gh release download "$RELEASE_TAG" --pattern "FuseBar-${RELEASE_TAG#v}-macOS.zip" --dir payload
       - name: Verify Apple signature, notarization and version
