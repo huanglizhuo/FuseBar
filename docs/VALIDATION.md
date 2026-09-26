@@ -448,3 +448,9 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 范围：首页应用区改为仅“运行中的应用”（最近使用排序，prefix 12 格，无省略号/无"+"按钮）；删除独立应用管理页（Page.applications）、“首页包含固定应用”开关、“管理常用应用”入口；ApplicationShelf 移除 pins/bookmarks/favorites/addApplication/togglePin/move/isPinned/applicationURL，读取仅运行应用；`searchable` = 运行 + 已安装（搜索可打开，不允许固定）。右键菜单：移除固定/取消固定/前后移动，保留隐藏/显示/在 Finder 中显示，新增“强制退出”（forceTerminate，读回确认，失败报“系统未接受强制退出，请重试。”）。旧偏好键停止读写（数据保留）。
 - 本地化：删除 18 个孤儿键×5 语言（固定/管理/移动/已安装等），新增“强制退出”与错误文案×5。
 - 验证：89 项测试全绿（ApplicationShelfTests 重写为运行语义、删除 pin/compact/moving 用例，ControlTests 应用元数据并发测试改经 refresh/stop 驱动并修正 reads 精确相等断言为 ≥）；背靠背渲染对照：status 页差异精确限定在网格标签行（y141-161@2x），coding/search/settings/side 为同因预期差异，guide 为上一轮未提交改版，其余一致。docs/previews 已更新 22 张代码相关图（回滚 7 张环境噪声图）。PLAN.md 已记录范围变更。重装 /Applications（codesign 通过）。
+
+
+### 2026-09-27 — 移除宣传视频工程
+
+- 删除 `videos/`（HyperFrames 启动视频工程，34 个跟踪文件，约 20 MB），仓库不再携带视频源文件；已发布的 release 附件（v1.0.1 的 mp4）不受影响。
+- README 移除视频链接与指向 `videos/fusebar-launch/THIRD_PARTY_NOTICES.md` 的致谢句；CircleStatusBar 署名保留。历史验证记录中对该目录的引用保留作为存档。

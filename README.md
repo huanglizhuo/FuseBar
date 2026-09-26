@@ -8,8 +8,6 @@ FuseBar brings system status, recently used apps, input sources, and project sho
 
 ## Preview
 
-[Watch the 34-second FuseBar film](https://github.com/huanglizhuo/FuseBar/releases/download/v1.0.1/FuseBar-launch-v2.mp4).
-
 <img src="docs/previews/status-en.png" alt="FuseBar status layout with recent apps, input-source selection, and a centered shortcut footer" width="352">
 <img src="docs/previews/coding-en.png" alt="FuseBar coding layout with recent apps, compact system controls, and project links" width="352">
 
@@ -113,4 +111,4 @@ See [validation notes](docs/VALIDATION.md) for observed results and remaining co
 - [App icon source and design](Design/AppIcon/DESIGN.md)
 - [Original PRD](docs/Original-PRD.md)
 
-The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's native drawing and system integration are independently implemented. The promotional video's adapted animation is credited in [third-party notices](videos/fusebar-launch/THIRD_PARTY_NOTICES.md).
+The visual layout was inspired by [CircleStatusBar](https://github.com/artemnovichkov/CircleStatusBar). FuseBar's native drawing and system integration are independently implemented.
