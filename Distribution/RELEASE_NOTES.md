@@ -1,17 +1,13 @@
-FuseBar is a free native macOS menu bar utility that brings battery, Wi-Fi and sound status together in one compact icon.
+# FuseBar 1.2.1
 
-- Battery level, charging and low-battery indicators.
-- Wi-Fi connection and signal status, with optional network-name access.
-- Optional Bluetooth connection details and supported output-volume controls.
-- Saved preferences, user-controlled launch at login, and a layered Liquid Glass app icon.
-- No account, ads, subscriptions or analytics. Status data stays on your Mac.
+A small visual update on top of 1.2.0.
 
-### Install
+- Bluetooth now uses the real Bluetooth mark everywhere — the onboarding animation, the status list, the Bluetooth panel, search and the menu footer — instead of the generic antenna glyph, which read too easily as a cellular tower on a Mac.
+- The mark comes from the open [MoreSFSymbols](https://github.com/cameronshemilt/MoreSFSymbols) collection, because SF Symbols does not include a Bluetooth glyph. When Bluetooth is off, the mark keeps the standard slash treatment.
+- No behavior changes: battery, Wi-Fi, sound and Bluetooth status work exactly as before.
 
-Download **FuseBar-1.0-macOS.zip**, unzip it, and move **FuseBar.app** to **Applications**. Launch it and click the ring in your menu bar; there is no Dock icon. The app is Developer ID signed and notarized by Apple.
+## Install
 
-Requires **macOS 14+**. Includes **Apple Silicon and Intel**. The current app interface is **Simplified Chinese**. Hide redundant system menu bar icons manually in System Settings if desired.
+Download `FuseBar-1.2.1-macOS.zip`, extract it, and move FuseBar to Applications. Quit a running older version before replacing it. Requires macOS 14 or later; the universal app supports Apple Silicon and Intel.
 
-Wi-Fi association does not guarantee internet access. Bluetooth enumeration and software volume control depend on the device. Updates are currently installed manually from GitHub Releases.
-
-The Mac App Store version is being prepared separately. See the [privacy policy](https://github.com/huanglizhuo/FuseBar/blob/main/docs/PRIVACY.md) and report issues through [GitHub Issues](https://github.com/huanglizhuo/FuseBar/issues).
+Your data stays on your Mac; there are no ads, accounts, analytics, or subscriptions.

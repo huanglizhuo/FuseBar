@@ -3,8 +3,10 @@ import SwiftUI
 /// Public SF Symbols available on the macOS 14 deployment target.
 enum StatusSymbols {
     static let charging = "bolt.fill"
-    // SF Symbols has no public Bluetooth logo; this is a generic wireless indicator.
-    static let bluetooth = "antenna.radiowaves.left.and.right"
+    // SF Symbols has no Bluetooth glyph; these app-defined names resolve to the
+    // drawn rune in StatusIcon.
+    static let bluetooth = "fusebar.bluetooth"
+    static let bluetoothOff = "fusebar.bluetooth.slash"
 
     static func battery(_ status: BatteryStatus) -> String {
         guard status.availability == .available else { return "questionmark.circle" }

@@ -214,7 +214,7 @@ struct PopoverView: View {
         HStack(spacing: 6) {
             ForEach(QuickAction.allCases, id: \.self) { action in
                 Button { onQuickAction?(action) } label: {
-                    Image(systemName: action.symbol).frame(width: 28, height: 28)
+                    StatusIcon(name: action.symbol).frame(width: 28, height: 28)
                 }.help(action.title).accessibilityLabel(action.title)
                     .disabled(!preview && onQuickAction == nil)
             }
@@ -359,7 +359,7 @@ struct PopoverView: View {
                 if case .application(let url) = entry.destination {
                     ApplicationIcon(url: url).frame(width: 28, height: 28)
                 } else {
-                    Image(systemName: entry.symbol).frame(width: 28, height: 28)
+                    StatusIcon(name: entry.symbol).frame(width: 28, height: 28)
                 }
                 Text(entry.title).lineLimit(1).truncationMode(.tail)
                 Spacer(minLength: 4)
@@ -407,7 +407,7 @@ struct PopoverView: View {
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "sound", inset: 6))
                     .menuRowFocus(.sound, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                     .accessibilityLabel(L("声音"))
-                Button { openSubmenu(.bluetooth) } label: { Image(systemName: StatusSymbols.bluetooth) }.help(store.snapshot.bluetooth.detail).background(SideSubmenuAnchor(id: "bluetooth"))
+                Button { openSubmenu(.bluetooth) } label: { StatusIcon(name: StatusSymbols.bluetooth, size: 15, weight: .medium) }.help(store.snapshot.bluetooth.detail).background(SideSubmenuAnchor(id: "bluetooth"))
                     .buttonStyle(MenuButtonStyle(selected: submenu.selection == "bluetooth", inset: 6))
                     .menuRowFocus(.bluetooth, focus: $focusedStatus, open: { openSubmenu($0) }, move: moveStatusFocus)
                     .accessibilityLabel(L("蓝牙"))
@@ -461,7 +461,7 @@ struct PopoverView: View {
             }
             VStack(alignment: .leading, spacing: 0) {
                 statusRow(L("蓝牙"), detail: store.snapshot.bluetooth.detail,
-                          symbol: store.snapshot.bluetooth.state == .off ? "antenna.radiowaves.left.and.right.slash" : StatusSymbols.bluetooth,
+                          symbol: store.snapshot.bluetooth.state == .off ? StatusSymbols.bluetoothOff : StatusSymbols.bluetooth,
                           destination: .bluetooth)
                 if store.snapshot.bluetooth.state == .permissionRequired {
                     Button(L("允许读取蓝牙状态")) { store.enableBluetooth() }
@@ -553,7 +553,7 @@ struct PopoverView: View {
             else { destination.open() }
         } label: {
             HStack(alignment: .center, spacing: 12) {
-                Image(systemName: symbol).font(.system(size: 14, weight: .medium)).frame(width: 20).foregroundStyle(.primary)
+                StatusIcon(name: symbol, size: 14, weight: .medium).frame(width: 20).foregroundStyle(.primary)
                 Text(title).font(.system(size: 12, weight: .medium)).fixedSize()
                 Spacer(minLength: 8)
                 if statusWarning(destination) {

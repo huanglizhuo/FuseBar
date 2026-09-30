@@ -195,7 +195,7 @@ struct OrbMorphHero: View {
 
     private var staticRow: some View {
         HStack(spacing: 13) {
-            ForEach(["wifi", StatusSymbols.bluetooth, "speaker.wave.2.fill", "battery.75percent"], id: \.self) { Image(systemName: $0) }
+            ForEach(["wifi", StatusSymbols.bluetooth, "speaker.wave.2.fill", "battery.75percent"], id: \.self) { StatusIcon(name: $0) }
             Image(systemName: "arrow.right").foregroundStyle(.tertiary)
             orb
         }
@@ -275,8 +275,7 @@ private struct OrbMorphCanvas: View {
     }
 
     private func glyph(_ name: String, _ glyph: OrbMorphPose.Glyph) -> some View {
-        Image(systemName: name)
-            .font(.system(size: OrbMorphChoreography.iconSize * glyph.scale))
+        StatusIcon(name: name, size: OrbMorphChoreography.iconSize * glyph.scale)
             .foregroundStyle(Color.primary.opacity(glyph.opacity))
             .position(glyph.center)
     }

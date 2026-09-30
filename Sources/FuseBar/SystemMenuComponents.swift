@@ -42,7 +42,7 @@ struct DeviceMenuIcon: View {
     let symbol: String
     var selected = false
     var body: some View {
-        Image(systemName: symbol).font(.system(size: 15, weight: .medium))
+        StatusIcon(name: symbol, size: 15, weight: .medium)
             .foregroundStyle(selected ? Color.white : Color.primary)
             .frame(width: 30, height: 30)
             .background(selected ? Color.accentColor : Color.primary.opacity(0.07), in: Circle())
