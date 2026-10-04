@@ -480,3 +480,11 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 搜索性能：用 400 条合成条目做 `-O` 基准，每次搜索约 2.4 ms（加入子串门槛前约 3.7 ms）；结果列表每次渲染只计算一次（原为 3 次）。
 - 编译警告：只有既有的 2 条（FileShortcuts.swift:25、InputSources.swift:58），没有新增。
 - 尚未验证（需要实机操作）：真实 NSPopover 中的 ⌘1–⌘9 与搜索回车；从状态栏打开设置窗口时的激活与焦点归还；通过搜索切换音频输出、连接蓝牙的硬件结果；用指定应用打开项目目录（沙盒书签 + NSWorkspace）；真实网络中的「已连接但网络不可用」状态；电池供电时的剩余时间显示；全新偏好下首次引导的真实流程；macOS 14/15、Intel 机型，以及全屏/多显示器下的快捷键唤出。
+
+## 2026-10-05：1.3.0 (6) GitHub 发布
+
+- 流程：功能提交 522317d、发布提交 77af094 推送后，运行 `zsh Scripts/release.sh v1.3.0`。脚本内测试通过（76 项 XCTest + 25 项 Swift Testing），Release 归档成功，公证上传成功，第二次轮询时导出带票据的应用。`prepare-release.sh` 本地校验：codesign 严格校验与 Designated Requirement 通过，`stapler validate` 通过，`spctl` 结果为 Notarized Developer ID。之后推送 tag v1.3.0，并创建草稿 release。
+- GitHub Action「Verify and publish release」（run 37220142523）成功：校验草稿并下载资产，校验签名、公证、版本、架构和五种语言资源后发布。发布时间 2026-10-05 01:20（+0800），标记为 Latest。资产为 `FuseBar-1.3.0-macOS.zip`（3,016,297 字节）和 `SHA256SUMS.txt`。
+- 独立复核：从 GitHub 下载的 ZIP，SHA-256 为 `201c4e363be5577658fd76365922d78ac3564d1e21d6470f18fb6c1bdbf93258`，与 SHA256SUMS.txt 及本地构建一致。解包后 codesign 严格校验、Developer ID（Team N9Q47Y2LQ4）要求、stapler、spctl（Notarized Developer ID）均通过；架构为 x86_64 + arm64；bundle ID `com.clothpath.fusebar`，版本 1.3.0 (6)；entitlements 与之前相同。
+- 发布出来的二进制在沙盒中后台运行 6 秒，无 error/fault 日志、无崩溃报告，之后正常退出。本机 /Applications 中仍为 1.2.0，未替换。
+- App Store 按维护者决定不发布（见 PLAN）。上一条列出的实机操作项，以及 macOS 14/15、Intel 机型，仍未验证。
