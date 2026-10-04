@@ -495,3 +495,10 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 根因：当前输入源是微信输入法（`com.tencent.inputmethod.wetype.pinyin`）。组字时 ↑↓ 和回车被输入法候选窗消费，SwiftUI 的 `onKeyPress`/`onSubmit` 收不到。直接把按键派发给托管窗口时功能正常（新增测试证实），所以问题只出在输入法组字这条路径上。
 - 修复：AppDelegate 已有的本地按键监视器在事件派发给字段编辑器（也就是交给输入法）之前，接管主面板搜索框的 ↑/↓/回车/小键盘 Enter。只在有搜索结果时消费；没有结果时仍交给输入法。带 ⌘⌃⌥⇧ 的组合键和其他窗口的按键都不接管。
 - 验证：79 项 XCTest + 25 项 Swift Testing 通过。新增测试覆盖按键映射、AppDelegate 路由（↓ 再回车打开第二项）、托管窗口中的方向键选择。去掉处理器注册后路由测试失败（变异检查）。第三方输入法在测试中无法确定性地驱动，真实组字下的行为需要装上新版后实机确认。
+
+## 2026-10-05：1.3.1 (7) GitHub 发布与本机安装
+
+- 修复提交 5e75b4a、发布提交 449e658 推送后，运行 `zsh Scripts/release.sh v1.3.1`：脚本内测试通过，归档成功，公证在第二次轮询时完成；本地校验 codesign/DR、stapler、spctl（Notarized Developer ID）均通过。推送 tag v1.3.1 并创建草稿。
+- GitHub Action（run 37223418842）全部步骤成功，2026-10-05 02:11（+0800）发布为 Latest。资产为 `FuseBar-1.3.1-macOS.zip`（3,020,544 字节）和 `SHA256SUMS.txt`；下载后的校验和与 SHA256SUMS.txt 及本地构建一致（`7cb52bb803a8de36…`）。
+- 本机安装：退出正在运行的 1.3.0，旧版移到废纸篓（“FuseBar 1.3.0.app”），从发布 ZIP 解压到 /Applications。安装后的应用版本为 1.3.1 (7)，Developer ID（Team N9Q47Y2LQ4）签名，stapler 与 spctl 均通过，架构为 x86_64 + arm64。启动后无 error/fault 日志、无崩溃报告。
+- 待实机确认：在微信输入法组字状态下，搜索结果里的 ↑↓ 切换和回车打开。
