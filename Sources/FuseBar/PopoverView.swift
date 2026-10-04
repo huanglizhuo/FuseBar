@@ -28,9 +28,10 @@ struct PopoverView: View {
     private let onOpenApplication: ((URL) -> Void)?
     private let onQuickAction: ((QuickAction) -> Void)?
     private let onOpenSettings: ((SettingsTab) -> Void)?
+    private let searchKeys: SearchKeys?
     enum Page: Hashable { case battery, status, guide, sound, wifi, bluetooth, files, inputSources }
 
-    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, onOpenSettings: ((SettingsTab) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
+    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, onOpenSettings: ((SettingsTab) -> Void)? = nil, searchKeys: SearchKeys? = nil, shelf: ApplicationShelf? = nil) {
         _shelf = StateObject(wrappedValue: shelf ?? ApplicationShelf.shared)
         _projects = StateObject(wrappedValue: CodingProjects(defaults: store.defaults))
         _files = StateObject(wrappedValue: FileShortcuts(defaults: store.defaults))
@@ -47,6 +48,7 @@ struct PopoverView: View {
         self.onQuickAction = onQuickAction
         self.onOpenApplication = onOpenApplication
         self.onOpenSettings = onOpenSettings
+        self.searchKeys = searchKeys
         _page = State(initialValue: initialPage)
         _appQuery = State(initialValue: initialQuery)
         _onboardingComplete = AppStorage(wrappedValue: false, "onboardingComplete", store: store.defaults)
@@ -203,7 +205,9 @@ struct PopoverView: View {
                 bluetooth.refresh(state: store.snapshot.bluetooth.state)
             }
             if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
+            searchKeys?.handler = { handleSearchKey($0) }
         }
+        .onDisappear { searchKeys?.handler = nil }
         .onChange(of: page) { _, newPage in
             SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload()
             // Home always comes back ready to type, as it does when the panel opens.
@@ -359,6 +363,20 @@ struct PopoverView: View {
             }
             .onKeyPress(.upArrow) { searchIndex = max(0, searchIndex - 1); return .handled }
             .padding(.horizontal, 18).padding(.vertical, 8)
+    }
+
+    /// ↑/↓ move through the results and Return opens the selection, even while an input method is
+    /// composing. Without results the keys stay with the field, so the input method can still use them.
+    private func handleSearchKey(_ key: SearchKeys.Key) -> Bool {
+        guard page == .status, !appQuery.isEmpty else { return false }
+        let count = searchMatches.count
+        guard count > 0 else { return false }
+        switch key {
+        case .up: searchIndex = max(0, searchIndex - 1)
+        case .down: searchIndex = min(searchIndex + 1, count - 1)
+        case .open: openSearchSelection()
+        }
+        return true
     }
 
     private func openSearchSelection() {
@@ -699,6 +717,23 @@ struct PopoverView: View {
         onboardingDue = false
         page = .status
         DispatchQueue.main.async { searchFocused = true }
+    }
+}
+
+/// Search navigation keys, taken by the app's event monitor before the field editor: a composing
+/// pinyin input method would otherwise claim ↑/↓/Return for its candidate window.
+@MainActor final class SearchKeys {
+    enum Key { case up, down, open }
+    var handler: ((Key) -> Bool)?
+
+    static func key(for event: NSEvent) -> Key? {
+        guard event.modifierFlags.intersection([.command, .control, .option, .shift]).isEmpty else { return nil }
+        switch event.keyCode {
+        case 126: return .up
+        case 125: return .down
+        case 36, 76: return .open // Return and keypad Enter
+        default: return nil
+        }
     }
 }
 

@@ -488,3 +488,10 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 独立复核：从 GitHub 下载的 ZIP，SHA-256 为 `201c4e363be5577658fd76365922d78ac3564d1e21d6470f18fb6c1bdbf93258`，与 SHA256SUMS.txt 及本地构建一致。解包后 codesign 严格校验、Developer ID（Team N9Q47Y2LQ4）要求、stapler、spctl（Notarized Developer ID）均通过；架构为 x86_64 + arm64；bundle ID `com.clothpath.fusebar`，版本 1.3.0 (6)；entitlements 与之前相同。
 - 发布出来的二进制在沙盒中后台运行 6 秒，无 error/fault 日志、无崩溃报告，之后正常退出。本机 /Applications 中仍为 1.2.0，未替换。
 - App Store 按维护者决定不发布（见 PLAN）。上一条列出的实机操作项，以及 macOS 14/15、Intel 机型，仍未验证。
+
+## 2026-10-05：搜索结果的方向键与回车（中文输入法）
+
+- 用户反馈：搜索结果出现后，↑↓ 不切换选中项，回车不打开。
+- 根因：当前输入源是微信输入法（`com.tencent.inputmethod.wetype.pinyin`）。组字时 ↑↓ 和回车被输入法候选窗消费，SwiftUI 的 `onKeyPress`/`onSubmit` 收不到。直接把按键派发给托管窗口时功能正常（新增测试证实），所以问题只出在输入法组字这条路径上。
+- 修复：AppDelegate 已有的本地按键监视器在事件派发给字段编辑器（也就是交给输入法）之前，接管主面板搜索框的 ↑/↓/回车/小键盘 Enter。只在有搜索结果时消费；没有结果时仍交给输入法。带 ⌘⌃⌥⇧ 的组合键和其他窗口的按键都不接管。
+- 验证：79 项 XCTest + 25 项 Swift Testing 通过。新增测试覆盖按键映射、AppDelegate 路由（↓ 再回车打开第二项）、托管窗口中的方向键选择。去掉处理器注册后路由测试失败（变异检查）。第三方输入法在测试中无法确定性地驱动，真实组字下的行为需要装上新版后实机确认。

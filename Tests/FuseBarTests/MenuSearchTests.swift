@@ -75,18 +75,18 @@ final class MenuSearchTests: XCTestCase {
         return window
     }
 
-    @MainActor private func pressReturn(in window: NSWindow) throws {
-        let event = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
-                                                    windowNumber: window.windowNumber, context: nil, characters: "\r",
-                                                    charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36))
+    @MainActor private func press(_ keyCode: UInt16, _ characters: String, _ flags: NSEvent.ModifierFlags = [], in window: NSWindow) throws {
+        let event = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0,
+                                                    windowNumber: window.windowNumber, context: nil, characters: characters,
+                                                    charactersIgnoringModifiers: characters, isARepeat: false, keyCode: keyCode))
         window.sendEvent(event)
         RunLoop.main.run(until: Date().addingTimeInterval(0.2))
     }
 
-    @MainActor func testReturnRunsBestResultAndDeviceResultsOpenTheirSubmenu() throws {
-        let suite = "FuseBarTests.SearchActions.\(UUID())"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+    @MainActor private func pressReturn(in window: NSWindow) throws { try press(36, "\r", in: window) }
+
+    /// Running Messages then Safari, as the shelf lists them by recent use.
+    @MainActor private func messagesAndSafari(_ defaults: UserDefaults) -> (ApplicationShelf, [ShelfApplication]) {
         let apps = [("com.apple.MobileSMS", "Messages"), ("com.apple.Safari", "Safari")].map {
             ShelfApplication(id: $0.0, name: $0.1, url: URL(fileURLWithPath: "/Applications/\($0.1).app"), running: true)
         }
@@ -94,6 +94,35 @@ final class MenuSearchTests: XCTestCase {
         shelf.refresh()
         let deadline = Date().addingTimeInterval(2)
         while shelf.running.count < 2 && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.02)) }
+        return (shelf, apps)
+    }
+
+    @MainActor func testArrowKeysMoveTheSelectionThatReturnOpens() throws {
+        let suite = "FuseBarTests.SearchKeys.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let (shelf, apps) = messagesAndSafari(defaults)
+        var opened: [URL] = []
+        // "sa" lists Safari (prefix) above Messages (substring).
+        let window = hostedPanel(PopoverView(store: StatusStore(defaults: defaults, demo: true), preview: true, initialQuery: "sa",
+                                             focusSearch: true, onOpenApplication: { opened.append($0) }, shelf: shelf))
+        defer { window.orderOut(nil) }
+        XCTAssertTrue(window.firstResponder is NSTextView, "Search is focused")
+        let arrow: NSEvent.ModifierFlags = [.numericPad, .function]
+        try press(125, String(UnicodeScalar(UInt16(NSDownArrowFunctionKey))!), arrow, in: window)
+        try pressReturn(in: window)
+        XCTAssertEqual(opened, [apps[0].url!], "↓ selects Messages, the second result")
+        try press(126, String(UnicodeScalar(UInt16(NSUpArrowFunctionKey))!), arrow, in: window)
+        try pressReturn(in: window)
+        XCTAssertEqual(opened.last, apps[1].url!, "↑ returns to Safari")
+        XCTAssertTrue(window.firstResponder is NSTextView, "Typing can continue after moving the selection")
+    }
+
+    @MainActor func testReturnRunsBestResultAndDeviceResultsOpenTheirSubmenu() throws {
+        let suite = "FuseBarTests.SearchActions.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let (shelf, apps) = messagesAndSafari(defaults)
         let store = StatusStore(defaults: defaults, demo: true)
 
         var opened: [URL] = []
@@ -108,5 +137,55 @@ final class MenuSearchTests: XCTestCase {
         defer { SideSubmenu.shared.close(); outputWindow.orderOut(nil) }
         try pressReturn(in: outputWindow)
         XCTAssertEqual(SideSubmenu.shared.selection, "search:output:headphones")
+    }
+
+    @MainActor private func keyEvent(_ keyCode: UInt16, _ characters: String, _ flags: NSEvent.ModifierFlags = [],
+                                     in window: NSWindow? = nil) throws -> NSEvent {
+        try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0,
+                                       windowNumber: window?.windowNumber ?? 0, context: nil, characters: characters,
+                                       charactersIgnoringModifiers: characters, isARepeat: false, keyCode: keyCode))
+    }
+
+    @MainActor func testSearchKeyMappingLeavesModifiedKeysAlone() throws {
+        let arrow: NSEvent.ModifierFlags = [.numericPad, .function]
+        XCTAssertEqual(SearchKeys.key(for: try keyEvent(126, "", arrow)), .up)
+        XCTAssertEqual(SearchKeys.key(for: try keyEvent(125, "", arrow)), .down)
+        XCTAssertEqual(SearchKeys.key(for: try keyEvent(36, "\r")), .open)
+        XCTAssertEqual(SearchKeys.key(for: try keyEvent(76, "\u{3}", .numericPad)), .open, "Keypad Enter opens too")
+        XCTAssertNil(SearchKeys.key(for: try keyEvent(125, "", arrow.union(.command))))
+        XCTAssertNil(SearchKeys.key(for: try keyEvent(36, "\r", .shift)))
+        XCTAssertNil(SearchKeys.key(for: try keyEvent(123, "", arrow)), "← and → stay with the field and input method")
+    }
+
+    @MainActor func testAppRoutesSearchKeysBeforeTheFieldEditor() throws {
+        let suite = "FuseBarTests.SearchRouting.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let (shelf, apps) = messagesAndSafari(defaults)
+        let popover = NSPopover()
+        let delegate = AppDelegate(popover: popover)
+        var opened: [URL] = []
+        let controller = NSHostingController(rootView: PopoverView(store: StatusStore(defaults: defaults, demo: true), preview: true,
+                                                                   initialQuery: "sa", focusSearch: true,
+                                                                   onOpenApplication: { opened.append($0) },
+                                                                   searchKeys: delegate.searchKeys, shelf: shelf))
+        popover.contentViewController = controller
+        // Routing only needs the window that holds the panel's view; a plain window stands in for the popover.
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 640), styleMask: .titled, backing: .buffered, defer: false)
+        window.alphaValue = 0
+        window.contentView = controller.view
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        XCTAssertTrue(window.firstResponder is NSTextView, "Search is focused")
+        let arrow: NSEvent.ModifierFlags = [.numericPad, .function]
+        let down = String(UnicodeScalar(UInt16(NSDownArrowFunctionKey))!)
+        XCTAssertTrue(delegate.routeSearchKey(try keyEvent(125, down, arrow, in: window)))
+        XCTAssertTrue(delegate.routeSearchKey(try keyEvent(36, "\r", in: window)))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        XCTAssertEqual(opened, [apps[0].url!], "↓ then Return opens Messages, consumed before any input method")
+        XCTAssertFalse(delegate.routeSearchKey(try keyEvent(125, down, arrow.union(.command), in: window)), "⌘↓ is left alone")
+        let other = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 10, height: 10), styleMask: .titled, backing: .buffered, defer: false)
+        XCTAssertFalse(delegate.routeSearchKey(try keyEvent(125, down, arrow, in: other)), "Keys for other windows are left alone")
     }
 }

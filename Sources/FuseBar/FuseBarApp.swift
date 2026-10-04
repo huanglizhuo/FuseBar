@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var previousApplication: NSRunningApplication?
     private var deactivateObserver: NSObjectProtocol?
     private var settingsWindow: NSWindow?
+    let searchKeys = SearchKeys()
     /// Injectable for tests; production samples live workspace and window state.
     var isPermissionAlertShowing: () -> Bool = {
         AppDelegate.permissionAlertShowing(
@@ -118,7 +119,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                         self.dismissInnermostPanel()
                         return true
                     }
-                    return false
+                    return self.routeSearchKey(event)
                 }
                 // The status button owns its own toggle. Never dismiss it in this monitor first.
                 if self.mouseIsOverStatusButton { return false }
@@ -258,7 +259,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             self?.openApplication(url, title: url.deletingPathExtension().lastPathComponent)
         }, onOpenSettings: { [weak self] tab in
             self?.showSettings(tab)
-        }))
+        }, searchKeys: searchKeys))
+    }
+
+    /// Search keys typed in the main panel's search field are handled here, before an input method sees them.
+    func routeSearchKey(_ event: NSEvent) -> Bool {
+        guard let window = popover.contentViewController?.view.window, event.window === window,
+              window.firstResponder is NSTextView, let key = SearchKeys.key(for: event) else { return false }
+        return searchKeys.handler?(key) ?? false
     }
 
     func showSettings(_ tab: SettingsTab) {
