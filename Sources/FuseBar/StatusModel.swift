@@ -32,6 +32,32 @@ struct BatteryStatus: Equatable {
     }
 }
 
+/// Battery submenu details, read on demand: minute-by-minute estimates stay out of the
+/// snapshot so they never re-render the menu bar icon.
+struct BatteryDetails: Equatable {
+    /// Positive system estimates only; nil while macOS is still calculating.
+    var minutesToEmpty: Int?
+    var minutesToFull: Int?
+    var lowPowerMode = false
+
+    func estimate(_ battery: BatteryStatus) -> String? {
+        guard battery.availability == .available else { return nil }
+        if battery.charging { return minutesToFull.map { L("约 %@ 后充满", Self.duration($0)) } ?? L("正在估算充满时间…") }
+        guard !battery.externalPower else { return nil }
+        return minutesToEmpty.map { L("剩余约 %@", Self.duration($0)) } ?? L("正在估算剩余时间…")
+    }
+
+    static func duration(_ minutes: Int) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = minutes >= 60 ? [.hour, .minute] : [.minute]
+        formatter.unitsStyle = .short
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = L10n.locale
+        formatter.calendar = calendar
+        return formatter.string(from: TimeInterval(minutes * 60)) ?? "\(minutes)"
+    }
+}
+
 struct WiFiStatus: Equatable {
     var connection: WiFiConnection = .unknown
     var name: String?
@@ -39,6 +65,8 @@ struct WiFiStatus: Equatable {
     // Network.framework marks Personal Hotspot-class Wi-Fi paths as expensive.
     // This is a network-cost signal, not proof of the phone manufacturer.
     var hotspotStyle = false
+    /// Associated, but macOS reports no usable network on this Wi-Fi. Not a claim about the internet.
+    var pathUnavailable = false
     var bars: Int { rssi.map(Self.bars(forRSSI:)) ?? 0 }
     /// Signal bars from RSSI, shared by status reads and nearby-network rows.
     static func bars(forRSSI rssi: Int) -> Int {
@@ -52,6 +80,7 @@ struct WiFiStatus: Equatable {
         case .off: return L("Wi-Fi 已关闭")
         case .disconnected: return L("未连接无线网络")
         case .connected:
+            if pathUnavailable { return name.map { L("%@ · 已连接，系统报告网络不可用", $0) } ?? L("已连接 · 系统报告网络不可用") }
             if hotspotStyle { return (name.map { "\($0) · " } ?? "") + L("热点 / 按流量计费网络 · 已连接") }
             return name.map { L("%@ · 已连接", $0) } ?? L("已连接 · 网络名称暂不可用")
         }
@@ -134,7 +163,7 @@ struct StatusSnapshot: Equatable {
 
     func badge(_ preferences: IndicatorPreferences) -> OrbBadge {
         if preferences.battery && battery.critical { return .critical }
-        if preferences.wifi && wifi.connection == .disconnected { return .networkWarning }
+        if preferences.wifi && (wifi.connection == .disconnected || wifi.pathUnavailable) { return .networkWarning }
         if preferences.battery && battery.low { return .lowBattery }
         if preferences.battery && battery.availability == .available && battery.charging { return .charging }
         if preferences.sound && sound.effectivelyMuted { return .muted }
@@ -163,7 +192,7 @@ struct StatusSnapshot: Equatable {
     func headline(_ preferences: IndicatorPreferences) -> String {
         switch badge(preferences) {
         case .critical: return L("电量不足 10%，请连接电源")
-        case .networkWarning: return L("Wi-Fi 尚未连接")
+        case .networkWarning: return wifi.pathUnavailable ? L("Wi-Fi 已连接，但网络不可用") : L("Wi-Fi 尚未连接")
         case .lowBattery: return L("电量较低")
         case .charging: return L("正在为下一程充电")
         case .muted: return L("声音已静音")

@@ -12,6 +12,8 @@ struct PairedBluetoothDevice: Identifiable, Equatable, Sendable {
 
 @MainActor
 final class BluetoothPanelStore: ObservableObject {
+    /// One store for the submenu and search, so an operation started from search shows its progress in the submenu.
+    static let shared = BluetoothPanelStore()
     @Published private(set) var devices: [PairedBluetoothDevice] = []
     @Published private(set) var busy = false
     @Published private(set) var message = ""
@@ -115,7 +117,7 @@ struct BluetoothPanel: View {
         self.store = store
         self.preview = preview
         self.isSubmenu = isSubmenu
-        _controller = StateObject(wrappedValue: BluetoothPanelStore(preview: preview))
+        _controller = StateObject(wrappedValue: preview ? BluetoothPanelStore(preview: true) : .shared)
     }
 
     private var state: BluetoothState { preview ? .on : store.snapshot.bluetooth.state }

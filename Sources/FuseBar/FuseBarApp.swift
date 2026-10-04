@@ -9,7 +9,7 @@ struct FuseBarApp: App {
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowDelegate {
     private var item: NSStatusItem?
     private let popover: NSPopover
     private let sideSubmenu: SideSubmenu
@@ -33,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var localEventMonitor: Any?
     private var previousApplication: NSRunningApplication?
     private var deactivateObserver: NSObjectProtocol?
+    private var settingsWindow: NSWindow?
     /// Injectable for tests; production samples live workspace and window state.
     var isPermissionAlertShowing: () -> Bool = {
         AppDelegate.permissionAlertShowing(
@@ -255,7 +256,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             self?.performQuickAction(action)
         }, onOpenApplication: { [weak self] url in
             self?.openApplication(url, title: url.deletingPathExtension().lastPathComponent)
+        }, onOpenSettings: { [weak self] tab in
+            self?.showSettings(tab)
         }))
+    }
+
+    func showSettings(_ tab: SettingsTab) {
+        guard let store else { return }
+        closeAllMenus()
+        let window = settingsWindow ?? SettingsWindow()
+        settingsWindow = window
+        window.delegate = self
+        window.contentViewController = NSHostingController(rootView: SettingsView(store: store, tab: tab))
+        if !window.isVisible { window.center() }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    /// Closing settings hands focus back to the app the panel was opened from.
+    func windowWillClose(_ notification: Notification) {
+        if NSApp.isActive { restorePreviousApplication() }
     }
 
     private func selectInputSource(_ id: String) {

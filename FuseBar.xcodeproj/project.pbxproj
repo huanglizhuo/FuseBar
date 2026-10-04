@@ -12,7 +12,6 @@
 		1E5B98C7F668CF078A030AB3 /* SideSubmenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F24CD9E8443CA4A769F136 /* SideSubmenuTests.swift */; };
 		265ECE17C7ED5C6ECE24F53E /* MenuSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D9B88F60AF4DE4E33EA4AB /* MenuSearchTests.swift */; };
 		2A8D8EAE2924EBA7E2BF8AB3 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80AF9160F5D85C29C172CB1 /* LocalizationTests.swift */; };
-		347913E51177783C113FD390 /* SystemControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D890A4A817F3ACCEC1C1F993 /* SystemControlsView.swift */; };
 		3A7003F633E103B9DEABE734 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8DF698C7B74A1509B15B4C3D /* Localizable.strings */; };
 		430DF2D3EB3C272316DBA749 /* InputSourceSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC0CD826051982DB20B660D9 /* InputSourceSelectionTests.swift */; };
 		50DB24495734CE47BADB37BB /* InputSourceSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12939C195621C1E35EDCEB3D /* InputSourceSelection.swift */; };
@@ -34,6 +33,7 @@
 		B2CC0FE692A75EC5B940BF5E /* ApplicationShelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8531FA293D44E6C5AB0149EC /* ApplicationShelfTests.swift */; };
 		BC00F1819ABA17AB5FF95818 /* OrbMorphAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A910271498F88762618A6 /* OrbMorphAnimation.swift */; };
 		C0199EF0252C405DC9EC66F3 /* StatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B36A3F013F304EA79CAA7BA /* StatusStore.swift */; };
+		C68A13610EB60966CB653746 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 746054282AAA66C3AA9F7FE5 /* SettingsView.swift */; };
 		C72B0CC04AC06E74D59D02EC /* CodingProjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466C53E5FFE3A298F1B92534 /* CodingProjects.swift */; };
 		CD5523DE927EEF81634C39CD /* StatusIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39453340BE028925C209E7FB /* StatusIcon.swift */; };
 		CFDB640DA3B768811FCC1711 /* InputSources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1975C8C9C6C1060B10EA6AF5 /* InputSources.swift */; };
@@ -91,6 +91,7 @@
 		67D9B88F60AF4DE4E33EA4AB /* MenuSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuSearchTests.swift; sourceTree = "<group>"; };
 		6ABA933FA4BCE35B80221542 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6D7617898D719D7F8FA2FBC6 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		746054282AAA66C3AA9F7FE5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		78FE04020D253C9402DBF673 /* GlobalShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcut.swift; sourceTree = "<group>"; };
 		814A910271498F88762618A6 /* OrbMorphAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbMorphAnimation.swift; sourceTree = "<group>"; };
 		8342ADFA93E77F0CD39B268D /* OrbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbView.swift; sourceTree = "<group>"; };
@@ -111,7 +112,6 @@
 		CC0E4C0D03AE1C6F491CB0A7 /* AudioChangeMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChangeMonitor.swift; sourceTree = "<group>"; };
 		D3028E7FEB4239CB540A0FB8 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		D80AF9160F5D85C29C172CB1 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
-		D890A4A817F3ACCEC1C1F993 /* SystemControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemControlsView.swift; sourceTree = "<group>"; };
 		DA306224F04FF7F74550BA4D /* FuseBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FuseBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E53652A14845957284839ACC /* SoundPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundPanel.swift; sourceTree = "<group>"; };
 		E5ED3E61F50A6479770E22D0 /* WiFiPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiPanel.swift; sourceTree = "<group>"; };
@@ -188,12 +188,12 @@
 				469583F7A7F18B35D8487E20 /* PopoverView.swift */,
 				8C48B17BE0780E1642F75A2D /* PrivacyInfo.xcprivacy */,
 				F6194F0A6CBDFA246CB25297 /* ScopedBookmark.swift */,
+				746054282AAA66C3AA9F7FE5 /* SettingsView.swift */,
 				4BDF0BEF2CB39819DD4B6579 /* SideSubmenu.swift */,
 				E53652A14845957284839ACC /* SoundPanel.swift */,
 				39453340BE028925C209E7FB /* StatusIcon.swift */,
 				0DFA0F69787C1A46032EA337 /* StatusModel.swift */,
 				5B36A3F013F304EA79CAA7BA /* StatusStore.swift */,
-				D890A4A817F3ACCEC1C1F993 /* SystemControlsView.swift */,
 				FB17402A5892D9A93F826920 /* SystemMenuComponents.swift */,
 				648935D8E77F9B955DBC7ED2 /* SystemPanelPresentation.swift */,
 				27FFBDEA575A07CE397E8A2F /* SystemReader.swift */,
@@ -333,12 +333,12 @@
 				D064D3060EFF05BA9CC2610A /* OrbView.swift in Sources */,
 				A805B2A1696C996B324EE2DF /* PopoverView.swift in Sources */,
 				AE814E77EDFA52C15D9D7719 /* ScopedBookmark.swift in Sources */,
+				C68A13610EB60966CB653746 /* SettingsView.swift in Sources */,
 				E67155B198CAF8CF968C43E3 /* SideSubmenu.swift in Sources */,
 				7C920F2A274A53D05C992C40 /* SoundPanel.swift in Sources */,
 				CD5523DE927EEF81634C39CD /* StatusIcon.swift in Sources */,
 				FA279CC00530C0E3E7DF4E9C /* StatusModel.swift in Sources */,
 				C0199EF0252C405DC9EC66F3 /* StatusStore.swift in Sources */,
-				347913E51177783C113FD390 /* SystemControlsView.swift in Sources */,
 				E9A15A9EB27115D5C7F773B4 /* SystemMenuComponents.swift in Sources */,
 				80A3913DF3CDBF551C18A5A6 /* SystemPanelPresentation.swift in Sources */,
 				F6992968F3FA9F66BEC8B8B2 /* SystemReader.swift in Sources */,

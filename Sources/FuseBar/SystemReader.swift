@@ -21,6 +21,20 @@ enum SystemReader {
         return BatteryStatus(availability: .unavailable)
     }
 
+    static func batteryDetails() -> BatteryDetails {
+        var details = BatteryDetails(lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled)
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+              let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] else { return details }
+        for source in sources {
+            guard let values = IOPSGetPowerSourceDescription(info, source)?.takeUnretainedValue() as? [String: Any],
+                  values[kIOPSTypeKey] as? String == kIOPSInternalBatteryType else { continue }
+            // IOKit reports -1 while calculating and 0 when the estimate does not apply.
+            details.minutesToEmpty = (values[kIOPSTimeToEmptyKey] as? Int).flatMap { $0 > 0 ? $0 : nil }
+            details.minutesToFull = (values[kIOPSTimeToFullChargeKey] as? Int).flatMap { $0 > 0 ? $0 : nil }
+        }
+        return details
+    }
+
     static func wifi(path: WiFiPathState? = nil) -> WiFiStatus {
         guard let interface = CWWiFiClient.shared().interface() else {
             if path?.connected == true { return resolveWiFi(mode: .none, name: nil, rssi: 0, path: path) }
@@ -36,8 +50,10 @@ enum SystemReader {
         // CoreWLAN .none can mean a read error. A satisfied Wi-Fi-only path is
         // positive evidence of connectivity even when CoreWLAN cannot report association.
         if mode == .station || path?.connected == true {
+            // Associated, yet macOS says the Wi-Fi path cannot carry traffic (e.g. no address yet).
             return WiFiStatus(connection: .connected, name: name, rssi: rssi < 0 ? rssi : nil,
-                              hotspotStyle: path?.connected == true && path?.expensive == true)
+                              hotspotStyle: path?.connected == true && path?.expensive == true,
+                              pathUnavailable: mode == .station && path?.satisfied == false)
         }
         if mode == .none, path?.connected == false { return WiFiStatus(connection: .disconnected) }
         return WiFiStatus(connection: .unknown)
@@ -60,4 +76,6 @@ enum SystemReader {
 struct WiFiPathState: Equatable {
     var connected: Bool
     var expensive: Bool
+    /// Any usable route over the Wi-Fi-only path, even one a VPN carries; only false is evidence of a problem.
+    var satisfied = true
 }

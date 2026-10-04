@@ -264,7 +264,7 @@ struct WiFiPanel: View {
                     DeviceMenuIcon(symbol: StatusSymbols.wifi(wifi), selected: true)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(wifi.name ?? L("已连接 · 网络名称暂不可用")).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                        Text(wifi.hotspotStyle ? L("热点 / 按流量计费网络 · 已连接") : L("已连接"))
+                        Text(wifi.pathUnavailable ? L("已连接 · 系统报告网络不可用") : wifi.hotspotStyle ? L("热点 / 按流量计费网络 · 已连接") : L("已连接"))
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 4)

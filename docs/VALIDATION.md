@@ -37,7 +37,7 @@
 - [ ] Mac mini/无电池、Intel、macOS 14/15/26、刘海与多显示器。
 - [ ] VoiceOver、键盘、增强对比度、睡眠恢复和 8 小时能耗/内存采样。
 - [x] 原生分层应用图标、兼容 ICNS 与外观预览。
-- [ ] Developer ID 签名、公证与分发包。
+- [x] Developer ID 签名、公证与分发包：自 1.0.1 起经 `Scripts/release.sh` 与 GitHub Action 校验发布（v1.0.1、v1.2.0、v1.2.1）。
 
 结论：可构建、可运行的开发预览；尚未达到正式发行验收标准。约 3 秒轮询已实现，事件级更新与长期能耗优化是下一阶段。
 
@@ -468,3 +468,15 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - `Scripts/render-app-icon.sh` 经 Icon Composer `ictool` 渲染成功（exit 0），六种外观与 16–256 px 预览已更新；Debug 构建成功（exit 0），`Design/AppIcon/FuseBar.icns` 从新构建的应用包复制。
 - 目视检查：默认、透明、染色外观保留轨道/数值弧与两亮两暗状态点的层次；深色外观由系统着色为单一蓝色，轨道与数值弧的明暗差减弱，属自动适配结果。
 - 介绍片由 HyperFrames 0.8.78 渲染（1920×1080、30 fps、20 s、中英字幕、原创合成配乐），结尾卡使用上述 `ictool` 默认外观渲染图；README 使用其无声 WebP 预览，带声音的 MP4 作为 v1.2.0 release 附件 `FuseBar-intro-20s.mp4`。
+
+## 2026-10-05：产品改进批次（P0–P2）
+
+- 环境：macOS 26.7 (25G229)，Apple Silicon，Xcode 27.1。Debug 构建，测试在沙盒宿主应用内运行。未发布、未改版本号。
+- 测试：`zsh Scripts/build.sh` 成功；`zsh Scripts/test.sh` 通过 76 项 XCTest 和 25 项 Swift Testing（基线为 64 + 25）。新增测试覆盖：搜索分级/别名/拼音、系统设置关键词；网格中当前应用移到末位；托管窗口中搜索框聚焦时 ⌘2 打开第二格（`performKeyEquivalent`）；回车执行最佳结果，声音输出结果打开声音子菜单；全新偏好下首次引导回车进入首页并聚焦搜索；电池估算的适用条件；Wi-Fi 路径不可用状态；诊断信息去标识；设置窗口 Esc/⌘W 关闭；项目打开方式的选项与旧数据兼容。
+- 变异检查：分别去掉 ⌘ 数字快捷键、去掉搜索中的输出条目、恢复旧的「开始使用」逻辑，对应测试均失败，恢复后通过。旧逻辑下首次引导无法离开的问题由此复现并已修复。
+- 搜索对比（与审视时的同一组样例比较）：`sa` 时 Safari 排第一（原为 Messages），`te` 时 Terminal 排第一（原为 Notes），`a` 命中 7/13（原为 13/13），`wx`/`weixin` 能找到微信（原为 0 条）。
+- 离屏原生渲染（五种语言，输出到临时目录，未覆盖 `docs/previews`）：目视检查了引导页、项目编辑页（打开方式）、电池子菜单、设备搜索结果、设置窗口的布局。同时修复渲染脚本未编译 asset catalog、导致蓝牙标记空白的问题（1.2.1 起存在）。这些是示例状态的渲染，不是实机截图。
+- 实际启动：Debug 构建（Apple Development 签名，Team N9Q47Y2LQ4，`codesign --verify --strict` 通过）作为第二个实例在后台运行 6 秒，无 error/fault 日志、无崩溃报告，之后正常退出。未替换 /Applications 中的 1.2.0。
+- 搜索性能：用 400 条合成条目做 `-O` 基准，每次搜索约 2.4 ms（加入子串门槛前约 3.7 ms）；结果列表每次渲染只计算一次（原为 3 次）。
+- 编译警告：只有既有的 2 条（FileShortcuts.swift:25、InputSources.swift:58），没有新增。
+- 尚未验证（需要实机操作）：真实 NSPopover 中的 ⌘1–⌘9 与搜索回车；从状态栏打开设置窗口时的激活与焦点归还；通过搜索切换音频输出、连接蓝牙的硬件结果；用指定应用打开项目目录（沙盒书签 + NSWorkspace）；真实网络中的「已连接但网络不可用」状态；电池供电时的剩余时间显示；全新偏好下首次引导的真实流程；macOS 14/15、Intel 机型，以及全屏/多显示器下的快捷键唤出。

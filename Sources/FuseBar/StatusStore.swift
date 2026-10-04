@@ -76,18 +76,20 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         refreshLoginStatus()
         audioMonitor = AudioChangeMonitor(changed: { [weak self] in self?.refreshSound() }, outputsChanged: { [weak self] in self?.refreshAudioOutputs() })
         audioMonitor?.start()
+        // Search lists outputs before the sound submenu has ever been opened.
+        refreshAudioOutputs()
         let center = NSWorkspace.shared.notificationCenter
         observers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.sleeping = true; self?.audioMonitor?.stop(); self?.timer?.invalidate(); self?.timer = nil }
         })
         observers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.sleeping = false; self?.audioMonitor?.start(); self?.startTimer(); self?.refresh() }
+            Task { @MainActor in self?.sleeping = false; self?.audioMonitor?.start(); self?.startTimer(); self?.refresh(); self?.refreshAudioOutputs() }
         })
         let monitor = NWPathMonitor(requiredInterfaceType: .wifi)
         wifiMonitor = monitor
         monitor.pathUpdateHandler = { [weak self] path in
             let value = WiFiPathState(connected: path.status == .satisfied && path.usesInterfaceType(.wifi),
-                                     expensive: path.isExpensive)
+                                     expensive: path.isExpensive, satisfied: path.status == .satisfied)
             Task { @MainActor in
                 guard let self else { return }
                 self.wifiPath = value
@@ -325,6 +327,23 @@ enum SettingsDestination: String {
     case users = "com.apple.Users-Groups-Settings.extension"
     case dateTime = "com.apple.Date-Time-Settings.extension"
     case privacy = "com.apple.preference.security?Privacy_Bluetooth"
+
+    /// System Settings panes reachable from search. These are handoffs: FuseBar only opens
+    /// the pane. The English keyword keeps each pane findable in every interface language.
+    static var searchable: [(title: String, symbol: String, keyword: String, destination: SettingsDestination)] {
+        [(L("显示器 / 镜像 / 亮度"), "display", "displays", .displays),
+         (L("专注模式"), "moon", "focus", .focus),
+         (L("AirDrop 与接力"), "square.and.arrow.up", "airdrop handoff", .airDrop),
+         (L("桌面与程序坞 / 台前调度"), "rectangle.3.group", "desktop dock", .desktop),
+         (L("键盘 / 输入法 / 背光"), "keyboard", "keyboard", .keyboard),
+         (L("辅助功能"), "accessibility", "accessibility", .accessibility),
+         (L("通知"), "bell", "notifications", .notifications),
+         ("Time Machine", "clock.arrow.circlepath", "backup", .timeMachine),
+         (L("用户与群组"), "person.2", "users groups", .users),
+         (L("日期与时间"), "clock", "date time", .dateTime),
+         (L("电池与电源模式"), "battery.100percent", "battery power", .battery),
+         (L("菜单栏显示选项"), "menubar.rectangle", "menu bar", .menuBar)]
+    }
 
     @MainActor func open() {
         // Deep links vary across releases; fall back to opening the Settings application.

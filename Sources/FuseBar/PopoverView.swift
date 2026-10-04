@@ -1,5 +1,4 @@
 import SwiftUI
-import ServiceManagement
 
 struct PopoverView: View {
     @ObservedObject var store: StatusStore
@@ -12,10 +11,12 @@ struct PopoverView: View {
     @State private var searchIndex = 0
     @ObservedObject private var submenu = SideSubmenu.shared
     @StateObject private var files: FileShortcuts
+    @StateObject private var bluetooth: BluetoothPanelStore
     @FocusState private var focusedStatus: Page?
     @FocusState private var focusedSource: String?
     private let focusSearch: Bool
     @State private var appQuery = ""
+    @State private var frozenApplications: [ShelfApplication]?
     @State private var page: Page = .status
     @StateObject private var volumeEdit = VolumeEditModel()
     @AppStorage("onboardingComplete") private var onboardingComplete = false
@@ -26,12 +27,14 @@ struct PopoverView: View {
     private let isSubmenu: Bool
     private let onOpenApplication: ((URL) -> Void)?
     private let onQuickAction: ((QuickAction) -> Void)?
-    enum Page: Hashable { case battery, status, settings, guide, sound, wifi, bluetooth, files, system, projects, inputSources }
+    private let onOpenSettings: ((SettingsTab) -> Void)?
+    enum Page: Hashable { case battery, status, guide, sound, wifi, bluetooth, files, inputSources }
 
-    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
+    init(store: StatusStore, initialPage: Page = .status, preview: Bool = false, initialQuery: String = "", isSubmenu: Bool = false, focusSearch: Bool = false, onSelectInputSource: ((String) -> Void)? = nil, onQuickAction: ((QuickAction) -> Void)? = nil, onOpenApplication: ((URL) -> Void)? = nil, onOpenSettings: ((SettingsTab) -> Void)? = nil, shelf: ApplicationShelf? = nil) {
         _shelf = StateObject(wrappedValue: shelf ?? ApplicationShelf.shared)
         _projects = StateObject(wrappedValue: CodingProjects(defaults: store.defaults))
         _files = StateObject(wrappedValue: FileShortcuts(defaults: store.defaults))
+        _bluetooth = StateObject(wrappedValue: preview ? BluetoothPanelStore(preview: true) : .shared)
         self.focusSearch = focusSearch
         self.onSelectInputSource = onSelectInputSource
         let sources = preview ? InputSourceStore(defaults: store.defaults) : InputSourceStore.shared
@@ -43,9 +46,11 @@ struct PopoverView: View {
         self.isSubmenu = isSubmenu
         self.onQuickAction = onQuickAction
         self.onOpenApplication = onOpenApplication
+        self.onOpenSettings = onOpenSettings
         _page = State(initialValue: initialPage)
         _appQuery = State(initialValue: initialQuery)
-        _onboardingDue = State(initialValue: !UserDefaults.standard.bool(forKey: "onboardingComplete"))
+        _onboardingComplete = AppStorage(wrappedValue: false, "onboardingComplete", store: store.defaults)
+        _onboardingDue = State(initialValue: !store.defaults.bool(forKey: "onboardingComplete"))
     }
 
     var body: some View {
@@ -94,6 +99,13 @@ struct PopoverView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Label(store.snapshot.battery.detail, systemImage: StatusSymbols.battery(store.snapshot.battery))
                             .fixedSize(horizontal: false, vertical: true)
+                        TimelineView(.periodic(from: .now, by: 30)) { _ in
+                            let details = preview ? BatteryDetails(minutesToEmpty: 312) : SystemReader.batteryDetails()
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let estimate = details.estimate(store.snapshot.battery) { Text(estimate) }
+                                Text(details.lowPowerMode ? L("低电量模式已开启") : L("低电量模式未开启"))
+                            }.font(.caption).foregroundStyle(.secondary)
+                        }
                         Button(L("打开电池系统设置")) { SettingsDestination.battery.open() }
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(18)
                 case .wifi: WiFiPanel(store: store, preview: preview, isSubmenu: isSubmenu)
@@ -140,14 +152,11 @@ struct PopoverView: View {
                 }
             }.padding(.horizontal, 18).padding(.vertical, 10)
             Divider()
-            if page == .settings { ScrollView { settings }.frame(height: 420) }
-            else if page == .guide || (!preview && onboardingDue) {
+            if page == .guide || (!preview && onboardingDue) {
                 guide
                     .onAppear { if !preview && onboardingDue { onboardingComplete = true } }
             }
             else if page == .files { FileShortcutsView() }
-            else if page == .system { SystemControlsView(store: store) }
-            else if page == .projects { ProjectEditorView(projects: projects) }
             else {
                 VStack(spacing: 0) {
                     runningApplications
@@ -171,9 +180,9 @@ struct PopoverView: View {
             Divider()
             ZStack {
                 HStack {
-                    Button { page = .settings; store.refreshLoginStatus() } label: {
+                    Button { onOpenSettings?(.general) } label: {
                         Image(systemName: "gearshape").frame(width: 28, height: 28)
-                    }.keyboardShortcut(",", modifiers: .command).disabled(page == .settings)
+                    }.keyboardShortcut(",", modifiers: .command)
                         .help(L("设置…")).accessibilityLabel(L("设置…"))
                     Spacer()
                     Button { NSApplication.shared.terminate(nil) } label: {
@@ -189,11 +198,16 @@ struct PopoverView: View {
         .onAppear {
             volumeEdit.sync(store.snapshot.sound)
             store.refresh()
-            if !preview { shelf.refresh(); shelf.discoverApplications() }
+            if !preview {
+                frozenApplications = liveApplications; shelf.refresh(); shelf.discoverApplications()
+                bluetooth.refresh(state: store.snapshot.bluetooth.state)
+            }
             if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
         }
         .onChange(of: page) { _, newPage in
             SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload()
+            // Home always comes back ready to type, as it does when the panel opens.
+            if newPage == .status { DispatchQueue.main.async { searchFocused = true } }
             // Navigating away from the onboarding guide ends the guided first run.
             if newPage != .guide { onboardingDue = false }
         }
@@ -208,6 +222,7 @@ struct PopoverView: View {
         .onChange(of: store.snapshot.sound) { _, sound in
             if !volumeEdit.editing { volumeEdit.sync(sound) }
         }
+        .onChange(of: store.snapshot.bluetooth) { _, status in if !preview { bluetooth.refresh(state: status.state) } }
     }
 
     private var footerActions: some View {
@@ -284,20 +299,44 @@ struct PopoverView: View {
     private var searchEntries: [MenuSearchEntry] {
         let apps = shelf.searchable.compactMap { app -> MenuSearchEntry? in
             guard let url = app.url else { return nil }
-            return MenuSearchEntry(id: "app:" + app.id, title: app.name, category: L("应用"), symbol: "app", destination: .application(url))
+            // The file and bundle names find localized apps by English name: Terminal → 终端, vscode.
+            return MenuSearchEntry(id: "app:" + app.id, title: app.name, category: L("应用"), symbol: "app", destination: .application(url),
+                                   aliases: [url.deletingPathExtension().lastPathComponent, app.id.components(separatedBy: ".").last ?? ""])
+        }
+        // Devices and sources name the action Return performs, so a result never surprises.
+        let outputs = store.audioOutputs.map { output in
+            MenuSearchEntry(id: "output:" + output.id, title: output.name,
+                            category: output.selected ? L("当前输出") : output.bluetoothAddress == nil ? L("切换输出") : L("连接输出"),
+                            symbol: output.symbol, destination: .audioOutput(output.id))
+        }
+        let sources = inputSources.sources.map { source in
+            MenuSearchEntry(id: "source:" + source.id, title: source.name,
+                            category: source.id == inputSources.currentID ? L("当前输入源") : L("切换输入源"),
+                            symbol: "keyboard", destination: .inputSource(source.id))
+        }
+        let devices = bluetooth.devices.map { device in
+            MenuSearchEntry(id: "bluetooth:" + device.id, title: device.name, category: device.connected ? L("断开设备") : L("连接设备"),
+                            symbol: device.symbol, destination: .bluetoothDevice(device.id))
+        }
+        let projectEntries = projects.items.map {
+            MenuSearchEntry(id: "project:" + $0.id.uuidString, title: $0.name, category: L("项目"), symbol: "hammer", destination: .project($0.id))
         }
         let shortcuts = files.items.map {
             MenuSearchEntry(id: "file:" + $0.id.uuidString, title: $0.name, category: L("文件与文件夹"), symbol: "doc.on.doc", destination: .file($0.id))
+        }
+        let panes = SettingsDestination.searchable.map {
+            MenuSearchEntry(id: "settings:" + $0.destination.rawValue, title: $0.title, category: L("系统设置"), symbol: $0.symbol,
+                            destination: .settings($0.destination), aliases: [$0.keyword])
         }
         let actions: [(String, String, String)] = [
             ("battery", L("电池"), "battery.100percent"), ("wifi", "Wi-Fi", "wifi"),
             ("sound", L("声音输出"), "speaker.wave.2"), ("bluetooth", L("蓝牙"), StatusSymbols.bluetooth),
             ("inputSources", L("输入源"), "keyboard"), ("settings", L("设置…"), "gearshape"),
             ("files", L("文件与文件夹"), "folder"), ("projects", L("项目工作台"), "hammer"),
-            ("applications", L("应用启动器"), "square.grid.3x3"), ("windows", L("所有窗口"), "rectangle.3.group"),
-            ("system", L("系统"), "switch.2")]
-        return apps + shortcuts + actions.map {
-            MenuSearchEntry(id: "action:" + $0.0, title: $0.1, category: L("操作"), symbol: $0.2, destination: .action($0.0))
+            ("applications", L("应用启动器"), "square.grid.3x3"), ("windows", L("所有窗口"), "rectangle.3.group")]
+        return apps + outputs + sources + devices + projectEntries + shortcuts + panes + actions.map {
+            // The English key keeps actions findable in every interface language ("sound" → 声音输出).
+            MenuSearchEntry(id: "action:" + $0.0, title: $0.1, category: L("操作"), symbol: $0.2, destination: .action($0.0), aliases: [$0.0])
         }
     }
     private var searchMatches: [MenuSearchEntry] {
@@ -308,9 +347,9 @@ struct PopoverView: View {
     }
 
     private var searchField: some View {
-        TextField(L("搜索应用与操作…"), text: $appQuery)
+        TextField(L("搜索应用、设备与设置…"), text: $appQuery)
             .textFieldStyle(.roundedBorder).focused($searchFocused)
-            .accessibilityLabel(L("搜索应用与操作…"))
+            .accessibilityLabel(L("搜索应用、设备与设置…"))
             .onChange(of: appQuery) { _, _ in searchIndex = 0 }
             .onSubmit { openSearchSelection() }
             .onKeyPress(.downArrow) {
@@ -332,19 +371,36 @@ struct PopoverView: View {
         case .application(let url): onOpenApplication?(url)
         case .file(let id):
             if let item = files.items.first(where: { $0.id == id }) { files.open(item) }
+        case .audioOutput(let id):
+            // Select first: the submenu's own refresh must not claim the audio queue before the switch.
+            if let output = store.audioOutputs.first(where: { $0.id == id }), !output.selected { store.selectAudioOutput(output) }
+            openSubmenu(.sound, anchor: searchAnchor(entry))
+        case .bluetoothDevice(let id):
+            if let device = bluetooth.devices.first(where: { $0.id == id }) {
+                bluetooth.setConnected(device, connected: !device.connected, state: store.snapshot.bluetooth.state) {
+                    store.refresh(); store.refreshAudioOutputs()
+                }
+            }
+            // The submenu shares the store, so it shows the row's progress and verified result.
+            openSubmenu(.bluetooth, anchor: searchAnchor(entry))
+        case .inputSource(let id): onSelectInputSource?(id)
+        case .project(let id):
+            guard let project = projects.items.first(where: { $0.id == id }) else { return }
+            projects.selectedID = id
+            projects.open(project)
+        case .settings(let destination): destination.open()
         case .action(let id):
             let statusPages: [String: Page] = ["battery": .battery, "wifi": .wifi, "sound": .sound, "bluetooth": .bluetooth, "inputSources": .inputSources]
             if let destination = statusPages[id] {
-                openSubmenu(destination, anchor: "search:" + id)
+                openSubmenu(destination, anchor: searchAnchor(entry))
                 return
             }
             searchFocused = false
             appQuery = ""
             switch id {
-            case "settings": page = .settings; store.refreshLoginStatus()
+            case "settings": onOpenSettings?(.general)
             case "files": page = .files
-            case "projects": page = .projects
-            case "system": page = .system
+            case "projects": onOpenSettings?(.projects)
             case "applications": onQuickAction?(.applications)
             case "windows": onQuickAction?(.allWindows)
             default: break
@@ -352,12 +408,18 @@ struct PopoverView: View {
         }
     }
 
+    private func searchAnchor(_ entry: MenuSearchEntry) -> String {
+        "search:" + entry.id.replacingOccurrences(of: "action:", with: "")
+    }
+
     private func searchResultButton(_ entry: MenuSearchEntry, index: Int) -> some View {
-        let anchor = "search:" + entry.id.replacingOccurrences(of: "action:", with: "")
+        let anchor = searchAnchor(entry)
         return Button { performSearchEntry(entry) } label: {
             HStack(spacing: 10) {
                 if case .application(let url) = entry.destination {
                     ApplicationIcon(url: url).frame(width: 28, height: 28)
+                } else if case .inputSource(let id) = entry.destination, let source = inputSources.sources.first(where: { $0.id == id }) {
+                    InputSourceGlyph(source: source).frame(width: 28, height: 28)
                 } else {
                     StatusIcon(name: entry.symbol).frame(width: 28, height: 28)
                 }
@@ -375,16 +437,17 @@ struct PopoverView: View {
     }
 
     private var searchResults: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let matches = searchMatches
+        return VStack(alignment: .leading, spacing: 6) {
             ScrollViewReader { reader in
                 ScrollView {
                     LazyVStack(spacing: 2) {
-                        ForEach(Array(searchMatches.enumerated()), id: \.element.id) { index, entry in
+                        ForEach(Array(matches.enumerated()), id: \.element.id) { index, entry in
                             searchResultButton(entry, index: index).id(index)
                         }
-                        if searchMatches.isEmpty { Text(L("没有匹配结果")).font(.caption).padding(8) }
+                        if matches.isEmpty { Text(L("没有匹配结果")).font(.caption).padding(8) }
                     }
-                }.frame(height: menuListHeight(count: searchMatches.count, rowHeight: 36, cap: 220))
+                }.frame(height: menuListHeight(count: matches.count, rowHeight: 36, cap: 220))
                 .onChange(of: searchIndex) { _, index in reader.scrollTo(index) }
             }
             Text(L("↑↓ 选择 · Return 打开")).font(.caption2).foregroundStyle(.secondary)
@@ -423,7 +486,7 @@ struct PopoverView: View {
                 HStack {
                     Text(L("项目工作台")).font(.caption).foregroundStyle(.secondary)
                     Spacer()
-                    Button { page = .projects } label: { Image(systemName: "pencil") }.buttonStyle(.plain)
+                    Button { onOpenSettings?(.projects) } label: { Image(systemName: "pencil") }.buttonStyle(.plain)
                         .accessibilityLabel(L("项目工作台"))
                 }
                 if let current = projects.current {
@@ -431,12 +494,13 @@ struct PopoverView: View {
                         ForEach(projects.items) { project in Text(project.name).tag(Optional(project.id)) }
                     }.labelsHidden()
                     HStack {
-                        Button(L("目录")) { projects.openFolder(current) }.disabled(current.folder == nil)
+                        Button(current.opener.map(CodingProject.openerName) ?? L("目录")) { projects.openFolder(current) }
+                            .disabled(current.folder == nil)
                         Button(L("预览")) { projects.openWeb(current.preview) }.disabled(current.preview.isEmpty)
                         Button(L("仓库")) { projects.openWeb(current.repository) }.disabled(current.repository.isEmpty)
                     }.controlSize(.small)
                 } else {
-                    Button(L("添加项目入口")) { page = .projects }
+                    Button(L("添加项目入口")) { onOpenSettings?(.projects) }
                 }
                 if let error = projects.error { Text(error).font(.caption).foregroundStyle(.red) }
             }.padding(18)
@@ -499,8 +563,13 @@ struct PopoverView: View {
         }
     }
 
+    private var liveApplications: [ShelfApplication] {
+        ApplicationShelfModel.home(running: shelf.running, recentIDs: shelf.recentIDs, frontmostID: shelf.frontmostID)
+    }
+
     private var runningApplications: some View {
-        let apps = ApplicationShelfModel.home(running: shelf.running, recentIDs: shelf.recentIDs)
+        // Positions freeze while the panel is open: launches append, quits close the gap.
+        let apps = frozenApplications.map { ApplicationShelfModel.stable(previous: $0, current: liveApplications) } ?? liveApplications
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(L("运行中的应用")).font(.caption2).foregroundStyle(.secondary)
@@ -510,7 +579,7 @@ struct PopoverView: View {
                 Text(L("暂无运行中的应用")).font(.caption).foregroundStyle(.secondary)
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 6), spacing: 5) {
-                    ForEach(Array(apps.prefix(12))) { app in
+                    ForEach(Array(apps.prefix(12).enumerated()), id: \.element.id) { index, app in
                         Button { if let url = app.url { onOpenApplication?(url) } } label: {
                             Group {
                                 if let url = app.url {
@@ -522,7 +591,8 @@ struct PopoverView: View {
                                     if app.running { Circle().fill(.secondary).frame(width: 3, height: 3) }
                                 }.contentShape(Rectangle())
                         }.buttonStyle(MenuButtonStyle())
-                            .help(app.name).accessibilityLabel(L("打开 %@", app.name))
+                            .keyboardShortcut(index < 9 ? KeyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command) : nil)
+                            .help(index < 9 ? "\(app.name)  ⌘\(index + 1)" : app.name).accessibilityLabel(L("打开 %@", app.name))
                             .accessibilityValue(shelf.frontmostID == app.id ? L("当前应用") : L("正在运行"))
                             .contextMenu { applicationMenu(app) }
                             .disabled(app.url == nil || (!preview && onOpenApplication == nil))
@@ -596,79 +666,39 @@ struct PopoverView: View {
     private func statusWarning(_ destination: SettingsDestination) -> Bool {
         switch destination {
         case .battery: return store.snapshot.battery.low
-        case .wifi: return store.snapshot.wifi.connection == .disconnected
+        case .wifi: return store.snapshot.wifi.connection == .disconnected || store.snapshot.wifi.pathUnavailable
         default: return false
         }
     }
 
-    private var settings: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(L("编码工作台")).font(.headline)
-            Toggle(L("编码布局：优先显示应用和项目"), isOn: $codingLayout)
-            Button { page = .projects } label: {
-                Text(L("项目工作台")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            ShortcutSettingsView()
-            Button(L("Dock 自动隐藏设置 ↗")) { SettingsDestination.desktop.open() }
-            Text(L("在系统设置中开启自动隐藏 Dock，为代码和预览腾出空间；也可在那里恢复。"))
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Divider()
-            Picker(L("默认中心图标"), selection: $store.preferences.center) {
-                Text(L("网络连接")).tag(CenterIndicator.network)
-                Text(L("声音输出")).tag(CenterIndicator.sound)
-            }
-            Toggle(L("中心常驻输入法图标"), isOn: $inputSources.alwaysShow)
-            Text(L("切换输入源后显示图标 2 秒，再恢复所选中心图标；开启常驻输入法时优先显示输入法。"))
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Divider()
-            Text(L("在圆环中显示")).font(.system(size: 13, weight: .semibold))
-            Toggle(L("电池 · 外环"), isOn: $store.preferences.battery)
-            Toggle(L("网络状态与提醒"), isOn: $store.preferences.wifi)
-            Toggle(L("声音状态与音量"), isOn: $store.preferences.sound)
-            Picker(L("底部显示"), selection: $store.preferences.bottomIndicator) {
-                Text(L("状态提醒与音量四点")).tag(BottomIndicator.status)
-                Text(L("电量百分比数字")).tag(BottomIndicator.batteryLevel)
-                Text(L("音量百分比数字")).tag(BottomIndicator.volumeLevel)
-            }
-            Text(L("平时四点表示约 25%、50%、75%、100% 的音量；有提醒时替换为最重要的一项：严重低电、断网、低电、充电或静音。全部状态可在详情中查看。"))
-                .font(.caption).foregroundStyle(.secondary)
-            Text(L("选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。"))
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Divider()
-            Toggle(L("悬停摘要包含蓝牙状态"), isOn: $store.preferences.bluetooth)
-            HStack { Text(L("外观")); Spacer(); Text("Compact Orb").foregroundStyle(.secondary) }
-            Toggle(L("登录时启动"), isOn: Binding(get: { store.loginEnabled }, set: { store.setLoginEnabled($0) }))
-            if store.loginNeedsApproval {
-                Button(L("在系统设置中批准登录启动")) { SMAppService.openSystemSettingsLoginItems() }.font(.caption)
-            }
-            Divider()
-            Button { page = .system } label: {
-                Text(L("系统功能")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            Button { page = .guide } label: {
-                Text(L("如何隐藏原生菜单栏图标")).frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4).contentShape(Rectangle())
-            }.buttonStyle(MenuButtonStyle())
-            Link(L("隐私政策"), destination: URL(string: "https://github.com/huanglizhuo/FuseBar/blob/main/docs/PRIVACY.md")!)
-            Link(L("帮助与反馈"), destination: URL(string: "https://github.com/huanglizhuo/FuseBar/issues")!)
-            Text(L("FuseBar %@ · 免费\n声音变化即时监听；其他状态约每 3 秒更新。", String(describing: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? L("开发版"))))
-                .font(.caption2).foregroundStyle(.secondary)
-        }.toggleStyle(.checkbox).font(.system(size: 12)).padding(18)
-    }
-
     private var guide: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(L("把屏幕留给代码。")).font(.system(size: 21, weight: .semibold))
             OrbMorphHero(snapshot: .hero, preview: preview)
                 .frame(height: 48)
                 .frame(maxWidth: .infinity).accessibilityHidden(true)
-            Text(L("保留重要状态，收起重复图标。"))
-                .font(.system(size: 13, weight: .medium))
+            Text(L("保留重要状态，收起重复图标。")).font(.headline)
             Text(L("前往系统设置的“菜单栏”或“控制中心”，手动隐藏 Wi-Fi、蓝牙、声音和电池图标。先试用，再决定隐藏哪些。"))
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Button(L("打开菜单栏设置")) { SettingsDestination.menuBar.open() }
-            Button(L("开始使用")) { page = .status }
+            Divider()
+            // The shortcut is the main way back once the Dock is hidden; offer it on the first run.
+            ShortcutSettingsView()
+            Divider()
+            Text(L("直接输入即可搜索")).font(.headline)
+            Text(L("输入应用名（支持拼音）、设备名（如 AirPods）或系统设置（如“显示器”），按回车执行。⌘1–⌘9 打开前 9 个应用。"))
+                .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Button(L("开始使用")) { finishGuide() }
+                .keyboardShortcut(.defaultAction)
                 .buttonStyle(.bordered).controlSize(.large).frame(maxWidth: .infinity, alignment: .trailing)
         }.padding(18)
+    }
+
+    /// The first-run guide is drawn over `.status`, so assigning the page alone would not leave it.
+    private func finishGuide() {
+        onboardingDue = false
+        page = .status
+        DispatchQueue.main.async { searchFocused = true }
     }
 }
 
@@ -718,11 +748,12 @@ struct InterfaceGallery: View {
             Text(L("首次使用 → 状态详情 → 偏好设置 · 以下均为模拟状态预览"))
                 .font(.system(size: 13)).foregroundStyle(.secondary)
             HStack(alignment: .top, spacing: 24) {
-                ForEach([PopoverView.Page.guide, .status, .settings], id: \.self) { page in
+                ForEach([PopoverView.Page.guide, .status], id: \.self) { page in
                     PopoverView(store: store, initialPage: page, preview: true)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(RoundedRectangle(cornerRadius: 12).stroke(.primary.opacity(0.08)))
                 }
+                SettingsView(store: store, preview: true)
             }
         }.padding(32).background(Color(nsColor: .windowBackgroundColor))
     }

@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import XCTest
 @testable import FuseBar
 
@@ -65,6 +66,42 @@ final class PanelPresentationTests: XCTestCase {
         delegate.isLocationPermissionInFlight = { false }
         delegate.handleLocalMouseDown(window: alertWindow)
         XCTAssertEqual(popover.closeRequests, 1, "Normal own-window dismissal resumes once the alert is answered")
+    }
+
+    @MainActor func testFirstRunGuideLeavesForFocusedSearchOnReturn() throws {
+        let suite = "FuseBarTests.Onboarding.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let view = PopoverView(store: StatusStore(defaults: defaults, demo: true),
+                               shelf: ApplicationShelf(defaults: defaults, readApplications: { [] }))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 800), styleMask: .titled, backing: .buffered, defer: false)
+        window.alphaValue = 0
+        window.contentView = NSHostingView(rootView: view)
+        window.makeKeyAndOrderFront(nil)
+        defer { window.orderOut(nil) }
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        XCTAssertTrue(defaults.bool(forKey: "onboardingComplete"), "Seeing the guide once completes onboarding")
+        XCTAssertFalse(window.firstResponder is NSTextView, "The first-run guide has no search field")
+        let returnKey = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                                                        windowNumber: window.windowNumber, context: nil, characters: "\r",
+                                                        charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36))
+        XCTAssertTrue(window.performKeyEquivalent(with: returnKey))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        XCTAssertTrue(window.firstResponder is NSTextView, "Get started lands on home with search focused")
+    }
+
+    @MainActor func testSettingsWindowClosesOnEscapeAndCommandW() throws {
+        let window = SettingsWindow()
+        window.alphaValue = 0
+        window.makeKeyAndOrderFront(nil)
+        window.cancelOperation(nil)
+        XCTAssertFalse(window.isVisible)
+        window.makeKeyAndOrderFront(nil)
+        let commandW = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command, timestamp: 0,
+                                                       windowNumber: window.windowNumber, context: nil, characters: "w",
+                                                       charactersIgnoringModifiers: "w", isARepeat: false, keyCode: 13))
+        XCTAssertTrue(window.performKeyEquivalent(with: commandW))
+        XCTAssertFalse(window.isVisible)
     }
 
     @MainActor func testPermissionAlertPredicateMatchesFrontmostBundleAndWindowOwners() {

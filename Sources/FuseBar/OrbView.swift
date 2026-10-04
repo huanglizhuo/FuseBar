@@ -22,7 +22,7 @@ enum StatusSymbols {
 
     static func wifi(_ status: WiFiStatus) -> String {
         switch status.connection {
-        case .connected: return status.hotspotStyle ? "personalhotspot" : "wifi"
+        case .connected: return status.pathUnavailable ? "wifi.exclamationmark" : status.hotspotStyle ? "personalhotspot" : "wifi"
         case .off: return "wifi.slash"
         case .disconnected: return "wifi.exclamationmark"
         case .unknown, .unavailable: return "questionmark.circle"
@@ -124,7 +124,8 @@ struct OrbView: View {
             } else if preferences.center == .network && preferences.wifi {
                 switch snapshot.wifi.connection {
                 case .connected:
-                    symbol(StatusSymbols.wifi(snapshot.wifi), x: OrbGeometry.center.x, y: OrbGeometry.center.y, size: snapshot.wifi.hotspotStyle ? 6.5 : OrbGeometry.wifiSymbolSize,
+                    // The menu bar keeps the plain glyph; a missing path shows in the bottom alert slot.
+                    symbol(snapshot.wifi.hotspotStyle ? "personalhotspot" : "wifi", x: OrbGeometry.center.x, y: OrbGeometry.center.y, size: snapshot.wifi.hotspotStyle ? 6.5 : OrbGeometry.wifiSymbolSize,
                            value: snapshot.wifi.hotspotStyle || snapshot.wifi.bars == 0 ? nil : Double(snapshot.wifi.bars) / 3)
                 case .disconnected:
                     // The full wifi.exclamationmark is reserved for the larger popover row.

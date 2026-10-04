@@ -37,16 +37,16 @@ struct ReadmePreviews {
                 try data.write(to: output.appendingPathComponent(file))
             }
         }
-        var pages: [(String, PopoverView.Page)] = [("status", .status), ("settings", .settings),
-            ("guide", .guide), ("wifi", .wifi), ("bluetooth", .bluetooth), ("sound", .sound), ("system", .system),
-            ("coding", .status), ("projects", .projects), ("input-sources", .inputSources)]
+        var pages: [(String, PopoverView.Page)] = [("status", .status),
+            ("guide", .guide), ("wifi", .wifi), ("bluetooth", .bluetooth), ("sound", .sound),
+            ("coding", .status), ("input-sources", .inputSources)]
         if L10n.language == "en" { pages += [("status-dark", .status), ("wifi-dark", .wifi), ("sound-dark", .sound), ("bluetooth-dark", .bluetooth), ("search", .status), ("search-empty", .status)] }
         for (name, page) in pages {
             let dark = name.hasSuffix("-dark")
             defaults.set(name == "coding", forKey: "codingLayout")
             let projects = CodingProjects(defaults: defaults)
             if projects.items.isEmpty { projects.save(CodingProject(name: "FuseBar", preview: "http://localhost:3000", repository: "https://github.com/huanglizhuo/FuseBar")) }
-            let content = PopoverView(store: store, initialPage: page, preview: true, initialQuery: name == "search" ? "Wi-Fi" : name == "search-empty" ? "zz-no-match" : "", isSubmenu: [.wifi, .sound, .bluetooth, .inputSources].contains(page),
+            let content = PopoverView(store: store, initialPage: page, preview: true, initialQuery: name == "search" ? "studio" : name == "search-empty" ? "zz-no-match" : "", isSubmenu: [.wifi, .sound, .bluetooth, .inputSources].contains(page),
                                       onQuickAction: { _ in }, onOpenApplication: { _ in }, shelf: shelf)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(16).background(Color(nsColor: .windowBackgroundColor))
@@ -63,6 +63,27 @@ struct ReadmePreviews {
             hosting.displayIfNeeded()
             guard let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds),
                   let _ = bitmap.representation(using: .png, properties: [:]) else { continue }
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name)-\(L10n.language).png"))
+            print("\(L10n.language) \(name): \(size)")
+        }
+        // Settings and the project editor live in their own window.
+        for (name, tab) in [("settings", SettingsTab.general), ("projects", .projects)] {
+            let content = SettingsView(store: store, tab: tab, preview: true)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(.primary.opacity(0.08)))
+                .padding(16).background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, .light)
+            let hosting = NSHostingView(rootView: content)
+            let size = hosting.fittingSize
+            let window = NSWindow(contentRect: CGRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
+            window.appearance = NSAppearance(named: .aqua)
+            window.contentView = hosting
+            hosting.setFrameSize(size)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+            hosting.layoutSubtreeIfNeeded()
+            guard let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { continue }
             hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
             try bitmap.representation(using: .png, properties: [:])!.write(to: output.appendingPathComponent("\(name)-\(L10n.language).png"))
             print("\(L10n.language) \(name): \(size)")

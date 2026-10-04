@@ -17,8 +17,12 @@ enum ApplicationShelfModel {
         return ids.filter { !$0.isEmpty && seen.insert($0).inserted }
     }
 
-    static func home(running: [ShelfApplication], recentIDs: [String] = []) -> [ShelfApplication] {
-        recent(visible(running.filter(\.running), query: ""), ids: recentIDs)
+    /// Running apps by recent use. The app the panel was opened from takes the last visible
+    /// slot: still reachable (e.g. to force quit it) without holding the most useful first one.
+    static func home(running: [ShelfApplication], recentIDs: [String] = [], frontmostID: String? = nil, limit: Int = 12) -> [ShelfApplication] {
+        let apps = recent(visible(running.filter(\.running), query: ""), ids: recentIDs)
+        guard let current = apps.first(where: { $0.id == frontmostID }) else { return Array(apps.prefix(limit)) }
+        return Array(apps.filter { $0.id != current.id }.prefix(limit - 1)) + [current]
     }
 
     static func recent(_ apps: [ShelfApplication], ids: [String]) -> [ShelfApplication] {

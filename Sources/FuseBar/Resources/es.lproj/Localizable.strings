@@ -67,7 +67,6 @@
 "输出音量" = "Volumen de salida";
 "系统静音已开启；调整音量不会自动取消静音。" = "El sistema está silenciado. Ajustar el volumen no lo reactivará.";
 "文件夹" = "Carpetas";
-"系统" = "Sistema";
 "暂无运行中的应用" = "No hay apps abiertas";
 "打开 %@" = "Abrir %@";
 "打开电池系统设置" = "Abrir ajustes de Batería";
@@ -80,10 +79,8 @@
 "音量百分比数字" = "Porcentaje de volumen";
 "选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "Al elegir un número, la parte inferior del anillo muestra siempre ese porcentaje y vuelve a las alertas y a los puntos cuando el valor no está disponible. En el panel, el anillo sigue los colores del sistema para la batería: verde al cargar, rojo en nivel crítico; el icono de la barra de menús permanece monocromo.";
 "悬停摘要包含蓝牙状态" = "Incluir Bluetooth en la descripción";
-"外观" = "Aspecto";
 "登录时启动" = "Abrir al iniciar sesión";
 "在系统设置中批准登录启动" = "Permitir el inicio en Ajustes del Sistema";
-"如何隐藏原生菜单栏图标" = "Ocultar iconos del sistema";
 "隐私政策" = "Política de privacidad";
 "帮助与反馈" = "Ayuda y comentarios";
 "开发版" = "Desarrollo";
@@ -154,17 +151,8 @@
 "日期与时间" = "Fecha y hora";
 "电池与电源模式" = "Batería y modo de energía";
 "菜单栏显示选项" = "Opciones de la barra de menús";
-"系统功能" = "Controles del sistema";
 "低电量模式已开启" = "Modo de bajo consumo activado";
 "低电量模式未开启" = "Modo de bajo consumo desactivado";
-"以下入口在系统应用中完成操作。" = "Estos controles se abren en apps del sistema.";
-"设置" = "Ajustes";
-"日历" = "Calendario";
-"天气" = "Tiempo";
-"快捷指令" = "Atajos";
-"打开%@…" = "Abrir %@…";
-"Spotlight：⌘ 空格。通知中心、隐私指示和当前应用菜单仍由系统提供。" = "Spotlight: ⌘ Espacio. El centro de notificaciones, los indicadores de privacidad y los menús de la app activa siguen siendo funciones del sistema.";
-"无法打开%@，请从系统应用启动器打开。" = "No se pudo abrir %@. Usa el lanzador del sistema.";
 "请先允许定位读取网络名称，再点击扫描。不会读取设备位置。" = "Permite la ubicación para los nombres de red y luego busca. No se lee la ubicación del dispositivo.";
 "正在扫描附近网络…" = "Buscando redes cercanas…";
 "未找到可显示的网络。检查 Wi-Fi、定位服务或使用系统设置。" = "No hay redes que mostrar. Comprueba Wi-Fi y Localización, o usa Ajustes del Sistema.";
@@ -235,7 +223,6 @@
 
 "关闭子菜单" = "Cerrar submenú";
 
-"搜索应用与操作…" = "Buscar apps y acciones…";
 
 "操作" = "Acción";
 
@@ -283,3 +270,31 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "El Wi-Fi está desactivado. Actívalo y vuelve a buscar.";
 "扫描未完成（%@ %ld），请重试。" = "La búsqueda ha fallado (%@ %ld). Inténtalo de nuevo.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "Los auriculares aún no ofrecen una salida de audio. Comprueba que estén encendidos y cerca e inténtalo de nuevo.";
+"切换输出" = "Cambiar salida";
+"连接输出" = "Conectar salida";
+"当前输入源" = "Fuente de entrada actual";
+"连接设备" = "Conectar dispositivo";
+"断开设备" = "Desconectar dispositivo";
+"项目" = "Proyecto";
+"系统设置" = "Ajustes del Sistema";
+"搜索应用、设备与设置…" = "Buscar apps, dispositivos, ajustes…";
+"打开方式" = "Abrir con";
+"其他应用…" = "Otra app…";
+"选择打开项目目录的应用" = "Elegir la app que abre la carpeta del proyecto";
+"所选应用没有可用的标识，请选择其他应用。" = "La app elegida no tiene identificador. Elige otra.";
+"找不到打开方式应用，请编辑项目重新选择。" = "No se encuentra la app elegida para abrir este proyecto. Edita el proyecto para elegir otra.";
+"直接输入即可搜索" = "Escribe para buscar";
+"输入应用名（支持拼音）、设备名（如 AirPods）或系统设置（如“显示器”），按回车执行。⌘1–⌘9 打开前 9 个应用。" = "Escribe una app, un dispositivo como AirPods o un ajuste como Pantallas y pulsa Retorno. ⌘1–⌘9 abren las nueve primeras apps.";
+"约 %@ 后充满" = "Carga completa en unos %@";
+"正在估算充满时间…" = "Calculando el tiempo de carga…";
+"剩余约 %@" = "Autonomía: unos %@";
+"正在估算剩余时间…" = "Calculando la autonomía…";
+"%@ · 已连接，系统报告网络不可用" = "%@ · Conectado, pero macOS indica que no hay red utilizable";
+"已连接 · 系统报告网络不可用" = "Conectado · macOS indica que no hay red utilizable";
+"Wi-Fi 已连接，但网络不可用" = "Wi-Fi conectado, pero sin red utilizable";
+"通用" = "General";
+"FuseBar 设置" = "Ajustes de FuseBar";
+"诊断信息" = "Diagnóstico";
+"复制诊断信息" = "Copiar diagnóstico";
+"不含 Wi-Fi、设备、文件或项目名称；最近的错误提示按原文附上。粘贴前请先检查。" = "No incluye nombres de Wi-Fi, dispositivos, archivos ni proyectos; el último mensaje de error se incluye tal cual. Revísalo antes de pegarlo.";
+"查看最新版本 ↗" = "Ver la última versión ↗";

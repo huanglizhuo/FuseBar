@@ -67,7 +67,6 @@
 "输出音量" = "Volume de sortie";
 "系统静音已开启；调整音量不会自动取消静音。" = "Le son est coupé par le système. Régler le volume ne réactive pas le son.";
 "文件夹" = "Dossiers";
-"系统" = "Système";
 "暂无运行中的应用" = "Aucune app ouverte";
 "打开 %@" = "Ouvrir %@";
 "打开电池系统设置" = "Ouvrir les réglages Batterie";
@@ -80,10 +79,8 @@
 "音量百分比数字" = "Pourcentage de volume";
 "选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "Avec un chiffre choisi, le bas de l’anneau affiche en permanence ce pourcentage et revient aux alertes et aux points quand la valeur est indisponible. Dans le panneau, l’anneau suit les couleurs système de la batterie : vert en charge, rouge au niveau critique ; l’icône de la barre des menus reste monochrome.";
 "悬停摘要包含蓝牙状态" = "Inclure Bluetooth dans l’infobulle";
-"外观" = "Apparence";
 "登录时启动" = "Ouvrir à la connexion";
 "在系统设置中批准登录启动" = "Autoriser l’ouverture dans Réglages Système";
-"如何隐藏原生菜单栏图标" = "Masquer les icônes système";
 "隐私政策" = "Politique de confidentialité";
 "帮助与反馈" = "Aide et commentaires";
 "开发版" = "Développement";
@@ -154,17 +151,8 @@
 "日期与时间" = "Date et heure";
 "电池与电源模式" = "Batterie et mode d’alimentation";
 "菜单栏显示选项" = "Options de la barre des menus";
-"系统功能" = "Commandes système";
 "低电量模式已开启" = "Mode économie d’énergie activé";
 "低电量模式未开启" = "Mode économie d’énergie désactivé";
-"以下入口在系统应用中完成操作。" = "Ces commandes s’ouvrent dans les apps système.";
-"设置" = "Réglages";
-"日历" = "Calendrier";
-"天气" = "Météo";
-"快捷指令" = "Raccourcis";
-"打开%@…" = "Ouvrir %@…";
-"Spotlight：⌘ 空格。通知中心、隐私指示和当前应用菜单仍由系统提供。" = "Spotlight : ⌘ Espace. Le Centre de notifications, les indicateurs de confidentialité et les menus de l’app active restent gérés par le système.";
-"无法打开%@，请从系统应用启动器打开。" = "Impossible d’ouvrir %@. Utilisez le lanceur système.";
 "请先允许定位读取网络名称，再点击扫描。不会读取设备位置。" = "Autorisez la localisation pour les noms de réseau, puis recherchez. La position de l’appareil n’est pas lue.";
 "正在扫描附近网络…" = "Recherche des réseaux à proximité…";
 "未找到可显示的网络。检查 Wi-Fi、定位服务或使用系统设置。" = "Aucun réseau à afficher. Vérifiez le Wi-Fi et la localisation, ou utilisez Réglages Système.";
@@ -235,7 +223,6 @@
 
 "关闭子菜单" = "Fermer le sous-menu";
 
-"搜索应用与操作…" = "Rechercher apps et actions…";
 
 "操作" = "Action";
 
@@ -283,3 +270,31 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "Le Wi-Fi est désactivé. Activez-le et relancez la recherche.";
 "扫描未完成（%@ %ld），请重试。" = "Échec de la recherche (%@ %ld). Réessayez.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "La sortie audio du casque est indisponible. Vérifiez qu’il est allumé et à proximité, puis réessayez.";
+"切换输出" = "Changer de sortie";
+"连接输出" = "Connecter la sortie";
+"当前输入源" = "Source de saisie actuelle";
+"连接设备" = "Connecter l’appareil";
+"断开设备" = "Déconnecter l’appareil";
+"项目" = "Projet";
+"系统设置" = "Réglages Système";
+"搜索应用、设备与设置…" = "Rechercher apps, appareils, réglages…";
+"打开方式" = "Ouvrir avec";
+"其他应用…" = "Autre app…";
+"选择打开项目目录的应用" = "Choisir l’app qui ouvre le dossier du projet";
+"所选应用没有可用的标识，请选择其他应用。" = "L’app choisie n’a pas d’identifiant. Choisissez-en une autre.";
+"找不到打开方式应用，请编辑项目重新选择。" = "L’app choisie pour ouvrir ce projet est introuvable. Modifiez le projet pour en choisir une autre.";
+"直接输入即可搜索" = "Tapez pour rechercher";
+"输入应用名（支持拼音）、设备名（如 AirPods）或系统设置（如“显示器”），按回车执行。⌘1–⌘9 打开前 9 个应用。" = "Tapez une app, un appareil comme AirPods ou un réglage comme Écrans, puis appuyez sur Retour. ⌘1–⌘9 ouvrent les neuf premières apps.";
+"约 %@ 后充满" = "Charge complète dans environ %@";
+"正在估算充满时间…" = "Estimation du temps de charge…";
+"剩余约 %@" = "Autonomie : environ %@";
+"正在估算剩余时间…" = "Estimation de l’autonomie…";
+"%@ · 已连接，系统报告网络不可用" = "%@ · Connecté, mais macOS signale aucun réseau utilisable";
+"已连接 · 系统报告网络不可用" = "Connecté · macOS signale aucun réseau utilisable";
+"Wi-Fi 已连接，但网络不可用" = "Wi-Fi connecté, mais aucun réseau utilisable";
+"通用" = "Général";
+"FuseBar 设置" = "Réglages FuseBar";
+"诊断信息" = "Diagnostic";
+"复制诊断信息" = "Copier le diagnostic";
+"不含 Wi-Fi、设备、文件或项目名称；最近的错误提示按原文附上。粘贴前请先检查。" = "Ne contient aucun nom de Wi-Fi, d’appareil, de fichier ou de projet ; le dernier message d’erreur est inclus tel quel. Vérifiez avant de coller.";
+"查看最新版本 ↗" = "Voir la dernière version ↗";

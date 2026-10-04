@@ -43,6 +43,23 @@ final class CodingWorkspaceTests: XCTestCase {
         let invalid = CodingProject(name: "Bad", preview: "file:///secret", repository: "")
         XCTAssertFalse(restored.save(invalid)); XCTAssertEqual(restored.items.count, 1)
     }
+    @MainActor func testFolderOpenerChoicesPersistAndLegacyProjectsOpenInFinder() throws {
+        let installed: (String) -> Bool = { ["dev.zed.Zed", "com.apple.Terminal"].contains($0) }
+        XCTAssertEqual(CodingProject.openerChoices(current: nil, installed: installed), ["dev.zed.Zed", "com.apple.Terminal"])
+        XCTAssertEqual(CodingProject.openerChoices(current: "org.custom.Editor", installed: installed),
+                       ["dev.zed.Zed", "com.apple.Terminal", "org.custom.Editor"])
+        XCTAssertEqual(CodingProject.openerChoices(current: "com.apple.Terminal", installed: installed), ["dev.zed.Zed", "com.apple.Terminal"])
+        // Projects saved before openers existed still decode and keep opening in Finder.
+        let legacy = #"[{"id":"7F5D2B8E-6C1A-4E0B-9C3D-2A1B0C9D8E7F","name":"Old","preview":"","repository":""}]"#
+        XCTAssertNil(try JSONDecoder().decode([CodingProject].self, from: Data(legacy.utf8)).first?.opener)
+        let suite = "FuseBarTests.Opener.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var project = CodingProject(name: "Zed project", preview: "", repository: "")
+        project.opener = "dev.zed.Zed"
+        XCTAssertTrue(CodingProjects(defaults: defaults).save(project))
+        XCTAssertEqual(CodingProjects(defaults: defaults).current?.opener, "dev.zed.Zed")
+    }
     func testShortcutValidationAndSerialization() throws {
         let valid = ShortcutCombination(keyCode: 3, modifiers: UInt32(cmdKey | optionKey), keyLabel: "F")
         XCTAssertTrue(valid.isValid)

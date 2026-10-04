@@ -1,4 +1,5 @@
 import AppKit
+import UniformTypeIdentifiers
 import SwiftUI
 
 struct CodingProject: Identifiable, Codable, Equatable {
@@ -8,6 +9,28 @@ struct CodingProject: Identifiable, Codable, Equatable {
     var folderName: String?
     var preview: String
     var repository: String
+    /// Bundle identifier of the app that opens the folder; nil opens it in Finder.
+    var opener: String?
+
+    /// Developer apps offered as folder openers when installed; any other app can be chosen.
+    static let knownOpeners = ["com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92", "com.exafunction.windsurf", "dev.zed.Zed",
+                               "com.apple.dt.Xcode", "com.sublimetext.4", "com.panic.Nova", "com.barebones.bbedit",
+                               "com.jetbrains.intellij", "com.jetbrains.intellij.ce", "com.jetbrains.pycharm", "com.jetbrains.pycharm.ce",
+                               "com.jetbrains.WebStorm", "com.google.android.studio", "com.apple.Terminal", "com.googlecode.iterm2",
+                               "com.mitchellh.ghostty", "dev.warp.Warp-Stable", "net.kovidgoyal.kitty", "com.github.wez.wezterm"]
+
+    /// Installed known openers, plus the current choice when it came from "Other app…".
+    static func openerChoices(current: String?, installed: (String) -> Bool) -> [String] {
+        let choices = knownOpeners.filter(installed)
+        guard let current, !choices.contains(current) else { return choices }
+        return choices + [current]
+    }
+
+    static func openerName(_ id: String) -> String {
+        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return id }
+        let name = FileManager.default.displayName(atPath: url.path)
+        return name.hasSuffix(".app") ? String(name.dropLast(4)) : name
+    }
 
     static func webURL(_ text: String) -> URL? {
         guard let parts = URLComponents(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
@@ -76,11 +99,34 @@ final class CodingProjects: ObservableObject {
             guard url.startAccessingSecurityScopedResource() else { error = L("目录授权失效，请编辑项目并重新选择。"); return }
             // A stale scope is not silently used; the edit action gives a clear recovery path.
             guard !resolved.stale else { url.stopAccessingSecurityScopedResource(); error = L("目录授权失效，请编辑项目并重新选择。"); return }
-            NSWorkspace.shared.open(url, configuration: .init()) { [weak self] _, failure in
+            let finished: @Sendable (NSRunningApplication?, Error?) -> Void = { [weak self] _, failure in
                 url.stopAccessingSecurityScopedResource()
                 Task { @MainActor in self?.error = failure == nil ? nil : L("无法打开项目入口，请检查路径或默认应用。") }
             }
+            guard let opener = project.opener else { NSWorkspace.shared.open(url, configuration: .init(), completionHandler: finished); return }
+            // An uninstalled opener is reported, not silently replaced by Finder.
+            guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: opener) else {
+                url.stopAccessingSecurityScopedResource()
+                error = L("找不到打开方式应用，请编辑项目重新选择。")
+                return
+            }
+            NSWorkspace.shared.open([url], withApplicationAt: app, configuration: .init(), completionHandler: finished)
         } catch { self.error = L("目录授权失效，请编辑项目并重新选择。") }
+    }
+    func chooseOpener() -> String? {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.title = L("选择打开项目目录的应用")
+        guard SystemPanelPresentation.shared.run(panel) == .OK, let url = panel.url else { return nil }
+        guard let id = Bundle(url: url)?.bundleIdentifier else { error = L("所选应用没有可用的标识，请选择其他应用。"); return nil }
+        return id
+    }
+    /// The project's main entry: its folder, else the preview, else the repository.
+    func open(_ project: CodingProject) {
+        if project.folder != nil { openFolder(project) }
+        else if !project.preview.isEmpty { openWeb(project.preview) }
+        else if !project.repository.isEmpty { openWeb(project.repository) }
     }
     func openWeb(_ text: String) {
         guard let url = CodingProject.webURL(text) else { error = L("请输入项目名和有效的 HTTP(S) 地址，不可包含账号密码。"); return }
@@ -117,6 +163,15 @@ struct ProjectEditorView: View {
                     Button { draft.folder = nil; draft.folderName = nil } label: { Image(systemName: "minus.circle") }
                         .accessibilityLabel(L("移除目录入口"))
                 }
+            }
+            HStack {
+                Picker(L("打开方式"), selection: $draft.opener) {
+                    Text("Finder").tag(String?.none)
+                    ForEach(CodingProject.openerChoices(current: draft.opener, installed: {
+                        NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) != nil
+                    }), id: \.self) { Text(CodingProject.openerName($0)).tag(Optional($0)) }
+                }
+                Button(L("其他应用…")) { if let id = projects.chooseOpener() { draft.opener = id } }
             }
             Text(L("预览")).font(.caption).foregroundStyle(.secondary)
             TextField(L("预览地址，例如 http://localhost:3000"), text: $draft.preview).accessibilityLabel(L("预览"))

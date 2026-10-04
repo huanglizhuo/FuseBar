@@ -2,6 +2,53 @@ import XCTest
 @testable import FuseBar
 
 final class StatusModelTests: XCTestCase {
+    @MainActor func testDiagnosticsReportStatesWithoutNames() throws {
+        let suite = "FuseBarTests.Diagnostics.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let store = StatusStore(defaults: defaults, demo: true)
+        store.errorMessage = "Example error"
+        let report = store.diagnostics(inputSources: 2, shortcutSet: true, codingLayout: false)
+        for name in ["Home Wi-Fi", "AirPods Pro", "Studio Headphones", "Studio Display", store.snapshot.sound.deviceName] {
+            XCTAssertFalse(report.contains(name), name)
+        }
+        XCTAssertTrue(report.contains("Wi-Fi: connected, name withheld"))
+        XCTAssertTrue(report.contains("connected devices 1"))
+        XCTAssertTrue(report.contains("outputs 3"))
+        XCTAssertTrue(report.contains("Developer ID or local build"))
+        XCTAssertTrue(report.hasSuffix("Last error: Example error"))
+    }
+
+    func testAssociatedWiFiWithoutUsablePathIsExplicitAndWarns() {
+        let status = SystemReader.resolveWiFi(mode: .station, name: "Cafe", rssi: -60,
+                                              path: WiFiPathState(connected: false, expensive: false, satisfied: false))
+        XCTAssertEqual(status.connection, .connected)
+        XCTAssertTrue(status.pathUnavailable)
+        XCTAssertEqual(status.detail, L("%@ · 已连接，系统报告网络不可用", "Cafe"))
+        XCTAssertEqual(StatusSymbols.wifi(status), "wifi.exclamationmark")
+        var snapshot = StatusSnapshot.normal
+        snapshot.wifi = status
+        XCTAssertEqual(snapshot.badge(IndicatorPreferences()), .networkWarning)
+        XCTAssertEqual(snapshot.headline(IndicatorPreferences()), L("Wi-Fi 已连接，但网络不可用"))
+        // A route carried by another interface (e.g. a VPN), or no sample yet, is not evidence of a problem.
+        XCTAssertFalse(SystemReader.resolveWiFi(mode: .station, name: nil, rssi: -60,
+                                                path: WiFiPathState(connected: false, expensive: false, satisfied: true)).pathUnavailable)
+        XCTAssertFalse(SystemReader.resolveWiFi(mode: .station, name: nil, rssi: -60, path: nil).pathUnavailable)
+    }
+
+    func testBatteryEstimatesAppearOnlyWhenTheyApply() {
+        let onBattery = BatteryStatus(availability: .available, level: 60)
+        let charging = BatteryStatus(availability: .available, level: 60, charging: true, externalPower: true)
+        let heldOnPower = BatteryStatus(availability: .available, level: 80, externalPower: true)
+        XCTAssertEqual(BatteryDetails(minutesToEmpty: 90).estimate(onBattery), L("剩余约 %@", BatteryDetails.duration(90)))
+        XCTAssertEqual(BatteryDetails().estimate(onBattery), L("正在估算剩余时间…"))
+        XCTAssertEqual(BatteryDetails(minutesToFull: 45).estimate(charging), L("约 %@ 后充满", BatteryDetails.duration(45)))
+        XCTAssertEqual(BatteryDetails().estimate(charging), L("正在估算充满时间…"))
+        XCTAssertNil(BatteryDetails(minutesToEmpty: 90).estimate(heldOnPower), "On power without charging there is no estimate")
+        XCTAssertNil(BatteryDetails(minutesToEmpty: 90).estimate(BatteryStatus(availability: .unavailable)))
+        XCTAssertTrue(BatteryDetails.duration(90).contains("30"))
+    }
+
     func testHotspotPathOverridesMissingCoreWLANAssociation() {
         let hotspot = SystemReader.resolveWiFi(mode: .none, name: nil, rssi: 0,
             path: WiFiPathState(connected: true, expensive: true))

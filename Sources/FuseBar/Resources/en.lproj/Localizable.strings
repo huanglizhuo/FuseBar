@@ -67,7 +67,6 @@
 "输出音量" = "Output volume";
 "系统静音已开启；调整音量不会自动取消静音。" = "System mute is on. Adjusting volume will not unmute it.";
 "文件夹" = "Files";
-"系统" = "System";
 "暂无运行中的应用" = "No apps are running";
 "打开 %@" = "Open %@";
 "打开电池系统设置" = "Open Battery settings";
@@ -80,10 +79,8 @@
 "音量百分比数字" = "Volume percentage";
 "选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "When a number is chosen, the bottom of the orb always shows that percentage and falls back to alerts and dots when the value is unavailable. In the panel the ring follows the system battery colors: green while charging, red when critical; the menu-bar icon stays monochrome.";
 "悬停摘要包含蓝牙状态" = "Include Bluetooth in hover summary";
-"外观" = "Appearance";
 "登录时启动" = "Launch at login";
 "在系统设置中批准登录启动" = "Approve launch at login in System Settings";
-"如何隐藏原生菜单栏图标" = "Hide system menu bar icons";
 "隐私政策" = "Privacy policy";
 "帮助与反馈" = "Help and feedback";
 "开发版" = "Development";
@@ -154,17 +151,8 @@
 "日期与时间" = "Date & Time";
 "电池与电源模式" = "Battery and power mode";
 "菜单栏显示选项" = "Menu Bar options";
-"系统功能" = "System controls";
 "低电量模式已开启" = "Low Power Mode is on";
 "低电量模式未开启" = "Low Power Mode is off";
-"以下入口在系统应用中完成操作。" = "These controls open in system apps.";
-"设置" = "Settings";
-"日历" = "Calendar";
-"天气" = "Weather";
-"快捷指令" = "Shortcuts";
-"打开%@…" = "Open %@…";
-"Spotlight：⌘ 空格。通知中心、隐私指示和当前应用菜单仍由系统提供。" = "Spotlight: ⌘ Space. Notification Center, privacy indicators, and the active app’s menus remain system features.";
-"无法打开%@，请从系统应用启动器打开。" = "Could not open %@. Use the system app launcher.";
 "请先允许定位读取网络名称，再点击扫描。不会读取设备位置。" = "Allow location access for network names, then scan. Device location is not read.";
 "正在扫描附近网络…" = "Scanning nearby networks…";
 "未找到可显示的网络。检查 Wi-Fi、定位服务或使用系统设置。" = "No networks to display. Check Wi-Fi and Location Services, or use System Settings.";
@@ -235,7 +223,6 @@
 
 "关闭子菜单" = "Close submenu";
 
-"搜索应用与操作…" = "Search apps and actions…";
 
 "操作" = "Action";
 
@@ -283,3 +270,31 @@
 "Wi-Fi 已关闭，请开启后重新扫描。" = "Wi-Fi is off. Turn it on and scan again.";
 "扫描未完成（%@ %ld），请重试。" = "Scan failed (%@ %ld). Try again.";
 "耳机尚未提供声音输出。请确认耳机已开机且在附近，然后重试。" = "The headphones have not provided an audio output. Make sure they are on and nearby, then try again.";
+"切换输出" = "Switch output";
+"连接输出" = "Connect output";
+"当前输入源" = "Current input source";
+"连接设备" = "Connect device";
+"断开设备" = "Disconnect device";
+"项目" = "Project";
+"系统设置" = "System Settings";
+"搜索应用、设备与设置…" = "Search apps, devices, settings…";
+"打开方式" = "Open with";
+"其他应用…" = "Other app…";
+"选择打开项目目录的应用" = "Choose the app that opens the project folder";
+"所选应用没有可用的标识，请选择其他应用。" = "The selected app has no bundle identifier. Choose another app.";
+"找不到打开方式应用，请编辑项目重新选择。" = "The app chosen to open this project is missing. Edit the project to choose again.";
+"直接输入即可搜索" = "Just type to search";
+"输入应用名（支持拼音）、设备名（如 AirPods）或系统设置（如“显示器”），按回车执行。⌘1–⌘9 打开前 9 个应用。" = "Type an app, a device such as AirPods, or a setting such as Displays, then press Return. ⌘1–⌘9 open the first nine apps.";
+"约 %@ 后充满" = "Full in about %@";
+"正在估算充满时间…" = "Estimating time to full…";
+"剩余约 %@" = "About %@ remaining";
+"正在估算剩余时间…" = "Estimating time remaining…";
+"%@ · 已连接，系统报告网络不可用" = "%@ · Connected, but macOS reports no usable network";
+"已连接 · 系统报告网络不可用" = "Connected · macOS reports no usable network";
+"Wi-Fi 已连接，但网络不可用" = "Wi-Fi is connected, but no network is usable";
+"通用" = "General";
+"FuseBar 设置" = "FuseBar Settings";
+"诊断信息" = "Diagnostics";
+"复制诊断信息" = "Copy diagnostics";
+"不含 Wi-Fi、设备、文件或项目名称；最近的错误提示按原文附上。粘贴前请先检查。" = "Contains no Wi-Fi, device, file or project names; the latest error message is included as shown. Review it before pasting.";
+"查看最新版本 ↗" = "Check for the latest version ↗";
