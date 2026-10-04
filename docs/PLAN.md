@@ -237,3 +237,7 @@ CoreAudio 监听注册、移除和设备属性读取统一放入独立后台串�
 - **诊断信息**：设置中可展开预览并复制去标识的状态摘要（不含 Wi-Fi、设备、文件、项目名称，附最近错误原文），只在点击复制时写入剪贴板。
 - **更新入口**：非 App Store 构建在设置中显示「查看最新版本 ↗」，打开 GitHub Releases，不做后台检查；App Store 构建通过收据识别并隐藏该入口。
 - **文档**：隐私政策同步（删除已不存在的固定应用和最近操作，补充新增的本地数据）。README 与 `docs/previews` 仍描述已发布的 1.2.x，发布时用更新后的渲染脚本统一刷新：脚本已改为渲染设置窗口、编译 asset catalog（修复 1.2.1 起蓝牙标记空白）、版本号读取 `project.yml`。发布时需删除 `system-*.png` 及 README 中的相应引用。
+
+### 2026-10-05 — 1.3.0 发布：只走 GitHub
+
+维护者决定：App Store 渠道不发布，1.0 (1) 停留在 Ready for Review，不再提交审核。1.3.0 (6) 按 `Scripts/release.sh` 流程走 GitHub release（Developer ID 签名、公证、Action 校验后发布）。README 与 `docs/previews` 已按 1.3.0 更新，移除 `system-*.png`。应用内「查看最新版本」链接仍按收据判断渠道，App Store 构建不会显示。

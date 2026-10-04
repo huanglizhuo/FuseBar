@@ -1,6 +1,6 @@
 # Release workflow
 
-FuseBar is free on both channels. Signing and notarization use the developer's local Xcode account and Keychain. GitHub Actions independently verifies a prepared, notarized ZIP on a hosted Mac and publishes the draft release. No Apple certificate, private key, or notarization password is stored in GitHub.
+FuseBar is free and distributed through GitHub releases; the App Store channel is not published (decision of 2026-10-05), and its export steps below are kept for reference. Signing and notarization use the developer's local Xcode account and Keychain. GitHub Actions independently verifies a prepared, notarized ZIP on a hosted Mac and publishes the draft release. No Apple certificate, private key, or notarization password is stored in GitHub.
 
 ## Build and sign locally
 

@@ -1,5 +1,7 @@
 # FuseBar — Mac App Store 发布清单
 
+> 2026-10-05：按维护者决定，App Store 渠道不发布，FuseBar 只通过 GitHub release 分发。1.0 (1) 停留在 Ready for Review，未提交审核。下文保留为历史参考。
+
 核对日期：2026-09-16。版本 1.0 (1) 已上传并完成 Add for Review，状态 Ready for Review；尚未执行最终 Submit for Review，也未获审核批准。详见 VALIDATION.md 与 Distribution/README.md。
 
 ## 当前状态
