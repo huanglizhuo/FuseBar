@@ -37,7 +37,7 @@ FuseBar brings system status, recently used apps, input sources, and project sho
 
 ## Download and use
 
-Download the latest published build, [FuseBar 1.3.0 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.3.0/FuseBar-1.3.0-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.3.0). The screenshots and features below describe this release. FuseBar is distributed through GitHub releases; it is not published on the Mac App Store.
+Download the latest published build, [FuseBar 1.3.1 for macOS](https://github.com/huanglizhuo/FuseBar/releases/download/v1.3.1/FuseBar-1.3.1-macOS.zip), signed with Developer ID and notarized by Apple. See its [release notes and checksums](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.3.1). The screenshots and features below describe this release. FuseBar is distributed through GitHub releases; it is not published on the Mac App Store.
 
 Move FuseBar to Applications and launch it. **FuseBar lives in the menu bar and does not show a Dock icon.** Click its ring to open the panel and first-use guide. **English, Simplified Chinese, Japanese, French, and Spanish** are supported. FuseBar follows your Mac’s preferred language list (including regional variants), falling back to English when none match. Chinese variants use Simplified Chinese. Restart FuseBar after changing the system or per-app language.
 
@@ -45,7 +45,7 @@ You can manually hide redundant system icons in System Settings → Menu Bar (Co
 
 ## Features
 
-FuseBar 1.3.0 includes:
+FuseBar 1.3.1 includes:
 
 - Battery ring with charging, low-battery, unknown, and no-internal-battery states.
 - Wi-Fi connection and signal strength, with an optional network name. Personal Hotspot-class metered Wi-Fi paths use a chain-link icon. When Wi-Fi is associated but macOS reports no usable network on it, FuseBar says so instead of showing a plain connection.
@@ -70,7 +70,7 @@ FuseBar 1.3.0 includes:
 
 Enable **Coding layout** in Settings for compact status icons, running apps above search, and a selected project's folder, preview, and repository links. Choose the app that opens each project folder, such as Finder, Visual Studio Code, Cursor, Zed, Xcode, or Terminal, in **Settings → Projects**. Apps that are not running are one search away: type in the home panel to find anything installed in your application folders, or type a project's name to open it.
 
-In the first-run guide or **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Search focuses when the panel opens. Use ↑/↓ and Return to choose a result, → to expand a focused status, and ← to close its submenu. Escape closes the submenu first, then the main panel; Escape during recording cancels recording.
+In the first-run guide or **Settings → Quick-open shortcut**, click **Record shortcut** and press a combination with at least two modifiers, including Command or Control. No shortcut is reserved until you choose one. A successful registration is saved; unavailable/system combinations leave your previous setting intact. Press the shortcut to open FuseBar with search focused, or again to close it. Search focuses when the panel opens. Use ↑/↓ and Return to choose a result (this also works while an input method such as pinyin is composing), → to expand a focused status, and ← to close its submenu. Escape closes the submenu first, then the main panel; Escape during recording cancels recording.
 
 Enable Dock auto-hide yourself through the supplied **Dock auto-hide settings** link, and restore it there at any time. Project links open only the entries you save; they do not start servers or restore editor sessions. See the [implementation scope](docs/CODING_WORKSPACE_PLAN.md) and [validation limits](docs/VALIDATION.md).
 
