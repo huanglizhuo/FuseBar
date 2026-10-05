@@ -502,3 +502,13 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - GitHub Action（run 37223418842）全部步骤成功，2026-10-05 02:11（+0800）发布为 Latest。资产为 `FuseBar-1.3.1-macOS.zip`（3,020,544 字节）和 `SHA256SUMS.txt`；下载后的校验和与 SHA256SUMS.txt 及本地构建一致（`7cb52bb803a8de36…`）。
 - 本机安装：退出正在运行的 1.3.0，旧版移到废纸篓（“FuseBar 1.3.0.app”），从发布 ZIP 解压到 /Applications。安装后的应用版本为 1.3.1 (7)，Developer ID（Team N9Q47Y2LQ4）签名，stapler 与 spctl 均通过，架构为 x86_64 + arm64。启动后无 error/fault 日志、无崩溃报告。
 - 待实机确认：在微信输入法组字状态下，搜索结果里的 ↑↓ 切换和回车打开。
+
+## 2026-10-05：搜索框组字态吞掉首次点击（点击切换输入源无效果）
+
+- 用户反馈：正在输入框里打字时，点击切换输入源无效果，需要重开面板再点选一次；焦点不在输入框时切换正常。
+- 排查：用 CGEvent 合成鼠标事件驱动真实 Release 构建逐步复现。与目标 app 无关（TextEdit/ZCode 真实 app + 组合态实测切换均成功）；也排除了 TISSelectInputSource 读回滞后（0ms 读回即新值、2.5s 内不回切）与激活时恢复 per-app 输入法（本机 `TextInputGlobalPropertyPerContextInput = 0`，TextEdit 真实打字建立记忆后重激活不回切）。真正的路径在面板自身：面板每次打开自动聚焦搜索框（`PopoverView.onAppear`），拼音组字时 AppKit 把面板内第一次点击用于提交组字文本，行不触发，且提交的查询把状态行替换为搜索结果——复现截图显示二级菜单未打开、查询变成 "ni"、状态行消失、无任何切换。
+- 修复：AppDelegate 已有的本地鼠标监视器在事件派发前检测面板窗口的 field editor 组合态（`hasMarkedText`），点击落在输入框之外（含侧边子菜单窗口）时丢弃组合（`NSTextInputContext.discardMarkedText`，无活动输入会话时回退为直接清空 marked range），布局保持稳定，首次点击直接命中行。点击回到输入框本身时保留组合。核心逻辑提取为 `discardActiveComposition(in:clickLocation:)` 静态方法。
+- 测试：`zsh Scripts/build.sh` 成功；`zsh Scripts/test.sh` 82 项 XCTest（基线 79）+ 25 项 Swift Testing 全部通过。新增 3 项：面板内行点击丢弃组合且不产生查询、无面板窗口时不动、点击输入框本身保留组合。测试用例借助现有引导-回车路径让 field editor 在无头环境中真实落位（popover 窗口在测试 runner 中无法成为 key）。
+- 实机验证：Debug 构建 + 合成鼠标事件驱动真实 app：状态项打开面板 → 真实键码注入 "ni" 组合态（候选窗出现）→ 首次点击 Input source 行即打开二级菜单（修复前同路径菜单不打开且查询被污染），随后点选 ABC 实际切换，TIS 读回 `com.apple.keylayout.ABC` 并保持，面板按设计关闭。此为合成事件驱动的实机操作验证，非模拟截图。
+- 环境恢复：插桩代码已还原，临时注册的 ⌃⌥S 快捷键已删除，验证后 /Applications 中的 Release 1.3.1 已重启，输入源恢复为微信输入法。
+- 未验证：中文（拼拼）以外的第三方输入法（如搜狗）组字态下的同一交互；VoiceOver 下的组合态提示。

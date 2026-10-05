@@ -113,4 +113,62 @@ final class PanelPresentationTests: XCTestCase {
             frontmostBundleID: "com.apple.Safari", onScreenOwnerNames: ["Finder", "NotificationCenter"]))
         XCTAssertFalse(AppDelegate.permissionAlertShowing(frontmostBundleID: nil, onScreenOwnerNames: []))
     }
+
+    // MARK: - Search composition vs. first click
+
+    /// Hosts the real panel in a plain window and lands on the home page with the
+    /// search field focused (same Return-through-onboarding path as the guide
+    /// test — the window never becomes key in the headless runner, so the
+    /// SwiftUI focus pipeline is the only way the field editor materializes),
+    /// then plants an input-method composition, mirroring a user typing pinyin.
+    @MainActor private func windowWithComposingSearchField() throws -> (NSWindow, NSTextView) {
+        let suite = "FuseBarTests.Composition.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defaults.removePersistentDomain(forName: suite)
+        let window = NSWindow(contentRect: NSRect(x: 200, y: 200, width: 320, height: 800),
+                              styleMask: .titled, backing: .buffered, defer: false)
+        window.alphaValue = 0
+        window.contentView = NSHostingView(rootView: PopoverView(
+            store: StatusStore(defaults: defaults, demo: true),
+            shelf: ApplicationShelf(defaults: defaults, readApplications: { [] })))
+        window.makeKeyAndOrderFront(nil)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let returnKey = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                                                        windowNumber: window.windowNumber, context: nil, characters: "\r",
+                                                        charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36))
+        XCTAssertTrue(window.performKeyEquivalent(with: returnKey), "Return leaves the first-run guide for home")
+        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+        let editor = try XCTUnwrap(window.firstResponder as? NSTextView, "Home lands on the auto-focused search field")
+        editor.setMarkedText("ni", selectedRange: NSRange(location: 0, length: 0),
+                             replacementRange: NSRange(location: NSNotFound, length: 0))
+        XCTAssertTrue(editor.hasMarkedText())
+        return (window, editor)
+    }
+
+    @MainActor func testClickOnPanelRowDuringCompositionDiscardsMarkedText() throws {
+        let (window, editor) = try windowWithComposingSearchField()
+        defer { window.orderOut(nil) }
+        let click = NSPoint(x: window.frame.midX, y: window.frame.minY + 6)
+        XCTAssertTrue(AppDelegate.discardActiveComposition(in: [window], clickLocation: click),
+                      "A row click during composition must end the composition")
+        XCTAssertFalse(editor.hasMarkedText(), "The row click must not be spent committing the composition")
+        XCTAssertEqual(editor.string, "", "Discarded pinyin must not become the search query")
+    }
+
+    @MainActor func testCompositionWithoutOurWindowsStays() throws {
+        let (window, editor) = try windowWithComposingSearchField()
+        defer { window.orderOut(nil) }
+        XCTAssertFalse(AppDelegate.discardActiveComposition(in: [], clickLocation: NSPoint(x: 10, y: 10)),
+                       "No panel window, nothing to discard")
+        XCTAssertTrue(editor.hasMarkedText())
+    }
+
+    @MainActor func testClickInsideSearchFieldKeepsComposition() throws {
+        let (window, editor) = try windowWithComposingSearchField()
+        defer { window.orderOut(nil) }
+        let fieldFrame = window.convertToScreen(editor.convert(editor.bounds, to: nil))
+        let kept = AppDelegate.discardActiveComposition(in: [window], clickLocation: NSPoint(x: fieldFrame.midX, y: fieldFrame.midY))
+        XCTAssertFalse(kept)
+        XCTAssertTrue(editor.hasMarkedText(), "Clicking back into the field edits the composition instead of ending it")
+    }
 }

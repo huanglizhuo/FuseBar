@@ -123,6 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                 }
                 // The status button owns its own toggle. Never dismiss it in this monitor first.
                 if self.mouseIsOverStatusButton { return false }
+                self.discardSearchComposition(window: event.window)
                 self.handleLocalMouseDown(window: event.window)
                 return false
             }
@@ -146,6 +147,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     func handleLocalMouseDown(window: NSWindow?) {
         if isLocationPermissionInFlight() { return }
         dismissForOutsideClick(window: window)
+    }
+
+    /// While the search field holds an input-method composition, AppKit spends the
+    /// next click outside the field on committing that composition: the row under
+    /// the cursor never fires, and the committed query replaces the status rows
+    /// with search results. Discarding the composition before the event is
+    /// dispatched keeps the panel stable and lets the first click reach its row.
+    func discardSearchComposition(window: NSWindow?, clickLocation: NSPoint = NSEvent.mouseLocation) {
+        guard popover.isShown, let panel = popover.contentViewController?.view.window,
+              window === panel || sideSubmenu.contains(window) else { return }
+        Self.discardActiveComposition(in: [window, panel].compactMap { $0 }, clickLocation: clickLocation)
+    }
+
+    /// Discards the composing field editor's marked text when a click lands
+    /// outside that editor. Window-driven and static so tests can run it against
+    /// plain windows: the popover window resists key-ness in the headless runner.
+    /// Returns whether a composition was discarded.
+    @discardableResult static func discardActiveComposition(in windows: [NSWindow], clickLocation: NSPoint) -> Bool {
+        for container in windows {
+            guard let editor = container.firstResponder as? NSTextView,
+                  editor.hasMarkedText(), let editorWindow = editor.window else { continue }
+            // A click back into the field itself edits the composition; leave it alone.
+            let fieldFrame = editorWindow.convertToScreen(editor.convert(editor.bounds, to: nil))
+            guard !fieldFrame.contains(clickLocation) else { return false }
+            editor.inputContext?.discardMarkedText()
+            if editor.hasMarkedText() {
+                // Without a live input session (tests, exotic IMEs) the context is
+                // inert; clearing the marked range on the client ends it directly.
+                editor.setMarkedText("", selectedRange: NSRange(location: 0, length: 0),
+                                     replacementRange: NSRange(location: NSNotFound, length: 0))
+            }
+            return true
+        }
+        return false
     }
 
     func dismissForOutsideClick(window: NSWindow?) {
