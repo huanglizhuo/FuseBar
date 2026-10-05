@@ -512,3 +512,9 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 实机验证：Debug 构建 + 合成鼠标事件驱动真实 app：状态项打开面板 → 真实键码注入 "ni" 组合态（候选窗出现）→ 首次点击 Input source 行即打开二级菜单（修复前同路径菜单不打开且查询被污染），随后点选 ABC 实际切换，TIS 读回 `com.apple.keylayout.ABC` 并保持，面板按设计关闭。此为合成事件驱动的实机操作验证，非模拟截图。
 - 环境恢复：插桩代码已还原，临时注册的 ⌃⌥S 快捷键已删除，验证后 /Applications 中的 Release 1.3.1 已重启，输入源恢复为微信输入法。
 - 未验证：中文（拼拼）以外的第三方输入法（如搜狗）组字态下的同一交互；VoiceOver 下的组合态提示。
+
+## 2026-10-05：1.3.2 (8) GitHub 发布与本机安装
+
+- 修复提交 0f25805、发布提交 212eba2 推送后，运行 `zsh Scripts/release.sh v1.3.2`：脚本内测试通过（82 项 XCTest + 25 项 Swift Testing），归档成功，公证第一次轮询即完成，导出的 app 校验 codesign/DR、stapler、spctl（Notarized Developer ID）均通过，`prepare-release.sh` 生成 `FuseBar-1.3.2-macOS.zip`。推送 tag v1.3.2 并创建草稿。
+- GitHub Action「Verify and publish release」（run 37302989398）22 秒成功：校验草稿、签名、公证、版本与架构后发布。2026-10-05 19:27（+0800）发布为 Latest，资产为 `FuseBar-1.3.2-macOS.zip`（3,022,083 字节）和 `SHA256SUMS.txt`，发布说明取自 RELEASE_NOTES.md。
+- 本机安装：退出正在运行的 1.3.1，旧版移到废纸篓（"FuseBar 1.3.1.app"），把发布流水线导出的公证版拷贝到 /Applications。安装后版本为 1.3.2 (8)，Developer ID（Team N9Q47Y2LQ4），spctl 通过。启动后无 error/fault 日志，状态项无障碍描述正常。
