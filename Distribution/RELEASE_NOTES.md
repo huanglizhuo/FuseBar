@@ -1,15 +1,15 @@
-# FuseBar 1.3.1
+# FuseBar 1.3.2
 
-A fix for keyboard navigation in search.
+A fix for the first click while typing in the panel's search field.
 
-- **↑/↓ and Return now work while an input method is composing.** With pinyin or another composing input method, the arrow keys and Return went to the input method's candidate window, so they could not move through search results or open the selection. FuseBar now handles ↑, ↓, Return, and keypad Enter in the search field before the input method whenever there are results. Without results, the keys still reach the input method; ← and →, and keys pressed with ⌘, ⌃, ⌥, or ⇧, are unchanged.
+- **Clicking a row now works on the first try while an input method is composing.** The panel focuses its search field on open. With a composing input method (such as pinyin), the first click anywhere else in the panel was spent committing that composition: the row under the cursor never fired, and the committed text replaced the status rows with search results — switching the input source appeared to do nothing until a second attempt. FuseBar now discards the uncommitted composition before the click is dispatched, so the first click lands on the row and the half-typed pinyin is not turned into a search query. Clicking back into the search field still edits the composition as before.
 
 FuseBar stays free and local: no accounts, ads, analytics, or subscriptions. It is distributed through GitHub releases and is not published on the Mac App Store.
 
 ## Install
 
-Download `FuseBar-1.3.1-macOS.zip`, extract it, and move FuseBar to Applications. Quit a running older version before replacing it. Requires macOS 14 or later; the universal app supports Apple Silicon and Intel.
+Download `FuseBar-1.3.2-macOS.zip`, extract it, and move FuseBar to Applications. Quit a running older version before replacing it. Requires macOS 14 or later; the universal app supports Apple Silicon and Intel.
 
 ## Validation
 
-79 XCTest and 25 Swift Testing checks pass, including new tests for the key mapping and for handling ↓ and Return before the field editor. Third-party input methods cannot be driven reliably in automated tests, so behavior while composing is confirmed by hand on a Mac with such an input method.
+82 XCTest and 25 Swift Testing checks pass, including three new tests for discarding the composition on row clicks while keeping it for clicks inside the field. The first-click behavior is verified live with a pinyin input method: with the composition active, the first click opens the input-source submenu and the selection switches, confirmed by reading the system input source back.
