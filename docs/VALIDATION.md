@@ -518,3 +518,16 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 修复提交 0f25805、发布提交 212eba2 推送后，运行 `zsh Scripts/release.sh v1.3.2`：脚本内测试通过（82 项 XCTest + 25 项 Swift Testing），归档成功，公证第一次轮询即完成，导出的 app 校验 codesign/DR、stapler、spctl（Notarized Developer ID）均通过，`prepare-release.sh` 生成 `FuseBar-1.3.2-macOS.zip`。推送 tag v1.3.2 并创建草稿。
 - GitHub Action「Verify and publish release」（run 37302989398）22 秒成功：校验草稿、签名、公证、版本与架构后发布。2026-10-05 19:27（+0800）发布为 Latest，资产为 `FuseBar-1.3.2-macOS.zip`（3,022,083 字节）和 `SHA256SUMS.txt`，发布说明取自 RELEASE_NOTES.md。
 - 本机安装：退出正在运行的 1.3.1，旧版移到废纸篓（"FuseBar 1.3.1.app"），把发布流水线导出的公证版拷贝到 /Applications。安装后版本为 1.3.2 (8)，Developer ID（Team N9Q47Y2LQ4），spctl 通过。启动后无 error/fault 日志，状态项无障碍描述正常。
+
+## 2026-10-07：README 介绍片预览换成 v2
+
+- 来源：用户从 HyperFrames 导出的 `fusebar-20s-v2_2026-10-06_15-24-31.webp`（1920×1080，600 帧，30 fps，20 s，16,308,166 字节）。面板是 1.3.2 源码的离屏渲染（示例数据），不是实机录屏。
+- 压缩：隔帧取 300 帧，Lanczos 缩到 800×450，`img2webp -kmax 1 -sharp_yuv -lossy -q 70 -m 6`，帧时长按 67/66/67 ms 循环，总长 20.000 s，无限循环。两帧相同被合并，共 298 帧，2,534,760 字节，覆盖 `docs/previews/fusebar-intro.webp`。
+- 检查：用 img2webp 默认关键帧设置时，编码器把与上一帧相近的 8×8 块直接沿用上一帧，渐变背景出现明显色块。改为每帧都是关键帧（与旧预览一样，每帧都是完整画面）后，放大 2 倍与源帧对比 2 帧，另抽 6 帧原尺寸查看：渐变无色块，字幕、面板和代码文字清晰。
+- README 去掉 “silent preview” 和 v1.2.0 MP4 链接，说明改为 1.3.2 面板渲染。本地 8 个 mp4（`build/` 与 `videos/` 下，均未纳入 git）、v2 渲染的 meta.json 和 16 MB 原始 webp 已移到废纸篓。GitHub release 上的 mp4 附件未动。
+
+## 2026-10-07：README 精简与中文版
+
+- README 改为“下载 → 功能 → 截图 → 隐私 → 限制 → 构建”的顺序，功能合并为 8 条，删去与功能列表重复的使用说明和面向维护者的提示；下载链接改为 releases/latest，不再写死版本号。
+- 新增 `README.zh-Hans.md`，与英文版逐节对应，界面用词取自应用的 zh-Hans 文案，截图用现有 zh-Hans 渲染图。侧边子菜单组合图、搜索和深色外观只有英文渲染，中文版没有放。
+- 两份 README 的本地链接和图片路径全部存在（英文 20 个，中文 19 个）。

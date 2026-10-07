@@ -20,7 +20,7 @@ Input-source artwork: [light](input-source-icons.png) · [dark](input-source-ico
 
 Status items open separate side submenus; Settings and the project editor open in their own window; the files page keeps in-panel navigation. [Side input-source composition](side-input-sources-en.png), [battery](side-battery-en.png), [Wi-Fi](side-wifi-en.png), and [sound](side-sound-en.png) are offscreen compositions, not live screen-placement captures. App Store marketing assets under `docs/store-screenshots` describe earlier versions and were not resubmitted in this update.
 
-Intro film: [fusebar-intro.webp](fusebar-intro.webp) is a silent 800 px, 15 fps preview of the 20-second bilingual intro rendered with HyperFrames on September 27, 2026; its panel shots use the FuseBar 1.2.0 zh-Hans renders.
+Intro film: [fusebar-intro.webp](fusebar-intro.webp) is an 800 px, 15 fps preview of the 20-second bilingual intro rendered with HyperFrames on October 6, 2026; its panel shots are offscreen FuseBar 1.3.2 English renders with sample data.
 
 Compact panel validation previews: [dark theme](status-dark-en.png), [search with device results](search-en.png), [empty search](search-empty-en.png).
 
