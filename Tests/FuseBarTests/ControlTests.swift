@@ -171,20 +171,20 @@ struct ResponsivenessTests {
 }
 
 struct BottomIndicatorTests {
-    @Test func numberModesShowChosenPercentage() {
+    @Test func numbersShowBatteryAtTopAndChosenVolumeAtBottom() {
         var preferences = IndicatorPreferences()
-        preferences.bottomIndicator = .batteryLevel
-        #expect(StatusSnapshot.normal.bottomNumber(preferences) == "82")
+        #expect(StatusSnapshot.normal.batteryNumber(preferences) == "82")
         preferences.bottomIndicator = .volumeLevel
         #expect(StatusSnapshot.normal.bottomNumber(preferences) == "42")
+        #expect(StatusSnapshot.normal.batteryNumber(preferences) == "82")
     }
 
-    @Test func numberModeFallsBackToDefaultPipelineWhenMetricUnavailable() {
+    @Test func numbersHideWhenMetricUnavailableOrTurnedOff() {
         var preferences = IndicatorPreferences()
         var desktop = StatusSnapshot.normal
         desktop.battery.availability = .unavailable
-        preferences.bottomIndicator = .batteryLevel
-        #expect(desktop.bottomNumber(preferences) == nil)
+        #expect(desktop.batteryNumber(preferences) == nil)
+        #expect(StatusSnapshot().batteryNumber(preferences) == nil) // Unknown keeps the closed dashed ring.
 
         var noVolume = StatusSnapshot.normal
         noVolume.sound.available = false
@@ -196,9 +196,11 @@ struct BottomIndicatorTests {
         hidden.sound = false
         hidden.bottomIndicator = .volumeLevel
         #expect(StatusSnapshot.normal.bottomNumber(hidden) == nil)
+        hidden.batteryNumber = false
+        #expect(StatusSnapshot.normal.batteryNumber(hidden) == nil)
+        hidden.batteryNumber = true
         hidden.battery = false
-        hidden.bottomIndicator = .batteryLevel
-        #expect(StatusSnapshot.normal.bottomNumber(hidden) == nil)
+        #expect(StatusSnapshot.normal.batteryNumber(hidden) == nil)
     }
 
     @Test func defaultModeKeepsAlertAndDotPipeline() {
@@ -211,34 +213,50 @@ struct BottomIndicatorTests {
     @Test func storedRawValuesRoundTrip() {
         #expect(BottomIndicator(rawValue: "volumeLevel") == .volumeLevel)
         #expect(BottomIndicator(rawValue: "stale") == nil)
-        #expect(BottomIndicator.allCases.map(\.rawValue) == ["status", "batteryLevel", "volumeLevel"])
+        #expect(BottomIndicator(rawValue: "batteryLevel") == nil) // Retired: the number moved to the top.
+        #expect(BottomIndicator.allCases.map(\.rawValue) == ["status", "volumeLevel"])
     }
 }
 
-struct BatteryTintTests {
-    @Test func ringTintFollowsSystemBatteryColors() {
-        var battery = BatteryStatus(availability: .available, level: 82)
-        #expect(battery.systemTint == .none)          // Plain level: macOS keeps label color.
-        battery.charging = true
-        #expect(battery.systemTint == .charging)      // Charging: green, even below 10%.
-        battery.charging = false
-        battery.level = 9
-        #expect(battery.systemTint == .critical)      // Critical on battery power: red.
-        battery.externalPower = true
-        #expect(battery.systemTint == .none)          // Plugged in: no longer critical.
-        battery.externalPower = false
-        battery.level = 15
-        #expect(battery.systemTint == .none)          // Merely low: macOS does not tint red yet.
+struct BatteryAlertTests {
+    @Test func lowBatteryOnBatteryPowerTurnsTheOrbRed() {
+        let preferences = IndicatorPreferences()
+        var status = StatusSnapshot.normal
+        #expect(!status.batteryAlert(preferences))
+        status.battery.level = 19
+        #expect(status.batteryAlert(preferences))
+        status.battery.level = 7
+        #expect(status.batteryAlert(preferences))     // Critical is also low.
+        status.battery.externalPower = true
+        #expect(!status.batteryAlert(preferences))    // Plugged in: already being handled.
+        status.battery.externalPower = false
+        status.battery.level = 20
+        #expect(!status.batteryAlert(preferences))
     }
 
-    @Test func unknownOrMissingBatteryNeverTints() {
-        #expect(BatteryStatus().systemTint == .none)
-        var missing = BatteryStatus()
-        missing.availability = .unavailable
-        #expect(missing.systemTint == .none)
-        var critical = BatteryStatus(availability: .available, level: 5)
-        critical.charging = true
-        #expect(critical.systemTint == .charging)
+    @Test func hiddenUnknownOrMissingBatteryNeverAlerts() {
+        var status = StatusSnapshot.normal
+        status.battery.level = 5
+        var hidden = IndicatorPreferences()
+        hidden.battery = false
+        #expect(!status.batteryAlert(hidden))
+        #expect(!StatusSnapshot().batteryAlert(IndicatorPreferences()))
+        status.battery.availability = .unavailable
+        #expect(!status.batteryAlert(IndicatorPreferences()))
+    }
+}
+
+struct OrbRingTests {
+    @Test func openedRingFillsLeftHalfThenRightHalf() {
+        #expect(OrbGeometry.arcs(0.5, opened: false) == [145...270])
+        #expect(OrbGeometry.arcs(0, opened: true).isEmpty)
+        // Two 85° halves around the 80° top opening; each is half of the gauge.
+        #expect(OrbGeometry.arcs(0.5, opened: true) == [145...230])
+        #expect(OrbGeometry.arcs(1, opened: true) == [145...230, 310...395])
+        #expect(OrbGeometry.arcs(1.4, opened: true) == [145...230, 310...395])
+        let partial = OrbGeometry.arcs(0.76, opened: true)
+        #expect(partial.first == 145...230)
+        #expect(abs((partial.last?.upperBound ?? 0) - (310 + 0.52 * 85)) < 1e-9)
     }
 }
 

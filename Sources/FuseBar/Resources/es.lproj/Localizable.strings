@@ -77,7 +77,7 @@
 "状态提醒与音量四点" = "Alertas y puntos de volumen";
 "电量百分比数字" = "Porcentaje de batería";
 "音量百分比数字" = "Porcentaje de volumen";
-"选择数字后，圆环底部常显所选百分比，对应数据不可用时回落到提醒与四点。面板中的圆环按系统电池颜色着色：充电为绿色，严重低电为红色；菜单栏图标保持单色。" = "Al elegir un número, la parte inferior del anillo muestra siempre ese porcentaje y vuelve a las alertas y a los puntos cuando el valor no está disponible. En el panel, el anillo sigue los colores del sistema para la batería: verde al cargar, rojo en nivel crítico; el icono de la barra de menús permanece monocromo.";
+"电量数字显示在外环顶部的缺口中。选择音量数字后，圆环底部常显音量百分比，不可读时回落到提醒与四点。未接电源且电量低于 20% 时，整个图标变为红色；面板中的圆环充电时为绿色。" = "El porcentaje de batería aparece en la abertura superior del anillo. Con el número de volumen, la parte inferior del anillo muestra siempre el volumen y vuelve a las alertas y a los puntos si no se puede leer. Por debajo del 20 % con batería, todo el icono se vuelve rojo; en el panel, el anillo se vuelve verde durante la carga.";
 "悬停摘要包含蓝牙状态" = "Incluir Bluetooth en la descripción";
 "登录时启动" = "Abrir al iniciar sesión";
 "在系统设置中批准登录启动" = "Permitir el inicio en Ajustes del Sistema";

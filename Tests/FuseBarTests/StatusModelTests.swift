@@ -223,9 +223,21 @@ final class StatusModelTests: XCTestCase {
         let first = StatusStore(defaults: defaults, demo: true)
         first.preferences.wifi = false
         first.preferences.sound = false
+        first.preferences.batteryNumber = false
         let second = StatusStore(defaults: defaults, demo: true)
         XCTAssertFalse(second.preferences.wifi)
         XCTAssertFalse(second.preferences.sound)
+        XCTAssertFalse(second.preferences.batteryNumber)
         XCTAssertTrue(second.preferences.battery)
+    }
+
+    @MainActor func testRetiredBottomBatteryModeKeepsTheNumberAtTheTop() {
+        let suite = "FuseBarTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("batteryLevel", forKey: "bottomIndicator")
+        let store = StatusStore(defaults: defaults, demo: true)
+        XCTAssertEqual(store.preferences.bottomIndicator, .status)
+        XCTAssertTrue(store.preferences.batteryNumber)
     }
 }

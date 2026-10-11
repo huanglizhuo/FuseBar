@@ -12,15 +12,6 @@ struct BatteryStatus: Equatable {
     var fraction: Double { Double(min(100, max(0, level))) / 100 }
     var critical: Bool { availability == .available && level < 10 && !externalPower }
     var low: Bool { availability == .available && level < 20 && !externalPower }
-    /// macOS tints its battery indicator green while charging and red only at the
-    /// critical threshold; merely low batteries keep the plain label color.
-    enum SystemTint: Equatable { case none, charging, critical }
-    var systemTint: SystemTint {
-        guard availability == .available else { return .none }
-        if charging { return .charging }
-        if critical { return .critical }
-        return .none
-    }
     var detail: String {
         switch availability {
         case .unknown: return L("电池状态未知")
@@ -139,11 +130,12 @@ func nameIsBefore(_ lhs: String, _ rhs: String) -> Bool {
 }
 
 /// What the bottom slot of the orb shows: the default alert/dot pipeline or a
-/// persistent numeric readout of one metric.
-enum BottomIndicator: String, CaseIterable { case status, batteryLevel, volumeLevel }
+/// persistent volume readout. The battery percentage lives at the top of the ring.
+enum BottomIndicator: String, CaseIterable { case status, volumeLevel }
 
 struct IndicatorPreferences: Equatable {
     var battery = true
+    var batteryNumber = true
     var wifi = true
     var bluetooth = true
     var sound = true
@@ -175,19 +167,22 @@ struct StatusSnapshot: Equatable {
         return sound.volumeDots
     }
 
-    /// The persistent numeric readout chosen for the bottom slot; nil keeps the
-    /// default alert/dot pipeline, including when the chosen metric is unavailable.
+    /// The persistent volume readout chosen for the bottom slot; nil keeps the
+    /// default alert/dot pipeline, including when the volume is unreadable.
     func bottomNumber(_ preferences: IndicatorPreferences) -> String? {
-        switch preferences.bottomIndicator {
-        case .status: return nil
-        case .batteryLevel:
-            guard preferences.battery, battery.availability == .available else { return nil }
-            return String(min(100, max(0, battery.level)))
-        case .volumeLevel:
-            guard preferences.sound, sound.available, let volume = sound.volume, volume.isFinite else { return nil }
-            return String(volumePercent(Double(volume)))
-        }
+        guard preferences.bottomIndicator == .volumeLevel, preferences.sound, sound.available,
+              let volume = sound.volume, volume.isFinite else { return nil }
+        return String(volumePercent(Double(volume)))
     }
+
+    /// The battery percentage framed by the ring's top opening; nil keeps the ring closed.
+    func batteryNumber(_ preferences: IndicatorPreferences) -> String? {
+        guard preferences.battery, preferences.batteryNumber, battery.availability == .available else { return nil }
+        return String(min(100, max(0, battery.level)))
+    }
+
+    /// Low battery on battery power turns the whole orb red, menu bar included.
+    func batteryAlert(_ preferences: IndicatorPreferences) -> Bool { preferences.battery && battery.low }
 
     func headline(_ preferences: IndicatorPreferences) -> String {
         switch badge(preferences) {

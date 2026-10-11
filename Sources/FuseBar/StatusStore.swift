@@ -12,6 +12,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published var preferences: IndicatorPreferences {
         didSet {
             defaults.set(preferences.battery, forKey: "showBattery")
+            defaults.set(preferences.batteryNumber, forKey: "showBatteryNumber")
             defaults.set(preferences.wifi, forKey: "showWiFi")
             defaults.set(preferences.bluetooth, forKey: "showBluetooth")
             defaults.set(preferences.sound, forKey: "showSound")
@@ -54,9 +55,12 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     init(defaults: UserDefaults = .standard, demo: Bool = false) {
         self.defaults = defaults
         self.demo = demo
-        defaults.register(defaults: ["showBattery": true, "showWiFi": true, "showBluetooth": true, "showSound": true,
+        // A stored "batteryLevel" bottom mode no longer parses and falls back to .status;
+        // its battery number now shows at the top, which is on by default.
+        defaults.register(defaults: ["showBattery": true, "showBatteryNumber": true, "showWiFi": true, "showBluetooth": true, "showSound": true,
                                      "bottomIndicator": BottomIndicator.status.rawValue])
-        preferences = IndicatorPreferences(battery: defaults.bool(forKey: "showBattery"), wifi: defaults.bool(forKey: "showWiFi"),
+        preferences = IndicatorPreferences(battery: defaults.bool(forKey: "showBattery"), batteryNumber: defaults.bool(forKey: "showBatteryNumber"),
+                                           wifi: defaults.bool(forKey: "showWiFi"),
                                            bluetooth: defaults.bool(forKey: "showBluetooth"), sound: defaults.bool(forKey: "showSound"),
                                            center: CenterIndicator(rawValue: defaults.string(forKey: "centerIndicator") ?? "") ?? .network,
                                            bottomIndicator: BottomIndicator(rawValue: defaults.string(forKey: "bottomIndicator") ?? "") ?? .status)

@@ -117,6 +117,8 @@ struct OrbMorphPose {
     let dots: [Dot]
     /// Fraction of the ring the value arc covers (0…snapshot battery fraction).
     let valueTrim: Double
+    /// Whether the real orb opens its ring top for the battery number; the ring lands on it.
+    let opened: Bool
     /// Background track opacity (0…OrbGeometry.trackOpacity).
     let trackOpacity: Double
     /// Blend to the real OrbView for a pixel-perfect landing.
@@ -162,6 +164,7 @@ extension OrbMorphPose {
         }
 
         valueTrim = e.easeOut(e.progress(time, in: c.valueArc)) * snapshot.battery.fraction
+        opened = snapshot.batteryNumber(preferences) != nil
         trackOpacity = OrbGeometry.trackOpacity * e.easeOut(e.progress(time, in: c.trackFade))
         crossfade = e.smoothstep(e.progress(time, in: c.crossfade))
     }
@@ -266,11 +269,12 @@ private struct OrbMorphCanvas: View {
 
     private func ring(fraction: Double) -> Path {
         var path = Path()
-        guard fraction > 0 else { return path }
-        path.addArc(center: layout.orbCenter, radius: layout.ringRadius,
-                    startAngle: .degrees(OrbGeometry.ringStartAngle),
-                    endAngle: .degrees(OrbGeometry.ringStartAngle + OrbGeometry.ringSweep * fraction),
-                    clockwise: false)
+        // One subpath per arc; a shared subpath would bridge the top opening with a line.
+        for range in OrbGeometry.arcs(fraction, opened: pose.opened) {
+            path.addPath(Path { $0.addArc(center: layout.orbCenter, radius: layout.ringRadius,
+                                          startAngle: .degrees(range.lowerBound), endAngle: .degrees(range.upperBound),
+                                          clockwise: false) })
+        }
         return path
     }
 

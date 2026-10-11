@@ -255,20 +255,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             .frame(width: 22, height: 22).environment(\.colorScheme, .light))
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
         if let image = renderer.nsImage {
-            image.isTemplate = true
+            // A low battery keeps the orb's own red; otherwise the menu bar tints the template.
+            image.isTemplate = !snapshot.batteryAlert(preferences)
             item?.button?.image = image
         }
         // A critical battery gets a persistent symbol + level readout next to the
-        // orb; both template-rendered so they follow the menu bar appearance.
+        // orb, red like the orb itself (critical is always also low).
         if preferences.battery && snapshot.battery.critical {
             let attachment = NSTextAttachment()
             let glyph = NSImage(systemSymbolName: "battery.25percent", accessibilityDescription: nil)?
-                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .semibold))
-            glyph?.isTemplate = true
+                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
+                    .applying(NSImage.SymbolConfiguration(paletteColors: [.systemRed])))
+            glyph?.isTemplate = false
             attachment.image = glyph
             let title = NSMutableAttributedString(attachment: attachment)
             title.append(NSAttributedString(string: " \(snapshot.battery.level)%", attributes: [
-                .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
+                .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold),
+                .foregroundColor: NSColor.systemRed
             ]))
             item?.button?.imagePosition = .imageLeft
             item?.button?.attributedTitle = title

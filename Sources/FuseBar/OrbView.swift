@@ -53,6 +53,23 @@ enum OrbGeometry {
     static let dimDotOpacity: Double = 0.22
     static let trackOpacity: Double = 0.18
     static let wifiSymbolSize: CGFloat = 8
+    /// Half-angle of the top opening that frames the battery percentage; condensed
+    /// digits (compressed for "100") clear the ring's round caps at this width.
+    static let numberOpening: Double = 40
+    /// Canvas text inks about 0.25 above its anchor, so the digits center near y 3.45.
+    static let numberCenter = CGPoint(x: 11, y: 3.7)
+
+    /// Angle ranges the ring covers at `fraction`. An opened ring splits the 250° sweep
+    /// around the top opening into two equal halves, each exactly half of the gauge.
+    static func arcs(_ fraction: Double, opened: Bool) -> [ClosedRange<Double>] {
+        let starts = opened ? [ringStartAngle, 270 + numberOpening] : [ringStartAngle]
+        let span = (ringSweep - (opened ? 2 * numberOpening : 0)) / Double(starts.count)
+        var remaining = span * Double(starts.count) * min(1, max(0, fraction))
+        return starts.compactMap { start in
+            defer { remaining -= span }
+            return remaining > 0 ? start...(start + min(remaining, span)) : nil
+        }
+    }
 }
 
 /// Single geometry shared by the actual status item, onboarding and the fixture gallery.
@@ -60,10 +77,11 @@ struct OrbView: View {
     let snapshot: StatusSnapshot
     var preferences = IndicatorPreferences()
     // Menu-bar templates need opaque mask ink; content views retain semantic color.
+    // A low battery overrides both with red; the status item then drops template mode.
     var ink: Color = .primary
     var emphasized = false
-    // The status item renders a monochrome template, so it never tints; colored
-    // contexts (panel header, gallery) follow the system battery colors instead.
+    // The status item stays monochrome while charging; colored contexts (panel
+    // header, gallery) draw the charging arc green.
     var batteryRingTint = false
     var inputSource: KeyboardSource?
 
@@ -71,45 +89,39 @@ struct OrbView: View {
         Canvas { context, size in
             let scale = min(size.width, size.height) / 22
             context.scaleBy(x: scale, y: scale)
+            let ink = snapshot.batteryAlert(preferences) ? Color.red : self.ink
+            let weight: Font.Weight = emphasized ? .bold : .semibold
             func symbol(_ name: String, x: CGFloat, y: CGFloat, size: CGFloat,
                         value: Double? = nil, weight: Font.Weight? = nil) {
                 let glyph = Text(Image(systemName: name, variableValue: value).symbolRenderingMode(.monochrome))
                     .font(.system(size: size, weight: weight ?? (emphasized ? .bold : .semibold))).foregroundStyle(ink)
                 context.draw(glyph, at: CGPoint(x: x, y: y))
             }
-            let ringTint: Color? = {
-                guard batteryRingTint else { return nil }
-                switch snapshot.battery.systemTint {
-                case .charging: return .green
-                case .critical: return .red
-                case .none: return nil
-                }
-            }()
-            func arc(_ fraction: Double, opacity: Double, dashed: Bool = false) {
-                var path = Path()
+            let number = snapshot.batteryNumber(preferences)
+            func arc(_ fraction: Double, _ color: Color, dashed: Bool = false) {
                 // A symmetric 110° gap holds exactly one status symbol on the vertical axis.
-                path.addArc(center: OrbGeometry.center, radius: OrbGeometry.ringRadius,
-                            startAngle: .degrees(OrbGeometry.ringStartAngle),
-                            endAngle: .degrees(OrbGeometry.ringStartAngle + OrbGeometry.ringSweep * fraction), clockwise: false)
-                context.stroke(path, with: .color(ink.opacity(opacity)),
-                               style: StrokeStyle(lineWidth: emphasized ? OrbGeometry.emphasizedRingLineWidth : OrbGeometry.ringLineWidth, lineCap: .round, dash: dashed ? [1, 2] : []))
-            }
-            func valueArc(_ fraction: Double) {
-                var path = Path()
-                path.addArc(center: OrbGeometry.center, radius: OrbGeometry.ringRadius,
-                            startAngle: .degrees(OrbGeometry.ringStartAngle),
-                            endAngle: .degrees(OrbGeometry.ringStartAngle + OrbGeometry.ringSweep * fraction), clockwise: false)
-                context.stroke(path, with: .color((ringTint ?? ink).opacity(1)),
-                               style: StrokeStyle(lineWidth: emphasized ? OrbGeometry.emphasizedRingLineWidth : OrbGeometry.ringLineWidth, lineCap: .round))
+                for range in OrbGeometry.arcs(fraction, opened: number != nil) {
+                    var path = Path()
+                    path.addArc(center: OrbGeometry.center, radius: OrbGeometry.ringRadius,
+                                startAngle: .degrees(range.lowerBound), endAngle: .degrees(range.upperBound), clockwise: false)
+                    context.stroke(path, with: .color(color),
+                                   style: StrokeStyle(lineWidth: emphasized ? OrbGeometry.emphasizedRingLineWidth : OrbGeometry.ringLineWidth, lineCap: .round, dash: dashed ? [1, 2] : []))
+                }
             }
             if preferences.battery {
                 switch snapshot.battery.availability {
                 case .available:
-                    arc(1, opacity: 0.18)
-                    if snapshot.battery.fraction > 0 { valueArc(snapshot.battery.fraction) }
-                case .unknown: arc(1, opacity: 0.55, dashed: true)
+                    arc(1, ink.opacity(OrbGeometry.trackOpacity))
+                    arc(snapshot.battery.fraction, batteryRingTint && snapshot.battery.charging ? .green : ink)
+                case .unknown: arc(1, ink.opacity(0.55), dashed: true)
                 case .unavailable: break
                 }
+            }
+            if let number {
+                // Condensed digits fit the opening; "100" needs the narrower compressed cut.
+                let font: Font = number.count > 2 ? .system(size: 5, weight: weight).width(.compressed)
+                    : .system(size: 6, weight: weight).width(.condensed)
+                context.draw(Text(number).font(font).monospacedDigit().foregroundStyle(ink), at: OrbGeometry.numberCenter)
             }
             if let inputSource {
                 if let icon = inputSource.templateIcon?.cgImage(forProposedRect: nil, context: nil, hints: nil) {
