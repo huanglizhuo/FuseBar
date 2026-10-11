@@ -539,3 +539,9 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 实机菜单栏（本机 macOS 26.7）：电量读数由只存在于临时构建中的环境变量覆盖（未提交，源码已还原），与已安装的 1.3.2 并排运行并截取菜单栏。76%：单色模板，顶部显示 “76”，左半段满、右半段部分填充。15%：整个图标为红色，底部感叹号。7%：圆环、右侧电池符号和 “7%” 文字均为红色。电量是模拟值，不是实际低电；真实放电到 20% 以下、接拔电源时的切换，以及 macOS 14/15 尚未验证。
 - `NSStatusBarButton.contentTintColor`：独立的临时状态项没有出现在本机菜单栏，AppKit 缓存绘制显示为黑色，无法确认效果，因此没有采用。
 - 本机安装：Release 归档用 `Distribution/DeveloperID.plist` 导出（Developer ID 签名，未公证），满足已安装 1.3.2 的指定要求（反例团队要求校验失败），TCC 权限和沙盒容器因此沿用。退出运行中的 1.3.2，旧版移到废纸篓（“FuseBar 1.3.2.app”），新版拷贝到 /Applications 后启动。版本号未改，仍为 1.3.2 (8)。spctl 报告 “Unnotarized Developer ID”；本机构建没有隔离属性，可以正常运行。启动后两分钟内没有 error/fault 日志。菜单栏实测显示 “57”，与 `pmset` 读数 57% 一致，左半段满，右半段顶部少量填充。
+
+## 2026-10-11：1.4.0 (9) GitHub 发布与本机安装
+
+- 功能提交 d6e2b97 和发布提交 527d644（版本号、发布说明、README、29 张重新渲染的预览图）推送后，运行 `zsh Scripts/release.sh v1.4.0`：脚本内测试通过（83 项 XCTest + 26 项 Swift Testing），归档成功，公证在第二次轮询时完成，`prepare-release.sh` 校验后生成 `FuseBar-1.4.0-macOS.zip`。推送 tag v1.4.0 并创建草稿。
+- GitHub Action「Verify and publish release」（run 38134392136）的 publish 作业 16 秒成功：校验草稿、签名、公证、版本与架构后发布。2026-10-11 19:07（+0800）发布为 Latest，资产为 `FuseBar-1.4.0-macOS.zip`（3,025,697 字节）和 `SHA256SUMS.txt`；下载的校验和与本地 ZIP 一致（149c7d5d…）。
+- 本机安装：解压发布的 ZIP，确认版本 1.4.0 (9)，codesign 严格校验、stapler、spctl（Notarized Developer ID）和 arm64 + x86_64 架构均通过。退出正在运行的本地开发构建，将其移到废纸篓（“FuseBar local build.app”），把发布版拷贝到 /Applications 后启动。启动后没有 error/fault 日志。当时已接电源，电量 51%，正在充电。菜单栏实测：顶部显示 “51”，左半段满，右半段刚开始填充，底部显示充电闪电，电量数字和充电状态同时可见。
