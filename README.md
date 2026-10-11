@@ -20,7 +20,7 @@ Move FuseBar to Applications and open it. It lives in the menu bar and has no Do
 
 ## Features
 
-- **Status ring.** Battery around the ring, network or sound output in the center, and volume as four dots. A marker at the bottom flags critical battery, lost or unusable Wi-Fi, low battery, charging, or mute; Settings can show the battery or volume percentage there instead. Values FuseBar can't read stay blank or show as unknown.
+- **Status ring.** Battery around the ring with its percentage in an opening at the top, network or sound output in the center, and volume as four dots. Below 20% on battery power the whole icon turns red. A marker at the bottom flags critical battery, lost or unusable Wi-Fi, low battery, charging, or mute; Settings can show the volume percentage there instead. Values FuseBar can't read stay blank or show as unknown.
 - **Side menus.** Battery shows time remaining and Low Power Mode. Wi-Fi scans and joins personal networks. Bluetooth connects and disconnects paired devices. Sound switches the output and sets the volume.
 - **Search.** Type to open any installed app by name, initials ("vsc"), or pinyin ("wx" for 微信). The same box switches sound outputs, connects Bluetooth devices, changes input sources, and opens projects, saved files, and System Settings panes. Each result says what Return will do.
 - **Running apps.** Up to 12 above search, most recent first. ⌘1–⌘9 open the first nine; right-click to hide, reveal in Finder, or force quit.

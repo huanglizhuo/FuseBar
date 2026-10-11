@@ -1,6 +1,6 @@
 # FuseBar UI previews
 
-All previews re-rendered from FuseBar 1.3.0 source on October 5, 2026. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
+All previews re-rendered from FuseBar 1.4.0 source on October 11, 2026. These are offscreen native SwiftUI/AppKit renders, using sample system status, local running apps and installed input-source names/icons. Device and app names keep their original language. They are not live hardware screenshots or App Store submission images.
 
 Reproduce with `zsh Scripts/render-readme-previews.sh docs/previews`. The script uses an isolated preference suite and does not change the system language, input source, Dock settings, or saved app preferences.
 
