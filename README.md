@@ -1,5 +1,7 @@
 # FuseBar
 
+[![OctoCounts](https://api.octocounts.com/badge/huanglizhuo/FuseBar/branch/main)](https://octocounts.com/?q=https%3A%2F%2Fgithub.com%2Fhuanglizhuo%2FFuseBar&ref=main)
+
 **English** · [简体中文](README.zh-Hans.md)
 
 <img src="docs/previews/app-icon/default-256.png" alt="FuseBar app icon" width="96" height="96">
