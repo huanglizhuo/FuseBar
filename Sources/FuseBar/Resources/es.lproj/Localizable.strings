@@ -251,7 +251,7 @@
 "此设备由硬件控制音量。" = "El volumen se controla en el dispositivo.";
 "输出设备" = "Dispositivos de salida";
 "正在读取设备…" = "Cargando dispositivos…";
-"需要定位权限以显示附近网络；不会读取设备位置。" = "Permite la ubicación para ver redes cercanas. No se recopila tu ubicación.";
+"需要定位权限以显示附近网络；不会读取设备位置。" = "Opcional: permite el acceso a la ubicación para ver nombres Wi-Fi y redes cercanas en este panel. No se lee tu ubicación geográfica; los nombres permanecen en tu Mac.";
 "其他网络" = "Otras redes";
 "需要密码" = "Se requiere contraseña";
 "状态未知" = "Estado desconocido";

@@ -1,3 +1,3 @@
 "NSBluetoothAlwaysUsageDescription" = "FuseBar muestra los dispositivos Bluetooth enlazados y los conecta o desconecta cuando lo eliges. Los nombres y estados permanecen en tu Mac.";
-"NSLocationUsageDescription" = "macOS requiere permiso de ubicación para leer nombres Wi-Fi y buscar redes cuando lo solicitas. FuseBar no recopila tu ubicación ni sube nombres de red.";
-"NSLocationWhenInUseUsageDescription" = "macOS requiere permiso de ubicación para leer nombres Wi-Fi y buscar redes cuando lo solicitas. FuseBar no recopila tu ubicación ni sube nombres de red.";
+"NSLocationUsageDescription" = "FuseBar usa el permiso de ubicación para mostrar el nombre de tu Wi-Fi y las redes cercanas al abrir el panel Wi-Fi. El permiso es opcional. FuseBar no lee tu ubicación geográfica ni envía nombres de redes.";
+"NSLocationWhenInUseUsageDescription" = "FuseBar usa el permiso de ubicación para mostrar el nombre de tu Wi-Fi y las redes cercanas al abrir el panel Wi-Fi. El permiso es opcional. FuseBar no lee tu ubicación geográfica ni envía nombres de redes.";

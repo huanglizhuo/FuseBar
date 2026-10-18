@@ -1,6 +1,17 @@
 # Release workflow
 
-FuseBar is free and distributed through GitHub releases; the App Store channel is not published (decision of 2026-10-05), and its export steps below are kept for reference. Signing and notarization use the developer's local Xcode account and Keychain. GitHub Actions independently verifies a prepared, notarized ZIP on a hosted Mac and publishes the draft release. No Apple certificate, private key, or notarization password is stored in GitHub.
+FuseBar is free. GitHub releases use Developer ID signing and notarization; Mac App Store distribution is being resumed with the `com.clothpath.fusebar` identifier. The old App Store entry (6812443369, `com.clothpath.mergebar`) cannot change its bundle ID after an uploaded build and is not the destination for new builds. Signing uses the developer's local Xcode account and Keychain. No Apple private key or notarization password is stored in GitHub.
+
+## Self-hosted build and release
+
+The repository runner `fusebar-mac-arm64` runs on the maintainer's Mac with label `fusebar-release`. Its launch agent lives under `~/Library/LaunchAgents`; runner files are in `~/actions-runner-fusebar`. The Mac must be awake, the user session active, and Xcode's account and signing Keychain available. Xcode, XcodeGen, asc and gh must already be installed. Do not run untrusted pull-request code on this signing machine.
+
+Commit and push the version bump, generated project and release notes to `main`, then run **Actions → Build and release on Mac**. Only the repository owner can start its release job, and only from `main`. Jobs are serialized to avoid overlapping use of signing resources within this repository.
+
+- `app-store`: checks the `APP_STORE_APP_ID` repository variable against `project.yml`, tests, archives and uploads using `Distribution/AppStore.plist`. Set the variable to the newly created app record's numeric ID. A successful upload is not App Review submission or public release; select the processed build and complete metadata/review separately.
+- `github`: runs `Scripts/release.sh` to test, archive, notarize and create the tag and draft ZIP, then explicitly dispatches **Verify and publish release**. This explicit dispatch is necessary because tag pushes made with `GITHUB_TOKEN` do not trigger push workflows. The hosted Mac independently checks signature, notarization, version and architectures before publication.
+
+The workflow can also be started with `gh workflow run build-release.yml --ref main -f channel=app-store` or `-f channel=github`. Use a new version/build number for each new upload. If GitHub verification fails after a draft exists, retry `release.yml` with that tag; do not rebuild or replace an already published tag.
 
 ## Build and sign locally
 
@@ -21,7 +32,7 @@ xcodebuild -exportArchive -archivePath build/FuseBar.xcarchive \
   -allowProvisioningUpdates
 ```
 
-This uploads using the signed-in Xcode account. In App Store Connect, select the processed build and complete Add for Review. Review submission and public App Store release are separate steps.
+This uploads using the signed-in Xcode account. The new app record must use `com.clothpath.fusebar`. In App Store Connect, select the processed build and complete Add for Review. Review submission and public App Store release are separate steps.
 
 ## GitHub
 

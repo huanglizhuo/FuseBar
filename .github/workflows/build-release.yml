@@ -1,0 +1,92 @@
+name: Build and release on Mac
+run-name: Build and release (${{ inputs.channel }})
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Upload to App Store Connect or publish a notarized GitHub release
+        required: true
+        default: app-store
+        type: choice
+        options:
+          - app-store
+          - github
+permissions:
+  contents: read
+concurrency:
+  group: fusebar-signing
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main' && github.actor == github.repository_owner
+    runs-on: [self-hosted, macOS, ARM64, fusebar-release]
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      APP_STORE_APP_ID: ${{ vars.APP_STORE_APP_ID }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Prepare local tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo /opt/homebrew/bin >> "$GITHUB_PATH"
+          xcodebuild -version
+          test -x /opt/homebrew/bin/xcodegen
+          test -x /opt/homebrew/bin/gh
+          test -x /opt/homebrew/bin/asc
+      - name: Verify generated project
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodegen generate
+          git diff --exit-code -- FuseBar.xcodeproj
+      - name: Build, notarize and prepare GitHub release
+        if: inputs.channel == 'github'
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          version=$(sed -n "s/.*MARKETING_VERSION: '\(.*\)'.*/\1/p" project.yml | head -1)
+          zsh Scripts/release.sh "v$version"
+          # GITHUB_TOKEN tag pushes do not trigger push workflows; dispatch verification explicitly.
+          gh workflow run release.yml --ref main -f "tag=v$version"
+      - name: Validate App Store destination
+        if: inputs.channel == 'app-store'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$APP_STORE_APP_ID"
+          asc apps list --limit 200 > "$RUNNER_TEMP/fusebar-apps.json"
+          python3 - "$RUNNER_TEMP/fusebar-apps.json" <<'PY'
+          import json, os, re, sys
+          from pathlib import Path
+          bundle = re.search(r'^        PRODUCT_BUNDLE_IDENTIFIER: (.+)$', Path('project.yml').read_text(), re.M).group(1)
+          app = next((a for a in json.loads(Path(sys.argv[1]).read_text())['data'] if a['id'] == os.environ['APP_STORE_APP_ID']), None)
+          if app is None or app['bundleId'] != bundle:
+              sys.exit('APP_STORE_APP_ID must identify the app matching project.yml before uploading.')
+          print(f"Uploading {bundle} to App Store app {app['id']}")
+          PY
+      - name: Test and archive App Store build
+        if: inputs.channel == 'app-store'
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          zsh Scripts/test.sh
+          xcodebuild -project FuseBar.xcodeproj -scheme FuseBar -configuration Release \
+            -archivePath build/AppStore.xcarchive -allowProvisioningUpdates archive
+      - name: Upload signed build to App Store Connect
+        if: inputs.channel == 'app-store'
+        shell: zsh {0}
+        run: |
+          set -euo pipefail
+          xcodebuild -exportArchive -archivePath build/AppStore.xcarchive \
+            -exportOptionsPlist Distribution/AppStore.plist -exportPath build/AppStore \
+            -allowProvisioningUpdates
+          print "Uploaded build to App Store Connect app $APP_STORE_APP_ID. Processing and App Review are separate steps." >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,21 @@
 # 开发预览验收记录
 
+## 2026-10-19：1.4.1 (10) 权限说明与 self-hosted 发布准备
+
+- 系统定位用途文案和 Wi-Fi 面板解释已更新为中、英、日、法、西五种语言：显示当前 Wi-Fi 名称、打开面板时列出附近网络；授权可选，不读取地理位置、不上传网络名称。仅文案变化，未改权限/扫描逻辑。
+- `xcodegen generate` 完成；`zsh Scripts/build.sh` 成功；`zsh Scripts/test.sh` 通过 83 项 XCTest 和 26 项 Swift Testing。10 个 strings 文件通过 plutil；未将这些检查记为权限弹窗或硬件实测。
+- GitHub 专用 runner `fusebar-mac-arm64` 已在当前 Mac 注册为 LaunchAgent，标签 `fusebar-release`，GitHub API 确认 online。安装包来自 actions/runner v2.337.0，SHA-256 与 GitHub 下载清单匹配。
+- 新增仅仓库 owner 从 main 手动触发的构建/发布 workflow；App Store 目的地检查用匹配 ID、错误 Bundle ID、缺失 App 三种 fixture 自检通过。GitHub 路径显式 dispatch 原公证验证 workflow，避免 GITHUB_TOKEN 推 tag 不触发 push workflow。
+- 新 Bundle ID `com.clothpath.fusebar` 已注册（CQB2YC925X，Team N9Q47Y2LQ4）；新商店记录及上传尚待完成。旧商店条目保留，不修改其 bundle ID。
+
+## 2026-10-19：App Store 实时审核状态核查
+
+- asc 0.18.6 查询确认 App 6812443369 的 1.0 (1) 为 `REJECTED`，审核提交 `d8d7295d-4b20-49d4-acce-7ec60e472361` 为 `UNRESOLVED_ISSUES`；旧记录“尚未提交”不再适用。
+- 已登录 Brave 的审核详情显示唯一问题为 2.4.5(i)：解释 `com.apple.security.personal-information.location` 的用途及功能入口。Apple 明确只补充解释无需新 binary；未要求新增截图、视频或账号材料。
+- CLI readiness 检查的构建、文案、定价和联系人项通过；3 张桌面截图为 COMPLETE。此结果不代表拒绝已解除或功能通过审核。
+- 商店 Bundle ID 为 `com.clothpath.mergebar`；当前项目为 1.4.0 (9)、`com.clothpath.fusebar`。新版尚未上传到此商店条目，不能直接混用两个标识。
+- 核对 1.0 历史源码中的 Wi-Fi 名称按钮、定位授权与 CoreWLAN SSID 读取，保存未发送的 [英文回复草稿](../Distribution/APP_REVIEW_RESPONSE_1.0.md)。本次未改代码、未构建或做真机权限回归，也未修改远端资料、回复 Apple 或重新提交审核。
+
 日期：2026-09-15。环境：Apple Silicon、macOS 26、Xcode 26.6，最低构建目标 macOS 14。
 
 ## 已验证

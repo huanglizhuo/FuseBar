@@ -251,7 +251,7 @@
 "此设备由硬件控制音量。" = "Le volume se règle sur cet appareil.";
 "输出设备" = "Périphériques de sortie";
 "正在读取设备…" = "Chargement des appareils…";
-"需要定位权限以显示附近网络；不会读取设备位置。" = "Autorisez la localisation pour afficher les réseaux proches. Votre position n’est pas collectée.";
+"需要定位权限以显示附近网络；不会读取设备位置。" = "Facultatif : autorisez la localisation pour afficher les noms Wi-Fi et les réseaux à proximité dans ce panneau. Votre position géographique n’est pas lue et les noms restent sur votre Mac.";
 "其他网络" = "Autres réseaux";
 "需要密码" = "Mot de passe requis";
 "状态未知" = "État inconnu";

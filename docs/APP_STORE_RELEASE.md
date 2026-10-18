@@ -1,5 +1,7 @@
 # FuseBar — Mac App Store 发布清单
 
+> 2026-10-19 实时核查：历史“未提交”记录已过时。App Store 1.0 (1) 为 Rejected，提交为 Unresolved Issues；Apple 仅要求解释定位 entitlement 的用途和入口（2.4.5(i)），并明确补充说明无需新构建。核查结果与未发送回复草稿见 [审核回复](../Distribution/APP_REVIEW_RESPONSE_1.0.md)。商店 Bundle ID 为 `com.clothpath.mergebar`，不同于当前项目的 `com.clothpath.fusebar`。以下旧决策与清单保留为历史记录。
+
 > 2026-10-05：按维护者决定，App Store 渠道不发布，FuseBar 只通过 GitHub release 分发。1.0 (1) 停留在 Ready for Review，未提交审核。下文保留为历史参考。
 
 核对日期：2026-09-16。版本 1.0 (1) 已上传并完成 Add for Review，状态 Ready for Review；尚未执行最终 Submit for Review，也未获审核批准。详见 VALIDATION.md 与 Distribution/README.md。
