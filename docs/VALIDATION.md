@@ -581,3 +581,12 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - `project.yml` 版本更新为 1.5.0 (11)，`xcodegen generate` 成功；发布说明和中英文 README 同步本批行为。签名配置未改。
 - `zsh Scripts/render-readme-previews.sh docs/previews` 成功，用 1.5.0 源码生成五种语言的静态预览；目视检查简体中文状态页、英文搜索页，⌘1–9 提示及声音/蓝牙类别可见，未见异常重叠，长名称按设计截断。仅保留本批实际变化的状态/编码/搜索/侧边组合图；未变的设备/引导/输入源/设置/项目预览恢复原文件，避免无关重绘噪声。不作为实际窗口显示验证。介绍片保持 1.3.2 素材，预览索引单独注明。
 - 恢复 login 钥匙串搜索列表后，标准 `Scripts/build.sh` 成功，签名身份 Apple Development、Team `N9Q47Y2LQ4`，严格 codesign 验证通过；该次构建在版本更新前启动，产物仍是 1.4.1。随后 1.5.0 标准签名 `zsh Scripts/test.sh` 通过，94 项 XCTest + 28 项 Swift Testing，共 122 项，未使用签名覆盖；日志 `/tmp/fusebar-release-signed-test.log`。最终标准 `zsh Scripts/build.sh` 亦通过，Info.plist 核对为 1.5.0 (11)，严格 codesign 校验通过；日志 `/tmp/fusebar-release-signed-build-final.log`。Developer ID 导出、公证和 GitHub 发布流水线结果另行记录。
+
+
+## 2026-11-01：1.5.0 (11) GitHub 发布
+
+- 发布提交 `cbdbd29bce607bbb5d3064a7e0b5504addeb4d86` 推送后，从独立干净 worktree `/tmp/fusebar-release-v1.5.0` 运行既有 `zsh Scripts/release.sh v1.5.0`；原工作区两份未跟踪草稿保持原样。脚本内标准签名测试通过（94 项 XCTest + 28 项 Swift Testing，共 122 项），通用架构归档成功，公证导出在第二次轮询完成；完成打包后，脚本创建并推送 tag `v1.5.0`。
+- `prepare-release.sh` 严格 codesign、Developer ID Team `N9Q47Y2LQ4`、stapler 和 spctl（Notarized Developer ID）校验通过。生成 `FuseBar-1.5.0-macOS.zip`，3,051,506 字节，SHA-256 为 `4621f17c51f9063c8b1cf586b49575d2aab73956db7153b34568b36a781a906c`。
+- GitHub「Verify and publish release」run `41225529427` 首次在 stapler 访问 Apple CloudKit 时遇到 `NSURLError -1005`（连接丢失）；同一个 ZIP 未改动，重试 attempt 2 用时 13 秒成功，通过独立校验后于 2026-11-01 01:39:47（Asia/Singapore）[公开发布 1.5.0](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.5.0)。
+- 从 GitHub 下载公开资产后，重新核对版本 1.5.0 (11)、x86_64 + arm64、严格签名/指定要求、stapler 和 spctl 均通过。下载公开 `SHA256SUMS.txt` 与 ZIP 后，逐项比较返回 `./FuseBar-1.5.0-macOS.zip: OK`。GitHub `releases/latest` API 确认 `v1.5.0`，`draft=false`、`prerelease=false`。
+- 未安装到本机 `/Applications`，未提交 App Store。签名和公证不替代前述真实设备路由、休眠唤醒、低分辨率菜单栏、VoiceOver 与按键投递等待验证项；本次不新增硬件或能耗覆盖声明。
