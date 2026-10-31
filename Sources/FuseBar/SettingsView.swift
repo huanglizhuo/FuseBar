@@ -99,7 +99,7 @@ struct SettingsView: View {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(report, forType: .string)
                 }
-                Text(L("不含 Wi-Fi、设备、文件或项目名称；最近的错误提示按原文附上。粘贴前请先检查。"))
+                Text(L("不含 Wi-Fi、设备、文件或项目名称；最近错误仅标记是否存在，原文保留在应用内。"))
                     .font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }.padding(.top, 6)
         }
@@ -134,7 +134,7 @@ extension StatusStore {
             "Sound: available \(sound.available), volume control \(sound.canSetVolume), mute control \(sound.canSetMute), outputs \(audioOutputs.count)",
             "Input sources \(inputSources) · quick-open shortcut \(shortcutSet ? "set" : "not set") · \(codingLayout ? "coding" : "status") layout",
             "Login item: \(loginEnabled ? "enabled" : loginNeedsApproval ? "needs approval" : "off")",
-            "Last error: \(errorMessage ?? "none")"
+            "Last error: \(errorMessage == nil ? "none" : "present (details withheld)")"
         ].joined(separator: "\n")
     }
 }

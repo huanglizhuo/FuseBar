@@ -72,6 +72,63 @@ enum OrbGeometry {
     }
 }
 
+/// Only pixels used by the menu-bar orb; names and raw readings belong to its summary.
+struct OrbPresentation: Equatable {
+    let batteryAvailability: Availability?
+    let batteryFraction: Double?
+    let batteryNumber: String?
+    let alert: Bool
+    let centerSymbol: String?
+    let wifiBars: Int?
+    let sourceID: String?
+    let sourceImage: NSImage?
+    let sourceFallback: String?
+    let bottomNumber: String?
+    let bottomSymbol: String?
+    let volumeDots: Int?
+    let neutralAnchor: Bool
+    let scale: CGFloat
+
+    init(_ snapshot: StatusSnapshot, _ preferences: IndicatorPreferences,
+         inputSource: KeyboardSource? = nil, scale: CGFloat) {
+        batteryAvailability = preferences.battery ? snapshot.battery.availability : nil
+        batteryFraction = batteryAvailability == .available ? snapshot.battery.fraction : nil
+        batteryNumber = snapshot.batteryNumber(preferences)
+        alert = snapshot.batteryAlert(preferences)
+        sourceID = inputSource?.id
+        sourceImage = inputSource?.templateIcon
+        sourceFallback = inputSource?.fallback
+        if inputSource != nil || !preferences.centerEnabled {
+            centerSymbol = nil
+            wifiBars = nil
+        } else if preferences.center == .sound {
+            centerSymbol = StatusSymbols.sound(snapshot.sound)
+            wifiBars = nil
+        } else {
+            switch snapshot.wifi.connection {
+            case .connected: centerSymbol = snapshot.wifi.hotspotStyle ? "personalhotspot" : "wifi"
+            case .disconnected: centerSymbol = "xmark"
+            case .off: centerSymbol = "wifi.slash"
+            case .unknown, .unavailable: centerSymbol = "questionmark"
+            }
+            wifiBars = centerSymbol == "wifi" ? snapshot.wifi.bars : nil
+        }
+        bottomNumber = snapshot.bottomNumber(preferences)
+        if bottomNumber != nil { bottomSymbol = nil }
+        else {
+            switch snapshot.badge(preferences) {
+            case .critical, .networkWarning, .lowBattery: bottomSymbol = "exclamationmark"
+            case .charging: bottomSymbol = StatusSymbols.charging
+            case .muted: bottomSymbol = "speaker.slash.fill"
+            case .none: bottomSymbol = nil
+            }
+        }
+        volumeDots = bottomNumber == nil && bottomSymbol == nil ? snapshot.volumeDots(preferences) : nil
+        neutralAnchor = inputSource == nil && !preferences.centerEnabled && (!preferences.battery || snapshot.battery.availability == .unavailable)
+        self.scale = scale
+    }
+}
+
 /// Single geometry shared by the actual status item, onboarding and the fixture gallery.
 struct OrbView: View {
     let snapshot: StatusSnapshot

@@ -66,7 +66,7 @@ struct SoundPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             SystemMenuHeader(title: L("声音"), closesSubmenu: isSubmenu) {
-                if store.audioBusy { ProgressView().controlSize(.small) }
+                if store.audioBusy || store.audioOutputsRefreshing { ProgressView().controlSize(.small) }
             }
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
@@ -94,10 +94,10 @@ struct SoundPanel: View {
             HStack {
                 Text(L("输出设备")).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                 Spacer()
-                MenuRefreshButton(title: L("刷新"), disabled: store.audioBusy) { store.refreshAudioOutputs() }
+                MenuRefreshButton(title: L("刷新"), disabled: store.audioBusy || store.audioOutputsRefreshing) { store.refreshAudioOutputs() }
             }.padding(.horizontal, 16).padding(.top, 6)
             if outputs.isEmpty {
-                MenuNotice(text: store.audioBusy ? L("正在读取设备…") : L("没有可用的输出设备。请检查连接，或打开声音设置。"))
+                MenuNotice(text: store.audioOutputsRefreshing ? L("正在读取设备…") : L("没有可用的输出设备。请检查连接，或打开声音设置。"))
             } else {
                 ScrollView {
                     VStack(spacing: 2) {
@@ -116,6 +116,11 @@ struct SoundPanel: View {
                         }
                     }.padding(.horizontal, 8)
                 }.frame(height: menuListHeight(count: outputs.count, rowHeight: 44, cap: 220))
+            }
+            if let stage = store.audioConnectionStage {
+                Text(stage.title).font(.caption2).foregroundStyle(.secondary)
+                    .padding(.horizontal, 16).padding(.top, 6)
+                    .accessibilityAddTraits(.updatesFrequently)
             }
             if let error = store.errorMessage { MenuNotice(text: error, error: true) }
             Text(L("切换媒体播放输出；系统提示音仍使用原来的设置。"))

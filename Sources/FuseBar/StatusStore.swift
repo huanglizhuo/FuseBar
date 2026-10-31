@@ -4,6 +4,7 @@ import CoreAudio
 import CoreBluetooth
 import CoreLocation
 import Network
+import IOKit.ps
 import ServiceManagement
 
 @MainActor
@@ -27,8 +28,11 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     @Published private(set) var loginEnabled = false
     @Published private(set) var loginNeedsApproval = false
     @Published private(set) var audioSelectionID: String?
+    @Published private(set) var audioConnectionStage: AudioConnectionStage?
     @Published private(set) var audioOutputs: [AudioOutput] = []
     @Published private(set) var audioBusy = false
+    @Published private(set) var audioOutputsRefreshing = false
+    private var audioOutputsRevision = 0
     let defaults: UserDefaults
     private let worker = DispatchQueue(label: "com.fusebar.status", qos: .utility)
     private var audioRefreshPending = false
@@ -48,13 +52,22 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     private var wifiPath: WiFiPathState?
     private var timer: Timer?
     private var reading = false
+    private var pendingDomains: StatusReadDomains = []
+    private var fallbackTick = 0
+    private var batterySource: CFRunLoopSource?
     private var sleeping = false
     private var observers: [NSObjectProtocol] = []
     private let demo: Bool
+    private let readAudioChoices: @Sendable () -> [AudioOutput]
+    private let selectOutput: (@Sendable (AudioOutput) -> String?)?
 
-    init(defaults: UserDefaults = .standard, demo: Bool = false) {
+    init(defaults: UserDefaults = .standard, demo: Bool = false, startMonitoring: Bool = true,
+         readAudioChoices: @escaping @Sendable () -> [AudioOutput] = { StatusStore.currentAudioChoices() },
+         selectOutput: (@Sendable (AudioOutput) -> String?)? = nil) {
         self.defaults = defaults
         self.demo = demo
+        self.readAudioChoices = readAudioChoices
+        self.selectOutput = selectOutput
         // A stored "batteryLevel" bottom mode no longer parses and falls back to .status;
         // its battery number now shows at the top, which is on by default.
         defaults.register(defaults: ["showBattery": true, "showBatteryNumber": true, "showWiFi": true, "showBluetooth": true, "showSound": true,
@@ -72,6 +85,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
                             AudioOutput(id: "display", name: "Studio Display", selected: false, transport: kAudioDeviceTransportTypeHDMI)]
             return
         }
+        guard startMonitoring else { return }
         let locationManager = CLLocationManager()
         location = locationManager
         locationManager.delegate = self
@@ -84,7 +98,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         refreshAudioOutputs()
         let center = NSWorkspace.shared.notificationCenter
         observers.append(center.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in self?.sleeping = true; self?.audioMonitor?.stop(); self?.timer?.invalidate(); self?.timer = nil }
+            Task { @MainActor in self?.sleeping = true; self?.pendingDomains = []; self?.audioMonitor?.stop(); self?.timer?.invalidate(); self?.timer = nil }
         })
         observers.append(center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.sleeping = false; self?.audioMonitor?.start(); self?.startTimer(); self?.refresh(); self?.refreshAudioOutputs() }
@@ -97,15 +111,31 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
             Task { @MainActor in
                 guard let self else { return }
                 self.wifiPath = value
-                self.refresh()
+                self.refresh(domains: .wifi)
             }
         }
         monitor.start(queue: worker)
+        batterySource = IOPSNotificationCreateRunLoopSource({ context in
+            guard let context else { return }
+            let store = Unmanaged<StatusStore>.fromOpaque(context).takeUnretainedValue()
+            Task { @MainActor in store.refresh(domains: .battery) }
+        }, Unmanaged.passUnretained(self).toOpaque())?.takeRetainedValue()
+        if let batterySource { CFRunLoopAddSource(CFRunLoopGetMain(), batterySource, .commonModes) }
         startTimer()
         refresh()
     }
 
+    deinit {
+        if let batterySource { CFRunLoopSourceInvalidate(batterySource) }
+    }
+
     func stop() {
+        sleeping = true
+        pendingDomains = []
+        audioRefreshPending = false
+        audioOutputsRevision += 1
+        if let batterySource { CFRunLoopSourceInvalidate(batterySource) }
+        batterySource = nil
         audioMonitor?.stop(); audioMonitor = nil
         volumeWriter.cancelPending()
         wifiMonitor?.cancel(); wifiMonitor = nil
@@ -117,7 +147,11 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     private func startTimer() {
         timer?.invalidate()
         let timer = Timer(timeInterval: 3, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.refresh() }
+            Task { @MainActor in
+                guard let self else { return }
+                self.fallbackTick = (self.fallbackTick + 1) % 10
+                self.refresh(domains: StatusReadDomains.fallback(tick: self.fallbackTick, batteryNotificationsAvailable: self.batterySource != nil))
+            }
         }
         timer.tolerance = 0.5
         RunLoop.main.add(timer, forMode: .common)
@@ -187,9 +221,15 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         }
     }
 
-    func refresh() {
+    func refresh() { refresh(domains: .all) }
+
+    private func refresh(domains: StatusReadDomains) {
         updateNetworkNameAccess()
-        guard !demo, !reading, !sleeping else { return }
+        guard !demo, !sleeping else { return }
+        pendingDomains.formUnion(domains)
+        guard !reading else { return }
+        let domains = pendingDomains
+        pendingDomains = []
         // Recover if authorization was granted in System Settings while the app was running.
         if central == nil && CBManager.authorization == .allowedAlways { enableBluetooth() }
         reading = true
@@ -197,15 +237,19 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
         let path = wifiPath
         let revision = soundRevision
         worker.async { [weak self] in
-            let value = SystemReader.read(bluetoothState: state, wifiPath: path)
+            let value = SystemReader.read(bluetoothState: state, wifiPath: path, domains: domains)
             Task { @MainActor in
                 guard let self else { return }
-                var current = value
-                if self.soundRevision != revision { current.sound = self.snapshot.sound }
-                if self.snapshot != current { self.snapshot = current }
                 self.reading = false
+                guard !self.sleeping else { return }
+                var current = self.snapshot
+                if domains.contains(.battery) { current.battery = value.battery }
+                if domains.contains(.wifi) { current.wifi = value.wifi }
+                if domains.contains(.bluetooth) { current.bluetooth = value.bluetooth }
+                if domains.contains(.sound), self.soundRevision == revision { current.sound = value.sound }
+                if self.snapshot != current { self.snapshot = current }
                 // A first path update can arrive while the initial hardware read is in flight.
-                if self.wifiPath != path { self.refresh() }
+                if !self.pendingDomains.isEmpty { self.refresh(domains: []) }
             }
         }
     }
@@ -251,19 +295,27 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     }
 
     /// Live CoreAudio outputs plus paired-but-disconnected Bluetooth audio devices.
-    nonisolated private static func currentAudioChoices() -> [AudioOutput] {
-        AudioOutput.choices(outputs: AudioDevice.outputs(), paired: SystemBluetoothDeviceClient().read() ?? [])
+    nonisolated static func currentAudioChoices() -> [AudioOutput] {
+        let outputs = AudioDevice.outputs()
+        return AudioOutput.choices(outputs: outputs, paired: SystemBluetoothDeviceClient().read(outputs: outputs) ?? [])
     }
 
     func refreshAudioOutputs() {
-        guard !demo else { return }
-        guard !audioBusy else { audioRefreshPending = true; return }
-        audioBusy = true
+        guard !demo, !sleeping else { return }
+        guard !audioBusy, !audioOutputsRefreshing else { audioRefreshPending = true; return }
+        audioOutputsRefreshing = true
+        let revision = audioOutputsRevision
+        let readChoices = readAudioChoices
         audioWorker.async { [weak self] in
-            let outputs = Self.currentAudioChoices()
+            let outputs = readChoices()
             Task { @MainActor in
-                self?.audioOutputs = outputs
-                self?.finishAudioOperation()
+                guard let self else { return }
+                self.audioOutputsRefreshing = false
+                if self.audioOutputsRevision == revision, !self.audioBusy { self.audioOutputs = outputs }
+                if self.audioRefreshPending, !self.audioBusy {
+                    self.audioRefreshPending = false
+                    self.refreshAudioOutputs()
+                }
             }
         }
     }
@@ -271,17 +323,26 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     func selectAudioOutput(_ output: AudioOutput) {
         guard !demo, !audioBusy, !output.selected else { return }
         audioBusy = true
+        audioOutputsRevision += 1
         audioSelectionID = output.id
+        audioConnectionStage = output.bluetoothAddress == nil ? .switching : .connecting
+        let revision = audioOutputsRevision
         errorMessage = nil
         volumeWriter.cancelPending()
+        let select = selectOutput
+        let readChoices = readAudioChoices
         connectionWorker.async { [weak self] in
             let error: String?
-            if let address = output.bluetoothAddress {
-                error = BluetoothAudioConnection.select(address: address)
-            } else {
-                error = AudioDevice.selectOutput(uid: output.id)
-            }
-            let outputs = Self.currentAudioChoices()
+            if let select { error = select(output) }
+            else if let address = output.bluetoothAddress {
+                error = BluetoothAudioConnection.select(address: address, progress: { [weak self] stage in
+                    Task { @MainActor in
+                        guard let self, self.audioBusy, self.audioOutputsRevision == revision else { return }
+                        self.audioConnectionStage = stage
+                    }
+                })
+            } else { error = AudioDevice.selectOutput(uid: output.id) }
+            let outputs = readChoices()
             Task { @MainActor in
                 self?.audioOutputs = outputs
                 self?.finishAudioOperation()
@@ -294,6 +355,7 @@ final class StatusStore: NSObject, ObservableObject, CBCentralManagerDelegate, C
     private func finishAudioOperation() {
         audioBusy = false
         audioSelectionID = nil
+        audioConnectionStage = nil
         if audioRefreshPending {
             audioRefreshPending = false
             refreshAudioOutputs()

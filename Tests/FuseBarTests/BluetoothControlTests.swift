@@ -179,15 +179,17 @@ struct BluetoothAudioConnectionTests {
         let client = FakeBluetoothClient()
         var polls = 0
         var chosen: [String] = []
+        var stages: [AudioConnectionStage] = []
         let unrelated = AudioOutput(id: "aa-bb-cc-dd-ee-ff:output", name: "HC3", selected: false, transport: kAudioDeviceTransportTypeBluetooth)
         let error = BluetoothAudioConnection.select(address: address, client: client, outputs: {
             polls += 1
             return polls < 3 ? [unrelated] : [unrelated, route]
-        }, selectOutput: { chosen.append($0); return nil }, wait: {}, attempts: 4)
+        }, selectOutput: { chosen.append($0); return nil }, wait: {}, attempts: 4, progress: { stages.append($0) })
         #expect(error == nil)
         #expect(client.requestedStates == [true])
         #expect(polls == 3)
         #expect(chosen == [route.id])
+        #expect(stages == [.connecting, .waitingForOutput, .switching])
     }
 
     @Test func connectedWithoutAudioRouteTimesOutWithoutSelectingAnything() {

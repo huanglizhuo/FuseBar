@@ -8,6 +8,12 @@ final class SystemPanelPresentation {
     private var depth = 0
     var isPresenting: Bool { depth > 0 }
 
+    func run(_ alert: NSAlert) -> NSApplication.ModalResponse {
+        depth += 1
+        defer { depth -= 1 }
+        return alert.runModal()
+    }
+
     func run(_ panel: NSOpenPanel) -> NSApplication.ModalResponse {
         depth += 1
         defer { depth -= 1 }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		08226A8C61BA11FF282B9ECC /* ApplicationShelf.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26CBA65DCE48797AB289BB2C /* ApplicationShelf.swift */; };
+		0CF27BC2DE7DF1DB19FF1D5C /* RuntimeOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A76FAD42CFCF58412512A27E /* RuntimeOptimizationTests.swift */; };
 		11790F35BF8823D24DEE7958 /* FileShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47AFC0CE56DAA452B02B07F5 /* FileShortcuts.swift */; };
 		1E5B98C7F668CF078A030AB3 /* SideSubmenuTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F24CD9E8443CA4A769F136 /* SideSubmenuTests.swift */; };
 		265ECE17C7ED5C6ECE24F53E /* MenuSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67D9B88F60AF4DE4E33EA4AB /* MenuSearchTests.swift */; };
@@ -103,6 +104,7 @@
 		9C9C1284DACA0391E328A0FC /* CenterIndicatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CenterIndicatorTests.swift; sourceTree = "<group>"; };
 		9CDB8C527432711CAD009D1B /* ControlTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlTests.swift; sourceTree = "<group>"; };
 		A4AEAFF77FD25DA1F762EA2B /* OrbMorphTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbMorphTests.swift; sourceTree = "<group>"; };
+		A76FAD42CFCF58412512A27E /* RuntimeOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeOptimizationTests.swift; sourceTree = "<group>"; };
 		B8DF2A88563181E81FEC964A /* PanelPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelPresentationTests.swift; sourceTree = "<group>"; };
 		BC0CD826051982DB20B660D9 /* InputSourceSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSelectionTests.swift; sourceTree = "<group>"; };
 		BDE6F386B57CFFABFD5D70BC /* FuseBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FuseBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,6 +159,7 @@
 				67D9B88F60AF4DE4E33EA4AB /* MenuSearchTests.swift */,
 				A4AEAFF77FD25DA1F762EA2B /* OrbMorphTests.swift */,
 				B8DF2A88563181E81FEC964A /* PanelPresentationTests.swift */,
+				A76FAD42CFCF58412512A27E /* RuntimeOptimizationTests.swift */,
 				25F24CD9E8443CA4A769F136 /* SideSubmenuTests.swift */,
 				CA6E8267342B1F615FDDDD33 /* StatusModelTests.swift */,
 			);
@@ -361,6 +364,7 @@
 				265ECE17C7ED5C6ECE24F53E /* MenuSearchTests.swift in Sources */,
 				6D24AB245228B8E0EDF07ED8 /* OrbMorphTests.swift in Sources */,
 				F2766ED57A4FCB619FBADF76 /* PanelPresentationTests.swift in Sources */,
+				0CF27BC2DE7DF1DB19FF1D5C /* RuntimeOptimizationTests.swift in Sources */,
 				1E5B98C7F668CF078A030AB3 /* SideSubmenuTests.swift in Sources */,
 				6FD7970697785201735C41ED /* StatusModelTests.swift in Sources */,
 			);
@@ -410,7 +414,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -424,7 +428,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar;
 				SDKROOT = macosx;
 			};
@@ -597,7 +601,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/FuseBar/FuseBar.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -611,7 +615,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clothpath.fusebar;
 				SDKROOT = macosx;
 			};

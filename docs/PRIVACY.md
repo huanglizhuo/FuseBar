@@ -1,6 +1,6 @@
 # FuseBar Privacy Policy
 
-Effective October 5, 2026. Developer: Huang Lizhuo.
+Effective November 1, 2026. Developer: Huang Lizhuo.
 
 FuseBar is a free macOS menu bar utility. It has no account, advertising, analytics SDK, or developer-operated backend. FuseBar does not collect or transmit your battery, Wi-Fi, Bluetooth, audio, or location information to the developer or third parties.
 
@@ -42,4 +42,4 @@ Earlier versions could store pinned app identifiers and bookmarks (`pinnedApplic
 
 ### Diagnostics
 
-Settings → Diagnostics shows a summary of states and counts for support requests, such as whether Wi-Fi is connected or how many input sources are enabled. It excludes Wi-Fi, device, file and project names, and includes the latest error message as shown in FuseBar. It is copied to the clipboard only when you click Copy; FuseBar never sends it anywhere.
+Settings → Diagnostics shows a summary of states and counts for support requests, such as whether Wi-Fi is connected or how many input sources are enabled. It excludes Wi-Fi, device, file and project names, and reports only whether a latest error is present; error text is withheld because it may contain names or paths. The actionable error remains visible inside the app. It is copied to the clipboard only when you click Copy; FuseBar never sends it anywhere.

@@ -7,7 +7,7 @@ final class StatusModelTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let store = StatusStore(defaults: defaults, demo: true)
-        store.errorMessage = "Example error"
+        store.errorMessage = "Cannot open /Users/Alice/Private Project on Secret Wi-Fi with Studio Headphones"
         let report = store.diagnostics(inputSources: 2, shortcutSet: true, codingLayout: false)
         for name in ["Home Wi-Fi", "AirPods Pro", "Studio Headphones", "Studio Display", store.snapshot.sound.deviceName] {
             XCTAssertFalse(report.contains(name), name)
@@ -16,7 +16,13 @@ final class StatusModelTests: XCTestCase {
         XCTAssertTrue(report.contains("connected devices 1"))
         XCTAssertTrue(report.contains("outputs 3"))
         XCTAssertTrue(report.contains("Developer ID or local build"))
-        XCTAssertTrue(report.hasSuffix("Last error: Example error"))
+        XCTAssertTrue(report.hasSuffix("Last error: present (details withheld)"))
+        XCTAssertFalse(report.contains("Alice"))
+        XCTAssertFalse(report.contains("Private Project"))
+        XCTAssertFalse(report.contains("Secret Wi-Fi"))
+        XCTAssertTrue(store.errorMessage!.contains("Private Project"))
+        store.errorMessage = nil
+        XCTAssertTrue(store.diagnostics(inputSources: 0, shortcutSet: false, codingLayout: false).hasSuffix("Last error: none"))
     }
 
     func testAssociatedWiFiWithoutUsablePathIsExplicitAndWarns() {

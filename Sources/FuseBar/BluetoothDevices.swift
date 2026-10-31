@@ -59,10 +59,12 @@ protocol BluetoothDeviceControlling: Sendable {
 
 struct SystemBluetoothDeviceClient: BluetoothDeviceControlling {
     private static let commandLock = NSLock()
-    func read() -> [PairedBluetoothDevice]? {
+    func read() -> [PairedBluetoothDevice]? { read(outputs: nil) }
+
+    func read(outputs: [AudioOutput]?) -> [PairedBluetoothDevice]? {
         guard CBManager.authorization == .allowedAlways,
               let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] else { return nil }
-        let aliases = BluetoothDeviceNames.shared.resolve(addresses: paired.compactMap(\.addressString), outputs: AudioDevice.outputs())
+        let aliases = BluetoothDeviceNames.shared.resolve(addresses: paired.compactMap(\.addressString), outputs: outputs ?? AudioDevice.outputs())
         return paired.compactMap { device in
             guard let address = device.addressString else { return nil }
             let name = BluetoothDeviceNames.addressKey(address).flatMap { aliases[$0] } ?? device.name ?? L("蓝牙设备")

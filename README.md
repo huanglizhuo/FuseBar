@@ -16,20 +16,20 @@ Free and native for macOS 14 or later. No account, ads, subscription, or analyti
 
 ## Download
 
-Get the latest version from [GitHub Releases](https://github.com/huanglizhuo/FuseBar/releases/latest). The app is universal (Apple silicon and Intel), signed with Developer ID, and notarized by Apple. FuseBar is not on the Mac App Store.
+Get the latest version from [GitHub Releases](https://github.com/huanglizhuo/FuseBar/releases/latest). The app is universal (Apple silicon and Intel), signed with Developer ID, and notarized by Apple.
 
 Move FuseBar to Applications and open it. It lives in the menu bar and has no Dock icon: click its ring to open the panel and the first-run guide. FuseBar is available in English, Simplified Chinese, Japanese, French, and Spanish, and follows your Mac's preferred languages.
 
 ## Features
 
 - **Status ring.** Battery around the ring with its percentage in an opening at the top, network or sound output in the center, and volume as four dots. Below 20% on battery power the whole icon turns red. A marker at the bottom flags critical battery, lost or unusable Wi-Fi, low battery, charging, or mute; Settings can show the volume percentage there instead. Values FuseBar can't read stay blank or show as unknown.
-- **Side menus.** Battery shows time remaining and Low Power Mode. Wi-Fi scans and joins personal networks. Bluetooth connects and disconnects paired devices. Sound switches the output and sets the volume.
-- **Search.** Type to open any installed app by name, initials ("vsc"), or pinyin ("wx" for 微信). The same box switches sound outputs, connects Bluetooth devices, changes input sources, and opens projects, saved files, and System Settings panes. Each result says what Return will do.
-- **Running apps.** Up to 12 above search, most recent first. ⌘1–⌘9 open the first nine; right-click to hide, reveal in Finder, or force quit.
+- **Side menus.** Battery shows time remaining and Low Power Mode. Wi-Fi scans and joins personal networks. Bluetooth connects and disconnects paired devices. Sound switches the output and sets the volume, with connection progress for Bluetooth audio.
+- **Search.** Type to open any installed app by name, initials ("vsc"), or pinyin ("wx" for 微信). The same box switches sound outputs, connects Bluetooth devices, changes input sources, and opens projects, saved files, and System Settings panes. Sound and Bluetooth results show their category and what Return will do. The installed-app catalog refreshes on demand.
+- **Running apps.** Up to 12 above search, most recent first. ⌘1–⌘9 open the first nine; hold Command to see their numbers. Right-click to hide, reveal in Finder, quit normally, or confirm a force quit.
 - **Input sources.** Pick any enabled input source by its native icon. After a switch, the ring shows the new source for two seconds, or always if you prefer.
 - **Coding layout.** Compact status icons plus each project's folder, preview, and repository links. Open the folder in the app you choose, such as Finder, Visual Studio Code, Cursor, Zed, Xcode, or Terminal.
 - **Keyboard.** Record a quick-open shortcut to open FuseBar with search focused. ↑/↓ and Return pick a result, even while pinyin is composing; → opens a status's side menu and ← closes it; Escape closes the side menu, then the panel.
-- **Diagnostics.** Settings can copy a summary without Wi-Fi, device, file, or project names for a bug report. FuseBar never checks for updates in the background.
+- **Diagnostics.** Settings can copy a summary without Wi-Fi, device, file, or project names for a bug report. Error text is withheld from the copy and stays visible inside the app. FuseBar never checks for updates in the background.
 
 ## Screenshots
 

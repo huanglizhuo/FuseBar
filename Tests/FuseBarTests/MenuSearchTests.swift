@@ -3,6 +3,18 @@ import XCTest
 @testable import FuseBar
 
 final class MenuSearchTests: XCTestCase {
+    func testSearchPerformanceAtInstalledCatalogScale() {
+        let entries = (0..<1000).map { index in
+            MenuSearchEntry(id: "app\(index)", title: "Development Tool \(index)", category: "Applications", symbol: "app",
+                            destination: .application(URL(fileURLWithPath: "/Applications/Tool\(index).app")), aliases: ["tool\(index)"])
+        }
+        let queries = ["d", "de", "dev", "deve", "development", "tool9", "tool99"]
+        let cold = Date()
+        for query in queries { XCTAssertFalse(MenuSearchModel.results(entries, query: query).isEmpty) }
+        print("MenuSearch 1000 entries, 7 cold queries: \(Date().timeIntervalSince(cold))s")
+        measure { for query in queries { _ = MenuSearchModel.results(entries, query: query) } }
+    }
+
     private let entries = [
         MenuSearchEntry(id: "app:editor", title: "Éditeur", category: "Application", symbol: "app", destination: .application(URL(fileURLWithPath: "/Applications/Editor.app"))),
         MenuSearchEntry(id: "file:work", title: "工作目录", category: "Files", symbol: "folder", destination: .file(UUID(uuidString: "00000000-0000-0000-0000-000000000001")!)),

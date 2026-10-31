@@ -59,16 +59,19 @@ enum SystemReader {
         return WiFiStatus(connection: .unknown)
     }
 
-    static func bluetooth(state: BluetoothState) -> BluetoothStatus {
+    static func bluetooth(state: BluetoothState, outputs: [AudioOutput]? = nil) -> BluetoothStatus {
         guard state == .on else { return BluetoothStatus(state: state) }
-        guard let paired = SystemBluetoothDeviceClient().read() else {
+        guard let paired = SystemBluetoothDeviceClient().read(outputs: outputs) else {
             return BluetoothStatus(state: .unknown)
         }
         return BluetoothStatus(state: .on, devices: paired.filter(\.connected).map(\.name).sorted())
     }
 
-    static func read(bluetoothState: BluetoothState, wifiPath: WiFiPathState? = nil) -> StatusSnapshot {
-        StatusSnapshot(battery: battery(), wifi: wifi(path: wifiPath), bluetooth: bluetooth(state: bluetoothState), sound: AudioDevice.read())
+    static func read(bluetoothState: BluetoothState, wifiPath: WiFiPathState? = nil, domains: StatusReadDomains = .all) -> StatusSnapshot {
+        StatusSnapshot(battery: domains.contains(.battery) ? battery() : BatteryStatus(),
+                       wifi: domains.contains(.wifi) ? wifi(path: wifiPath) : WiFiStatus(),
+                       bluetooth: domains.contains(.bluetooth) ? bluetooth(state: bluetoothState, outputs: domains.contains(.sound) ? nil : []) : BluetoothStatus(),
+                       sound: domains.contains(.sound) ? AudioDevice.read() : SoundStatus())
     }
 }
 
@@ -78,4 +81,18 @@ struct WiFiPathState: Equatable {
     var expensive: Bool
     /// Any usable route over the Wi-Fi-only path, even one a VPN carries; only false is evidence of a problem.
     var satisfied = true
+}
+
+struct StatusReadDomains: OptionSet, Sendable {
+    let rawValue: Int
+    static let battery = Self(rawValue: 1)
+    static let wifi = Self(rawValue: 2)
+    static let bluetooth = Self(rawValue: 4)
+    static let sound = Self(rawValue: 8)
+    static let all: Self = [.battery, .wifi, .bluetooth, .sound]
+
+    static func fallback(tick: Int, batteryNotificationsAvailable: Bool = true) -> Self {
+        if tick == 0 { return .all }
+        return batteryNotificationsAvailable ? [.wifi, .bluetooth] : [.battery, .wifi, .bluetooth]
+    }
 }

@@ -298,3 +298,13 @@
 "复制诊断信息" = "Copy diagnostics";
 "不含 Wi-Fi、设备、文件或项目名称；最近的错误提示按原文附上。粘贴前请先检查。" = "Contains no Wi-Fi, device, file or project names; the latest error message is included as shown. Review it before pasting.";
 "查看最新版本 ↗" = "Check for the latest version ↗";
+
+"系统未接受退出请求，请切换到该应用操作。" = "The system did not accept the quit request. Switch to the app to quit it.";
+"退出应用" = "Quit App";
+"强制退出…" = "Force Quit…";
+"强制退出“%@”？" = "Force quit “%@”?";
+"未存储的更改可能会丢失。请先尝试正常退出应用。" = "Unsaved changes may be lost. Try quitting the app normally first.";
+"按 ⌘1–9 打开应用；搜索时按 ↑↓ 选择，Return 打开" = "Press ⌘1–9 to open apps; in search, use ↑↓ to select and Return to open.";
+"不含 Wi-Fi、设备、文件或项目名称；最近错误仅标记是否存在，原文保留在应用内。" = "Excludes Wi-Fi, device, file and project names. Recent errors are marked only as present or absent; their text stays in the app.";
+"正在等待声音输出…" = "Waiting for audio output…";
+"正在切换声音输出…" = "Switching audio output…";

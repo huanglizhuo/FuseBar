@@ -53,9 +53,12 @@ final class ApplicationShelf: ObservableObject {
     static let shared = ApplicationShelf()
     @Published private(set) var installed: [ShelfApplication] = []
     private var scanning = false
+    private var scanPending = false
     @Published private(set) var frontmostID: String?
     @Published private(set) var recentIDs: [String]
-    private var scanned = false
+    private var lastScan: Date?
+    private let readInstalledApplications: @Sendable () -> [ShelfApplication]
+    private let now: () -> Date
     @Published private(set) var running: [ShelfApplication] = []
     private let defaults: UserDefaults
     private var observers: [NSObjectProtocol] = []
@@ -66,7 +69,11 @@ final class ApplicationShelf: ObservableObject {
     private var revision = 0
 
     init(defaults: UserDefaults = .standard,
-         readApplications: @escaping @Sendable () -> [ShelfApplication] = { ApplicationShelf.readApplications() }) {
+         readApplications: @escaping @Sendable () -> [ShelfApplication] = { ApplicationShelf.readApplications() },
+         readInstalledApplications: @escaping @Sendable () -> [ShelfApplication] = { ApplicationShelf.readInstalledApplications() },
+         now: @escaping () -> Date = Date.init) {
+        self.readInstalledApplications = readInstalledApplications
+        self.now = now
         self.readApplications = readApplications
         self.defaults = defaults
         recentIDs = Array(ApplicationShelfModel.normalizedOrder(defaults.stringArray(forKey: "recentApplications") ?? []).prefix(100))
@@ -84,13 +91,24 @@ final class ApplicationShelf: ObservableObject {
                        app.activationPolicy == .regular, let id = app.bundleIdentifier {
                         self.recordRecentApplication(id)
                     }
-                    self.refresh()
+                    if name == NSWorkspace.didActivateApplicationNotification {
+                        if let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+                           app.activationPolicy == .regular, app.bundleIdentifier != Bundle.main.bundleIdentifier {
+                            if let id = app.bundleIdentifier { self.recordActivation(id) }
+                        }
+                    } else { self.refresh() }
                 }
             })
         }
         if let app = NSWorkspace.shared.frontmostApplication, app.activationPolicy == .regular,
            let id = app.bundleIdentifier { recordRecentApplication(id) }
         refresh()
+    }
+
+    func recordActivation(_ id: String) {
+        guard !id.isEmpty, id != Bundle.main.bundleIdentifier else { return }
+        frontmostID = id
+        recordRecentApplication(id)
     }
 
     func recordRecentApplication(_ id: String) {
@@ -113,12 +131,12 @@ final class ApplicationShelf: ObservableObject {
         let token = revision
         worker.async { [weak self, readApplications] in
             let apps = readApplications()
-            let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
             Task { @MainActor in
                 guard let self else { return }
                 self.refreshing = false
                 if self.revision == token {
                     self.running = ApplicationShelfModel.recent(apps.filter(\.running), ids: self.recentIDs)
+                    let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
                     if frontmost != Bundle.main.bundleIdentifier { self.frontmostID = frontmost }
                     ApplicationIconCache.prewarm(self.running.compactMap(\.url))
                 }
@@ -137,37 +155,56 @@ final class ApplicationShelf: ObservableObject {
         }, query: "")
     }
 
+    /// Refresh only on demand, at most once per minute; no filesystem polling.
     func discoverApplications() {
-        guard !scanned, !scanning else { return }
+        guard !scanning, lastScan.map({ now().timeIntervalSince($0) >= 60 }) ?? true else { return }
         scanning = true
-        let userApplications = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications")
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            var found: [ShelfApplication] = []
-            for root in [URL(fileURLWithPath: "/Applications"), URL(fileURLWithPath: "/System/Applications"), userApplications] {
-                guard let entries = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]) else { continue }
-                for case let url as URL in entries {
-                    if url.pathExtension == "app" {
-                        entries.skipDescendants()
-                        guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { continue }
-                        found.append(ShelfApplication(id: id, name: FileManager.default.displayName(atPath: url.path), url: url, running: false))
-                    } else if url.pathComponents.count - root.pathComponents.count >= 2 { entries.skipDescendants() }
+        worker.async { [weak self, readInstalledApplications] in
+            let result = readInstalledApplications()
+            Task { @MainActor in
+                guard let self else { return }
+                self.installed = result
+                self.scanning = false
+                self.lastScan = self.now()
+                if self.scanPending {
+                    self.scanPending = false
+                    self.invalidateInstalledApplications()
                 }
             }
-            let result = ApplicationShelfModel.visible(found.sorted { nameIsBefore($0.name, $1.name) }, query: "")
-            Task { @MainActor in self?.installed = result; self?.scanning = false; self?.scanned = true }
         }
     }
 
-    var searchable: [ShelfApplication] {
-        ApplicationShelfModel.visible(running + installed, query: "")
+    func invalidateInstalledApplications() {
+        lastScan = nil
+        if scanning { scanPending = true } else { discoverApplications() }
     }
 
-    func forceTerminate(_ app: ShelfApplication) -> String? {
+    nonisolated private static func readInstalledApplications() -> [ShelfApplication] {
+        let userApplications = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications")
+        var found: [ShelfApplication] = []
+        for root in [URL(fileURLWithPath: "/Applications"), URL(fileURLWithPath: "/System/Applications"), userApplications] {
+            guard let entries = FileManager.default.enumerator(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles]) else { continue }
+            for case let url as URL in entries {
+                if url.pathExtension == "app" {
+                    entries.skipDescendants()
+                    guard let bundle = Bundle(url: url), let id = bundle.bundleIdentifier else { continue }
+                    found.append(ShelfApplication(id: id, name: FileManager.default.displayName(atPath: url.path), url: url, running: false))
+                } else if url.pathComponents.count - root.pathComponents.count >= 2 { entries.skipDescendants() }
+            }
+        }
+        return ApplicationShelfModel.visible(found.sorted { nameIsBefore($0.name, $1.name) }, query: "")
+    }
+
+    var searchable: [ShelfApplication] {
+        ApplicationShelfModel.visible(ApplicationShelfModel.recent(running, ids: recentIDs) + installed, query: "")
+    }
+
+    func terminate(_ app: ShelfApplication, force: Bool = false) -> String? {
         let targets = NSRunningApplication.runningApplications(withBundleIdentifier: app.id).filter { !$0.isTerminated }
         guard !targets.isEmpty else { refresh(); return L("应用已经退出，请刷新后重试。") }
-        let succeeded = targets.allSatisfy { $0.forceTerminate() }
+        let succeeded = targets.map { force ? $0.forceTerminate() : $0.terminate() }.allSatisfy { $0 }
         refresh()
-        return succeeded ? nil : L("系统未接受强制退出，请重试。")
+        return succeeded ? nil : force ? L("系统未接受强制退出，请重试。") : L("系统未接受退出请求，请切换到该应用操作。")
     }
 
     func setHidden(_ hidden: Bool, app: ShelfApplication) -> String? {

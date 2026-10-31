@@ -561,3 +561,23 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - 功能提交 d6e2b97 和发布提交 527d644（版本号、发布说明、README、29 张重新渲染的预览图）推送后，运行 `zsh Scripts/release.sh v1.4.0`：脚本内测试通过（83 项 XCTest + 26 项 Swift Testing），归档成功，公证在第二次轮询时完成，`prepare-release.sh` 校验后生成 `FuseBar-1.4.0-macOS.zip`。推送 tag v1.4.0 并创建草稿。
 - GitHub Action「Verify and publish release」（run 38134392136）的 publish 作业 16 秒成功：校验草稿、签名、公证、版本与架构后发布。2026-10-11 19:07（+0800）发布为 Latest，资产为 `FuseBar-1.4.0-macOS.zip`（3,025,697 字节）和 `SHA256SUMS.txt`；下载的校验和与本地 ZIP 一致（149c7d5d…）。
 - 本机安装：解压发布的 ZIP，确认版本 1.4.0 (9)，codesign 严格校验、stapler、spctl（Notarized Developer ID）和 arm64 + x86_64 架构均通过。退出正在运行的本地开发构建，将其移到废纸篓（“FuseBar local build.app”），把发布版拷贝到 /Applications 后启动。启动后没有 error/fault 日志。当时已接电源，电量 51%，正在充电。菜单栏实测：顶部显示 “51”，左半段满，右半段刚开始填充，底部显示充电闪电，电量数字和充电状态同时可见。
+
+
+## 2026-11-01：运行时、展示与操作优化（开发中，未发布）
+
+- 基线：对本批修改前的 HEAD 使用本地 ad-hoc 签名构建、测试，通过 83 项 XCTest + 26 项 Swift Testing。标准 `zsh Scripts/build.sh` 在基线与本批代码上最初均报告找不到 Team `N9Q47Y2LQ4` 的 Mac Development 签名身份。后续定位发现用户钥匙串搜索列表为空；显式检查 login.keychain-db 可见有效 Apple Development 和 Developer ID Application 身份及私钥。维护者已恢复 login 钥匙串搜索列表；先前失败属于签名身份可见性问题，并非私钥实际缺失，后续签名构建结果另行记录。
+- 本批本地 ad-hoc 构建通过；观察到既有 `FileShortcuts.swift:25` actor 隔离警告与 `InputSources.swift:58` 的 `iconRef` 弃用警告。本地构建不等于 Developer ID、公证或商店归档验证。
+- 最终完整测试：`XCODE_XCCONFIG_FILE=/tmp/fusebar-verification.xcconfig zsh Scripts/test.sh` 通过，94 项 XCTest + 28 项 Swift Testing，共 122 项，零失败（基线 109 项）。xcconfig 仅为本地验证覆盖 `CODE_SIGN_IDENTITY=-`、`CODE_SIGN_STYLE=Manual`；日志 `/tmp/fusebar-test-complete.log`。新增验证涉及调度领域/回退、声音列表读取与写入隔离及旧结果保护、应用目录刷新/激活、退出确认、类别搜索、视觉依赖与等价视图像素、诊断错误去标识。
+- 首次完整测试发现新增强制退出警告的取消默认按钮断言失败；已显式设置原生默认按钮为取消，并移除与 AppKit 自动改写 keyEquivalent 冲突的断言。最终测试确认取消是默认按钮、强制退出无快捷键、取消回调不执行退出。无界面测试环境未能建立用于合成事件的 key window，Return/Escape 实际按键投递仍未验证，不据此增加事件监视器。
+- Release `-O` 独立性能测试使用 `/tmp/fusebar-release-verification`，仅命令行覆盖 `ENABLE_TESTABILITY=YES`、`ENABLE_HARDENED_RUNTIME=NO` 和 ad-hoc 签名，未改工程发布配置。1000 个合成 ASCII 条目、7 个查询：首次总计约 29.14 ms；10 次暖批次平均约 32 ms（约 4.6 ms/查询），相对标准差约 24%，首个测量批次 54.5 ms、其余约 28–29.6 ms。测试与 Debug 全套测试重叠运行，因此仅为近似成本，不是前后优化对比；不包含条目构造、UI、拼音或硬件成本。本批未新增搜索归一化/拼音缓存。
+- 三秒回退计时器及其唤醒频率保留；减少的是大部分 tick 的电池/声音领域读取，未声称减少定时唤醒。测试覆盖回退领域选择、通知源不可用时的电池回退，以及声音列表读取与切换结果竞争；IOPS 事件投递和休眠唤醒仍待实机验证。
+- `Scripts/render-readme-previews.sh /tmp/fusebar-optimization-previews` 成功生成五语预览，目视检查简体中文状态页、英文搜索页、法文声音页，布局未见异常裁切或重叠（应用长名称仍按设计截断）。这些是离屏示例状态，未覆盖真实硬件连接或屏幕菜单栏；未替换已发布截图。
+- 本批没有能耗、CPU、长时间运行或真机设备切换测量，不推导省电幅度。@1x 圆环数字仍沿用 2026-10-11 的离屏结论（约 4 px 高，可辨识度有限）；未新增 @1x/@2x 实机、全屏菜单栏、VoiceOver、睡眠唤醒、真实蓝牙/声音路由和跨 macOS 版本验证；按住 ⌘ 的序号展示与输入法组合态下的修饰键兼容也需现场交互验证。
+- 版本号未改，未安装、提交、推送或发布；用户草稿 `docs/TRIGGERS_PLAN.md` 与未跟踪商店元数据保持原样。
+
+
+### 1.5.0 (11) 发布准备与预览刷新
+
+- `project.yml` 版本更新为 1.5.0 (11)，`xcodegen generate` 成功；发布说明和中英文 README 同步本批行为。签名配置未改。
+- `zsh Scripts/render-readme-previews.sh docs/previews` 成功，用 1.5.0 源码生成五种语言的静态预览；目视检查简体中文状态页、英文搜索页，⌘1–9 提示及声音/蓝牙类别可见，未见异常重叠，长名称按设计截断。仅保留本批实际变化的状态/编码/搜索/侧边组合图；未变的设备/引导/输入源/设置/项目预览恢复原文件，避免无关重绘噪声。不作为实际窗口显示验证。介绍片保持 1.3.2 素材，预览索引单独注明。
+- 恢复 login 钥匙串搜索列表后，标准 `Scripts/build.sh` 成功，签名身份 Apple Development、Team `N9Q47Y2LQ4`，严格 codesign 验证通过；该次构建在版本更新前启动，产物仍是 1.4.1。随后 1.5.0 标准签名 `zsh Scripts/test.sh` 通过，94 项 XCTest + 28 项 Swift Testing，共 122 项，未使用签名覆盖；日志 `/tmp/fusebar-release-signed-test.log`。最终标准 `zsh Scripts/build.sh` 亦通过，Info.plist 核对为 1.5.0 (11)，严格 codesign 校验通过；日志 `/tmp/fusebar-release-signed-build-final.log`。Developer ID 导出、公证和 GitHub 发布流水线结果另行记录。

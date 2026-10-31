@@ -70,6 +70,105 @@ final class ApplicationShelfTests: XCTestCase {
         XCTAssertEqual(shelf.recentIDs.first, "app.109")
     }
 
+    @MainActor func testInstalledCatalogRefreshesOnlyOnDemandAfterExpiry() throws {
+        let suite = "FuseBarTests.Catalog.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var date = Date(timeIntervalSince1970: 0)
+        // Each scan changes the catalog, representing an install and a removal.
+        let scans = CatalogScans()
+        let shelf = ApplicationShelf(defaults: defaults, readInstalledApplications: { scans.read() }, now: { date })
+        func awaitCatalog(_ id: String) {
+            let deadline = Date().addingTimeInterval(2)
+            while shelf.installed.first?.id != id && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+            XCTAssertEqual(shelf.installed.first?.id, id)
+        }
+        shelf.discoverApplications()
+        awaitCatalog("app1")
+        date.addTimeInterval(59)
+        shelf.discoverApplications()
+        XCTAssertEqual(shelf.installed.first?.id, "app1")
+        date.addTimeInterval(1)
+        shelf.discoverApplications()
+        awaitCatalog("app2")
+        shelf.invalidateInstalledApplications()
+        awaitCatalog("app3")
+    }
+
+    @MainActor func testInvalidationDuringCatalogScanSchedulesOneFollowUp() {
+        let scans = CatalogScans()
+        let entered = expectation(description: "Initial scan started")
+        let release = DispatchSemaphore(value: 0)
+        let shelf = ApplicationShelf(readInstalledApplications: {
+            let result = scans.read()
+            if result.first?.id == "app1" {
+                entered.fulfill()
+                _ = release.wait(timeout: .now() + 2)
+            }
+            return result
+        })
+        shelf.discoverApplications()
+        wait(for: [entered], timeout: 1)
+        shelf.invalidateInstalledApplications()
+        shelf.invalidateInstalledApplications()
+        release.signal()
+        let deadline = Date().addingTimeInterval(2)
+        while shelf.installed.first?.id != "app2" && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+        XCTAssertEqual(shelf.installed.first?.id, "app2")
+        XCTAssertEqual(scans.readCount, 2)
+    }
+
+    @MainActor func testActivationUpdatesSearchOrderWithoutReadingMetadata() throws {
+        let suite = "FuseBarTests.Activation.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let scans = CatalogScans()
+        let apps = ["one", "two"].map { ShelfApplication(id: $0, name: $0, url: nil, running: true) }
+        let shelf = ApplicationShelf(defaults: defaults, readApplications: { _ = scans.read(); return apps })
+        shelf.refresh()
+        let deadline = Date().addingTimeInterval(2)
+        while shelf.running.count != 2 && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+        let reads = scans.readCount
+        shelf.recordActivation("two")
+        XCTAssertEqual(shelf.frontmostID, "two")
+        XCTAssertEqual(shelf.searchable.map(\.id), ["two", "one"])
+        XCTAssertEqual(scans.readCount, reads)
+    }
+
+    @MainActor func testForceQuitDefaultsToCancelAndCancelDoesNotTerminate() {
+        let store = StatusStore(demo: true)
+        let view = PopoverView(store: store, preview: true)
+        let app = ShelfApplication(id: "test", name: "Unsaved Editor", url: nil, running: true)
+        var terminated = false
+        view.confirmForceQuit(app, runAlert: { alert in
+            XCTAssertTrue(alert.messageText.contains(app.name))
+            XCTAssertFalse(alert.informativeText.isEmpty)
+            XCTAssertEqual(alert.buttons.first?.keyEquivalent, "\r")
+            XCTAssertTrue(alert.window.defaultButtonCell === alert.buttons.first?.cell)
+            XCTAssertEqual(alert.buttons.last?.keyEquivalent, "")
+            XCTAssertEqual(alert.buttons.first?.title, L("取消"))
+            return .alertFirstButtonReturn
+        }, terminate: { _ in terminated = true; return nil })
+        XCTAssertFalse(terminated)
+    }
+
+    @MainActor func testForceQuitModalPreservesPopoverAndRestoresDismissal() {
+        let popover = QuitTrackingPopover()
+        let delegate = AppDelegate(popover: popover)
+        delegate.installDismissalMonitors()
+        defer { delegate.popoverDidClose(Notification(name: NSPopover.didCloseNotification)) }
+        let alert = CancellingQuitAlert()
+        alert.duringPresentation = {
+            XCTAssertTrue(SystemPanelPresentation.shared.isPresenting)
+            NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+            XCTAssertEqual(popover.closeRequests, 0)
+        }
+        XCTAssertEqual(SystemPanelPresentation.shared.run(alert), .alertFirstButtonReturn)
+        XCTAssertFalse(SystemPanelPresentation.shared.isPresenting)
+        NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+        XCTAssertEqual(popover.closeRequests, 1)
+    }
+
     func testOrderNormalizationKeepsFirstOccurrence() {
         XCTAssertEqual(ApplicationShelfModel.normalizedOrder(["b", "", "a", "b", "c"]), ["b", "a", "c"])
     }
@@ -86,5 +185,33 @@ final class ApplicationShelfTests: XCTestCase {
         let running = ShelfApplication(id: "running.app", name: "Running", url: URL(fileURLWithPath: "/Applications/Running.app"), running: true)
         let installed = ShelfApplication(id: "running.app", name: "Running", url: URL(fileURLWithPath: "/Applications/Running.app"), running: false)
         XCTAssertEqual(ApplicationShelfModel.visible([running, installed, running], query: "  "), [running])
+    }
+}
+
+private final class CatalogScans: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    var readCount: Int {
+        lock.lock(); defer { lock.unlock() }
+        return count
+    }
+    func read() -> [ShelfApplication] {
+        lock.lock()
+        defer { lock.unlock() }
+        count += 1
+        return [ShelfApplication(id: "app\(count)", name: "App", url: nil, running: false)]
+    }
+}
+
+@MainActor private final class QuitTrackingPopover: NSPopover {
+    var closeRequests = 0
+    override func performClose(_ sender: Any?) { closeRequests += 1 }
+}
+
+@MainActor private final class CancellingQuitAlert: NSAlert {
+    var duringPresentation: (() -> Void)?
+    override func runModal() -> NSApplication.ModalResponse {
+        duringPresentation?()
+        return .alertFirstButtonReturn
     }
 }

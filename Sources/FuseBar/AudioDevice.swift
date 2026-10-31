@@ -32,20 +32,35 @@ extension AudioOutput {
     }
 }
 
+enum AudioConnectionStage: Equatable, Sendable {
+    case connecting, waitingForOutput, switching
+
+    var title: String {
+        switch self {
+        case .connecting: return L("正在连接…")
+        case .waitingForOutput: return L("正在等待声音输出…")
+        case .switching: return L("正在切换声音输出…")
+        }
+    }
+}
+
 /// Called on the audio worker. Connection success alone does not imply an audio route exists.
 enum BluetoothAudioConnection {
     static func select(address: String, client: any BluetoothDeviceControlling = SystemBluetoothDeviceClient(),
                        outputs: () -> [AudioOutput] = AudioDevice.outputs,
                        selectOutput: (String) -> String? = { AudioDevice.selectOutput(uid: $0) },
                        wait: () -> Void = { Thread.sleep(forTimeInterval: 0.2) },
-                       attempts: Int = 50) -> String? {
+                       attempts: Int = 50, progress: (AudioConnectionStage) -> Void = { _ in }) -> String? {
         guard let key = BluetoothDeviceNames.addressKey(address),
               client.read()?.contains(where: { BluetoothDeviceNames.addressKey($0.id) == key && $0.isAudioDevice }) == true else {
             return L("设备已不在配对列表中，请刷新后重试。")
         }
+        progress(.connecting)
         if let error = client.setConnected(address: address, connected: true) { return error }
+        progress(.waitingForOutput)
         for index in 0..<attempts {
             if let output = outputs().first(where: { BluetoothDeviceNames.audioAddress($0) == key }) {
+                progress(.switching)
                 return selectOutput(output.id)
             }
             if index + 1 < attempts { wait() }

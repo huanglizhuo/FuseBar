@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct PopoverView: View {
     @ObservedObject var store: StatusStore
@@ -9,6 +10,7 @@ struct PopoverView: View {
     @StateObject private var projects: CodingProjects
     @FocusState private var searchFocused: Bool
     @State private var searchIndex = 0
+    @State private var commandHeld = false
     @ObservedObject private var submenu = SideSubmenu.shared
     @StateObject private var files: FileShortcuts
     @StateObject private var bluetooth: BluetoothPanelStore
@@ -205,8 +207,10 @@ struct PopoverView: View {
                 bluetooth.refresh(state: store.snapshot.bluetooth.state)
             }
             if !preview || focusSearch { DispatchQueue.main.async { searchFocused = true } }
+            commandHeld = searchKeys?.commandHeld ?? false
             searchKeys?.handler = { handleSearchKey($0) }
         }
+        .onReceive(searchKeys?.$commandHeld.eraseToAnyPublisher() ?? Just(false).eraseToAnyPublisher()) { commandHeld = $0 }
         .onDisappear { searchKeys?.handler = nil }
         .onChange(of: page) { _, newPage in
             SideSubmenu.shared.close(); appQuery = ""; searchFocused = false; files.reload()
@@ -310,7 +314,7 @@ struct PopoverView: View {
         // Devices and sources name the action Return performs, so a result never surprises.
         let outputs = store.audioOutputs.map { output in
             MenuSearchEntry(id: "output:" + output.id, title: output.name,
-                            category: output.selected ? L("当前输出") : output.bluetoothAddress == nil ? L("切换输出") : L("连接输出"),
+                            category: L("声音") + " · " + (output.selected ? L("当前输出") : output.bluetoothAddress == nil ? L("切换输出") : L("连接输出")),
                             symbol: output.symbol, destination: .audioOutput(output.id))
         }
         let sources = inputSources.sources.map { source in
@@ -319,7 +323,7 @@ struct PopoverView: View {
                             symbol: "keyboard", destination: .inputSource(source.id))
         }
         let devices = bluetooth.devices.map { device in
-            MenuSearchEntry(id: "bluetooth:" + device.id, title: device.name, category: device.connected ? L("断开设备") : L("连接设备"),
+            MenuSearchEntry(id: "bluetooth:" + device.id, title: device.name, category: L("蓝牙") + " · " + (device.connected ? L("断开设备") : L("连接设备")),
                             symbol: device.symbol, destination: .bluetoothDevice(device.id))
         }
         let projectEntries = projects.items.map {
@@ -354,7 +358,10 @@ struct PopoverView: View {
         TextField(L("搜索应用、设备与设置…"), text: $appQuery)
             .textFieldStyle(.roundedBorder).focused($searchFocused)
             .accessibilityLabel(L("搜索应用、设备与设置…"))
-            .onChange(of: appQuery) { _, _ in searchIndex = 0 }
+            .onChange(of: appQuery) { _, _ in
+                searchIndex = 0
+                if !preview { shelf.discoverApplications() }
+            }
             .onSubmit { openSearchSelection() }
             .onKeyPress(.downArrow) {
                 if searchMatches.isEmpty && appQuery.isEmpty { searchFocused = false; focusedStatus = .battery }
@@ -592,6 +599,8 @@ struct PopoverView: View {
             HStack {
                 Text(L("运行中的应用")).font(.caption2).foregroundStyle(.secondary)
                 Spacer()
+                Text("⌘1–9").font(.caption2).foregroundStyle(.secondary)
+                    .help(L("按 ⌘1–9 打开应用；搜索时按 ↑↓ 选择，Return 打开"))
             }
             if apps.isEmpty {
                 Text(L("暂无运行中的应用")).font(.caption).foregroundStyle(.secondary)
@@ -607,6 +616,11 @@ struct PopoverView: View {
                                 .background(shelf.frontmostID == app.id ? Color.accentColor.opacity(0.18) : .clear, in: RoundedRectangle(cornerRadius: 7))
                                 .overlay(alignment: .bottom) {
                                     if app.running { Circle().fill(.secondary).frame(width: 3, height: 3) }
+                                }.overlay(alignment: .topTrailing) {
+                                    if index < 9, commandHeld {
+                                        Text("\(index + 1)").font(.system(size: 10, weight: .bold))
+                                            .padding(2).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 3))
+                                    }
                                 }.contentShape(Rectangle())
                         }.buttonStyle(MenuButtonStyle())
                             .keyboardShortcut(index < 9 ? KeyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command) : nil)
@@ -624,12 +638,34 @@ struct PopoverView: View {
             if app.running {
                 Button(L("隐藏应用")) { store.errorMessage = shelf.setHidden(true, app: app) }
                 Button(L("显示应用")) { store.errorMessage = shelf.setHidden(false, app: app) }
-                Button(L("强制退出")) { store.errorMessage = shelf.forceTerminate(app) }
+                Button(L("退出应用")) { store.errorMessage = shelf.terminate(app) }
+                Divider()
+                Button(L("强制退出…"), role: .destructive) { confirmForceQuit(app) }
                 Divider()
             }
             Button(L("在 Finder 中显示")) {
                 if let url = app.url { NSWorkspace.shared.activateFileViewerSelecting([url]) }
             }.disabled(app.url == nil)
+    }
+
+    func confirmForceQuit(_ app: ShelfApplication,
+                          runAlert: ((NSAlert) -> NSApplication.ModalResponse)? = nil,
+                          terminate: ((ShelfApplication) -> String?)? = nil) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L("强制退出“%@”？", app.name)
+        alert.informativeText = L("未存储的更改可能会丢失。请先尝试正常退出应用。")
+        alert.addButton(withTitle: L("取消"))
+        alert.addButton(withTitle: L("强制退出"))
+        // Make Cancel the default; the destructive action requires an explicit click.
+        alert.buttons[1].keyEquivalent = ""
+        alert.window.defaultButtonCell = alert.buttons[0].cell as? NSButtonCell
+        let response: NSApplication.ModalResponse
+        if let runAlert { response = runAlert(alert) }
+        else { response = SystemPanelPresentation.shared.run(alert) }
+        guard response == .alertSecondButtonReturn else { return }
+        if let terminate { store.errorMessage = terminate(app) }
+        else { store.errorMessage = shelf.terminate(app, force: true) }
     }
 
     private func statusRow(_ title: String, detail: String, symbol: String, destination: SettingsDestination) -> some View {
@@ -722,7 +758,8 @@ struct PopoverView: View {
 
 /// Search navigation keys, taken by the app's event monitor before the field editor: a composing
 /// pinyin input method would otherwise claim ↑/↓/Return for its candidate window.
-@MainActor final class SearchKeys {
+@MainActor final class SearchKeys: ObservableObject {
+    @Published var commandHeld = false
     enum Key { case up, down, open }
     var handler: ((Key) -> Bool)?
 

@@ -11,6 +11,8 @@ struct FuseBarApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSWindowDelegate {
     private var item: NSStatusItem?
+    private var renderedOrb: OrbPresentation?
+    private var displayedCriticalLevel: Int?
     private let popover: NSPopover
     private let sideSubmenu: SideSubmenu
 
@@ -76,6 +78,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             guard let self, let store = self.store else { return }
             self.updateIcon(store.snapshot, store.preferences, inputSource: source)
         }.store(in: &subscriptions)
+        NotificationCenter.default.publisher(for: NSWindow.didChangeBackingPropertiesNotification)
+            .sink { [weak self] notification in
+                guard let self, let window = notification.object as? NSWindow,
+                      window === self.item?.button?.window, let store = self.store else { return }
+                self.updateIcon(store.snapshot, store.preferences, inputSource: self.inputSources.centerSource)
+            }.store(in: &subscriptions)
         store.$snapshot.combineLatest(store.$preferences)
             .sink { [weak self] snapshot, preferences in self?.updateIcon(snapshot, preferences, inputSource: self?.inputSources.centerSource) }
             .store(in: &subscriptions)
@@ -95,6 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
 
     func installDismissalMonitors() {
         removeDismissalMonitors()
+        searchKeys.commandHeld = NSEvent.modifierFlags.contains(.command)
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]) { [weak self] _ in
             // AppKit invokes event monitors on the main thread. No deferred stale close action.
             MainActor.assumeIsolated {
@@ -109,9 +118,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                 self.closeAllMenus()
             }
         }
-        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown]) { [weak self] event in
+        localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown, .flagsChanged]) { [weak self] event in
             let consume = MainActor.assumeIsolated {
                 guard let self else { return false }
+                if event.type == .flagsChanged {
+                    self.searchKeys.commandHeld = event.modifierFlags.contains(.command)
+                    return false
+                }
                 if event.type == .keyDown {
                     guard !SystemPanelPresentation.shared.isPresenting else { return false }
                     if event.keyCode == 53, NSApp.modalWindow == nil,
@@ -233,6 +246,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func removeDismissalMonitors() {
+        searchKeys.commandHeld = false
         let outside = outsideClickMonitor
         let local = localEventMonitor
         let deactivate = deactivateObserver
@@ -251,17 +265,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     private func updateIcon(_ snapshot: StatusSnapshot, _ preferences: IndicatorPreferences, inputSource: KeyboardSource? = nil) {
-        let renderer = ImageRenderer(content: OrbView(snapshot: snapshot, preferences: preferences, ink: .black, emphasized: true, inputSource: inputSource)
-            .frame(width: 22, height: 22).environment(\.colorScheme, .light))
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2
-        if let image = renderer.nsImage {
-            // A low battery keeps the orb's own red; otherwise the menu bar tints the template.
-            image.isTemplate = !snapshot.batteryAlert(preferences)
-            item?.button?.image = image
+        let scale = item?.button?.window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2
+        let presentation = OrbPresentation(snapshot, preferences, inputSource: inputSource, scale: scale)
+        if presentation != renderedOrb {
+            let renderer = ImageRenderer(content: OrbView(snapshot: snapshot, preferences: preferences, ink: .black, emphasized: true, inputSource: inputSource)
+                .frame(width: 22, height: 22).environment(\.colorScheme, .light))
+            renderer.scale = scale
+            if let image = renderer.nsImage {
+                // A low battery keeps the orb's own red; otherwise the menu bar tints the template.
+                image.isTemplate = !snapshot.batteryAlert(preferences)
+                item?.button?.image = image
+                renderedOrb = presentation
+            }
         }
         // A critical battery gets a persistent symbol + level readout next to the
         // orb, red like the orb itself (critical is always also low).
-        if preferences.battery && snapshot.battery.critical {
+        let criticalLevel = preferences.battery && snapshot.battery.critical ? snapshot.battery.level : nil
+        if let criticalLevel, criticalLevel != displayedCriticalLevel {
             let attachment = NSTextAttachment()
             let glyph = NSImage(systemSymbolName: "battery.25percent", accessibilityDescription: nil)?
                 .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .semibold)
@@ -269,17 +289,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             glyph?.isTemplate = false
             attachment.image = glyph
             let title = NSMutableAttributedString(attachment: attachment)
-            title.append(NSAttributedString(string: " \(snapshot.battery.level)%", attributes: [
+            title.append(NSAttributedString(string: " \(criticalLevel)%", attributes: [
                 .font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .semibold),
                 .foregroundColor: NSColor.systemRed
             ]))
             item?.button?.imagePosition = .imageLeft
             item?.button?.attributedTitle = title
             item?.length = NSStatusItem.variableLength
-        } else if let item, !item.button!.attributedTitle.string.isEmpty {
+        } else if criticalLevel == nil, displayedCriticalLevel != nil, let item {
             item.button?.attributedTitle = NSAttributedString()
             item.length = 28
         }
+        displayedCriticalLevel = criticalLevel
         let summary = snapshot.accessibilitySummary(preferences) + (inputSource.map { " · " + $0.name } ?? "")
         item?.button?.toolTip = summary
         item?.button?.setAccessibilityLabel(summary)
@@ -388,6 +409,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                 _ = try await NSWorkspace.shared.openApplication(at: url, configuration: configuration)
             } catch {
                 guard let self else { return }
+                ApplicationShelf.shared.invalidateInstalledApplications()
                 self.store?.errorMessage = L("无法打开%@：%@", title, error.localizedDescription)
                 if !self.popover.isShown { self.togglePopover() }
             }
