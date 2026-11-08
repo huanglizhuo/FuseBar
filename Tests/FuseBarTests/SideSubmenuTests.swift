@@ -23,6 +23,111 @@ import XCTest
 }
 
 final class SideSubmenuTests: XCTestCase {
+    @MainActor private func controls(in element: AnyObject) -> [AnyObject] {
+        let children = element.accessibilityChildren?() ?? []
+        return [element] + children.flatMap { controls(in: $0 as AnyObject) }
+    }
+
+    @MainActor func testWiFiConfirmationCancelEscapeReopenAndRetryStayInsideSubmenu() throws {
+        // Enable the in-process SwiftUI accessibility tree; no external AX permission is needed.
+        let accessibility = NSAccessibility.Attribute(rawValue: "AXEnhancedUserInterface")
+        let previousAccessibility = NSApp.accessibilityAttributeValue(accessibility)
+        NSApp.accessibilitySetValue(true, forAttribute: accessibility)
+        defer { NSApp.accessibilitySetValue(previousAccessibility ?? false, forAttribute: accessibility) }
+        let suite = "FuseBarTests.WiFiConfirmation.\(UUID())"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let root = SubmenuPopover()
+        root.simulatedShown = true
+        let child = SubmenuPopover()
+        let submenu = SideSubmenu(popover: child)
+        let delegate = AppDelegate(popover: root, sideSubmenu: submenu)
+        let anchor = NSView(frame: NSRect(x: 0, y: 0, width: 320, height: 500))
+        root.childWindow.contentView = anchor
+        submenu.register(anchor, for: "wifi")
+        let writer = WiFiPowerWriter()
+        let controller = WiFiPanelStore(preview: true, writePower: { try writer.write($0) })
+        let store = StatusStore(defaults: defaults, demo: true)
+        func settle() { RunLoop.main.run(until: Date().addingTimeInterval(0.1)) }
+        func open() {
+            submenu.toggle("wifi", content: AnyView(WiFiPanel(store: store, preview: true, isSubmenu: true,
+                                                            controller: controller).frame(width: 320)))
+            child.childWindow.orderFront(nil)
+            settle()
+        }
+        func find(_ label: String) -> AnyObject? {
+            guard let content = child.contentViewController?.view else { return nil }
+            return controls(in: content).first { $0.accessibilityLabel?() == label && $0.accessibilityRole?() != .staticText }
+        }
+        func press(_ label: String) throws {
+            let button = try XCTUnwrap(find(label))
+            let window = try XCTUnwrap(button.accessibilityWindow?() as? NSWindow)
+            XCTAssertTrue(window === child.childWindow, "Confirmation must use the existing submenu window")
+            delegate.handleLocalMouseDown(window: window)
+            XCTAssertTrue(child.isShown)
+            XCTAssertTrue(root.isShown)
+            XCTAssertTrue(button.accessibilityPerformPress?() == true)
+            settle()
+        }
+        func awaitPowerWrite() {
+            let deadline = Date().addingTimeInterval(2)
+            while controller.busy && Date() < deadline { settle() }
+            XCTAssertFalse(controller.busy)
+        }
+        open()
+        defer { submenu.close(); child.childWindow.orderOut(nil) }
+        try press("Wi-Fi")
+        XCTAssertNotNil(find(L("关闭 Wi-Fi")))
+        XCTAssertTrue(writer.requests.isEmpty, "Requesting confirmation must not change Wi-Fi")
+        try press(L("取消"))
+        XCTAssertNil(find(L("关闭 Wi-Fi")))
+        XCTAssertTrue(writer.requests.isEmpty)
+
+        try press("Wi-Fi")
+        let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                                                   windowNumber: child.childWindow.windowNumber, context: nil,
+                                                   characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
+                                                   isARepeat: false, keyCode: 53))
+        delegate.dismissInnermostPanel(event: escape)
+        settle()
+        XCTAssertNil(find(L("关闭 Wi-Fi")), "First Escape cancels confirmation")
+        XCTAssertTrue(child.isShown)
+        XCTAssertTrue(writer.requests.isEmpty)
+        delegate.dismissInnermostPanel(event: escape)
+        XCTAssertFalse(child.isShown, "Second Escape closes the submenu")
+        XCTAssertTrue(root.isShown)
+
+        open()
+        try press("Wi-Fi")
+        delegate.handleLocalMouseDown(window: nil)
+        XCTAssertFalse(child.isShown)
+        XCTAssertFalse(root.isShown)
+        root.simulatedShown = true
+        open()
+        XCTAssertNil(find(L("关闭 Wi-Fi")), "Reopening must not resurrect confirmation")
+        XCTAssertTrue(writer.requests.isEmpty)
+
+        try press("Wi-Fi")
+        let confirm = try XCTUnwrap(find(L("关闭 Wi-Fi")))
+        delegate.handleLocalMouseDown(window: confirm.accessibilityWindow?() as? NSWindow)
+        XCTAssertTrue(child.isShown)
+        XCTAssertTrue(confirm.accessibilityPerformPress?() == true)
+        _ = confirm.accessibilityPerformPress?() // A queued second press must not submit another write.
+        awaitPowerWrite()
+        settle()
+        XCTAssertEqual(writer.requests, [false])
+        XCTAssertTrue(controller.failed)
+        XCTAssertFalse(controller.message.isEmpty)
+        XCTAssertNil(find(L("关闭 Wi-Fi")))
+        try press("Wi-Fi")
+        try press(L("关闭 Wi-Fi"))
+        awaitPowerWrite()
+        XCTAssertEqual(writer.requests, [false, false])
+        XCTAssertFalse(controller.failed)
+        XCTAssertTrue(controller.message.isEmpty)
+        XCTAssertTrue(child.isShown)
+    }
+
     @MainActor func testEscapeClosesChildBeforeParentAndParentClosureClosesChild() {
         let root = SubmenuPopover()
         root.simulatedShown = true
@@ -140,5 +245,16 @@ final class SideSubmenuTests: XCTestCase {
         XCTAssertFalse(submenu.contains(popover.childWindow))
         submenu.toggle("missing", content: AnyView(EmptyView()))
         XCTAssertFalse(submenu.isShown)
+    }
+}
+
+private final class WiFiPowerWriter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var values: [Bool] = []
+    var requests: [Bool] { lock.withLock { values } }
+    func write(_ enabled: Bool) throws -> Bool {
+        let first = lock.withLock { values.append(enabled); return values.count == 1 }
+        if first { throw NSError(domain: "FuseBarTests.WiFi", code: 1) }
+        return true
     }
 }

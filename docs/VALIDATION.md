@@ -590,3 +590,17 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 - GitHub「Verify and publish release」run `41225529427` 首次在 stapler 访问 Apple CloudKit 时遇到 `NSURLError -1005`（连接丢失）；同一个 ZIP 未改动，重试 attempt 2 用时 13 秒成功，通过独立校验后于 2026-11-01 01:39:47（Asia/Singapore）[公开发布 1.5.0](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.5.0)。
 - 从 GitHub 下载公开资产后，重新核对版本 1.5.0 (11)、x86_64 + arm64、严格签名/指定要求、stapler 和 spctl 均通过。下载公开 `SHA256SUMS.txt` 与 ZIP 后，逐项比较返回 `./FuseBar-1.5.0-macOS.zip: OK`。GitHub `releases/latest` API 确认 `v1.5.0`，`draft=false`、`prerelease=false`。
 - 未安装到本机 `/Applications`，未提交 App Store。签名和公证不替代前述真实设备路由、休眠唤醒、低分辨率菜单栏、VoiceOver 与按键投递等待验证项；本次不新增硬件或能耗覆盖声明。
+
+
+## 2026-11-08：Issue #2 Wi-Fi 关闭确认留在子菜单内
+
+- 将 Wi-Fi 的 SwiftUI `confirmationDialog` 替换为同一子菜单内的说明、取消与关闭按钮，避免确认按钮属于额外窗口而被外部点击逻辑提前关闭。确认期间收起网络选择列表并清理密码输入；取消、面板消失或电源不再开启时清理确认状态。重复确认有状态与 busy 守卫，真实写入仍使用原有 CoreWLAN 后台调用、回读和失败反馈。
+- Escape 先交给当前子菜单的原生快捷键处理；确认可取消时只取消，再按一次才按原顺序关闭子菜单。没有扩大外部点击豁免范围，也没有改变文件选择器和其他系统弹窗策略。
+- 回归先在原实现挂载真实 WiFiPanel，成功操作开关后无法在同一子菜单找到取消按钮，测试失败（`/tmp/fusebar-issue2-red.log`）。修复后的 `SideSubmenuTests.testWiFiConfirmationCancelEscapeReopenAndRetryStayInsideSubmenu` 通过进程内辅助功能操作真实 SwiftUI 控件，覆盖确认/取消按钮的窗口归属、取消无写入、两次 Escape、外部关闭后重开、重复确认只写入一次、模拟写入失败后重试成功。硬件写入使用可注入的假写入器，未关闭本机 Wi-Fi。
+- 本机 macOS 26.7：`zsh Scripts/test.sh` 通过，95 项 XCTest + 28 项 Swift Testing，共 123 项，零失败；日志 `/tmp/fusebar-issue2-tests.log`。`zsh Scripts/build.sh` 通过，日志 `/tmp/fusebar-issue2-build.log`。`git diff --check` 通过。无新源码文件、工程配置或运行依赖，无需重新生成工程。
+- 此次测试使用模拟的子菜单展示生命周期、真实 SwiftUI 控件及合成 Escape；不等同于真实菜单栏鼠标/键盘投递、VoiceOver 操作或硬件断网验证。macOS 15.8.1 / M1 的用户原环境仍待验证。未安装到 `/Applications`、发布或修改版本号；Issue #1 未处理。保留本次开始前已有的验证记录和未跟踪草稿。
+
+### 1.5.1 (12) 发布准备
+
+- `project.yml` 与生成的 Xcode 工程更新为 1.5.1 (12)，发布说明聚焦 Issue #2；未扩大产品范围或改变签名配置。
+- 版本更新后标准 `zsh Scripts/build.sh`、`zsh Scripts/test.sh` 均通过（95 项 XCTest + 28 项 Swift Testing，共 123 项，零失败），日志分别为 `/tmp/fusebar-1.5.1-build.log`、`/tmp/fusebar-1.5.1-tests.log`。构建产物 Info.plist 确认为 1.5.1 (12)。签名公证及 GitHub 公开发布结果另行记录。

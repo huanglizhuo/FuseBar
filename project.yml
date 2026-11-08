@@ -37,8 +37,8 @@ targets:
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: 'FuseBar shows paired Bluetooth devices and connects or disconnects them when you choose. Device names and status stay on your Mac.'
         INFOPLIST_KEY_NSLocationUsageDescription: 'FuseBar uses location permission to show your connected Wi-Fi name and list nearby networks when you open the Wi-Fi panel. Access is optional. FuseBar does not read your geographic location or upload network names.'
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 'FuseBar uses location permission to show your connected Wi-Fi name and list nearby networks when you open the Wi-Fi panel. Access is optional. FuseBar does not read your geographic location or upload network names.'
-        MARKETING_VERSION: '1.5.0'
-        CURRENT_PROJECT_VERSION: '11'
+        MARKETING_VERSION: '1.5.1'
+        CURRENT_PROJECT_VERSION: '12'
   FuseBarTests:
     type: bundle.unit-test
     platform: macOS

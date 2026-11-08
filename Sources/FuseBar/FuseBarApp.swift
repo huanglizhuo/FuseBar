@@ -129,7 +129,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
                     guard !SystemPanelPresentation.shared.isPresenting else { return false }
                     if event.keyCode == 53, NSApp.modalWindow == nil,
                        (event.window?.firstResponder as? RecordingButton)?.recording != true {
-                        self.dismissInnermostPanel()
+                        self.dismissInnermostPanel(event: event)
                         return true
                     }
                     return self.routeSearchKey(event)
@@ -379,7 +379,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         }
     }
 
-    func dismissInnermostPanel() {
+    func dismissInnermostPanel(event: NSEvent? = nil) {
+        // Let an inline confirmation cancel before dismissing its containing submenu.
+        if let event, sideSubmenu.contains(event.window),
+           event.window?.performKeyEquivalent(with: event) == true { return }
         if sideSubmenu.isShown { sideSubmenu.close(restoreParent: true) }
         else { dismissAndRestoreFocus() }
     }

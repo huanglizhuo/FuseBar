@@ -52,8 +52,14 @@ final class WiFiPanelStore: ObservableObject {
     @Published private(set) var connectingID: String?
     @Published private(set) var failed = false
     private var generation = 0
+    private let writePower: @Sendable (Bool) throws -> Bool
 
-    init(preview: Bool = false) {
+    init(preview: Bool = false, writePower: @escaping @Sendable (Bool) throws -> Bool = { enabled in
+        guard let interface = CWWiFiClient.shared().interface() else { throw NSError(domain: "FuseBar.WiFi", code: 3) }
+        try interface.setPower(enabled)
+        return interface.powerOn() == enabled
+    }) {
+        self.writePower = writePower
         if preview {
             networks = [NearbyNetwork(id: "home", name: "Home Wi-Fi", signal: -48, security: .personal, connected: true),
                         NearbyNetwork(id: "studio", name: "Studio", signal: -64, security: .personal, connected: false),
@@ -205,13 +211,11 @@ final class WiFiPanelStore: ObservableObject {
         generation += 1
         failed = false
         let revision = generation
-        worker.async { [weak self] in
+        worker.async { [weak self, writePower] in
             let message: String
             var confirmed = false
             do {
-                guard let interface = CWWiFiClient.shared().interface() else { throw NSError(domain: "FuseBar.WiFi", code: 3) }
-                try interface.setPower(enabled)
-                confirmed = interface.powerOn() == enabled
+                confirmed = try writePower(enabled)
                 message = confirmed ? "" : L("系统尚未确认 Wi-Fi 电源状态。")
             } catch { message = L("无法改变 Wi-Fi 电源，请使用系统设置。") }
             Task { @MainActor in
@@ -237,11 +241,11 @@ struct WiFiPanel: View {
     @State private var expanded = true
     @FocusState private var passwordFocused: Bool
 
-    init(store: StatusStore, preview: Bool = false, isSubmenu: Bool = false) {
+    init(store: StatusStore, preview: Bool = false, isSubmenu: Bool = false, controller: WiFiPanelStore? = nil) {
         self.store = store
         self.preview = preview
         self.isSubmenu = isSubmenu
-        _controller = StateObject(wrappedValue: WiFiPanelStore(preview: preview))
+        _controller = StateObject(wrappedValue: controller ?? WiFiPanelStore(preview: preview))
     }
 
     private var wifi: WiFiStatus { store.snapshot.wifi }
@@ -255,7 +259,7 @@ struct WiFiPanel: View {
                 if controller.busy && !powered { ProgressView().controlSize(.small) }
                 Toggle("Wi-Fi", isOn: Binding(get: { powered }, set: { enabled in
                     if enabled { controller.setPower(true) { store.refresh() } }
-                    else { confirmPowerOff = true }
+                    else { clearSelection(); confirmPowerOff = true }
                 })).labelsHidden().toggleStyle(.switch).controlSize(.small)
                     .disabled(controller.busy || (wifi.connection != .off && !powered))
             }
@@ -274,7 +278,22 @@ struct WiFiPanel: View {
             } else {
                 MenuNotice(text: wifi.detail)
             }
-            if powered {
+            if confirmPowerOff {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(L("关闭 Wi-Fi 会中断当前无线网络。"))
+                        .font(.system(size: 12, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
+                    HStack {
+                        Button(L("取消")) { confirmPowerOff = false }.keyboardShortcut(.cancelAction)
+                        Spacer()
+                        Button(L("关闭 Wi-Fi"), role: .destructive) {
+                            guard confirmPowerOff, powered, !controller.busy else { return }
+                            confirmPowerOff = false
+                            controller.setPower(false) { store.refresh() }
+                        }.disabled(controller.busy || !powered)
+                    }
+                }.padding(12).background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8))
+                    .padding(8)
+            } else if powered {
                 if !allowed {
                     MenuNotice(text: L("需要定位权限以显示附近网络；不会读取设备位置。"))
                     Button(store.networkNameAccess == .blocked ? L("检查定位权限") : L("允许网络名称")) {
@@ -299,12 +318,9 @@ struct WiFiPanel: View {
             if !preview { controller.reconcileConnection() }
         }
         .onChange(of: powered) { _, value in
-            if value { scanIfReady() } else { clearSelection(); controller.invalidate() }
+            if value { scanIfReady() } else { confirmPowerOff = false; clearSelection(); controller.invalidate() }
         }
-        .onDisappear { clearSelection(); if !preview { controller.invalidate() } }
-        .confirmationDialog(L("关闭 Wi-Fi 会中断当前无线网络。"), isPresented: $confirmPowerOff) {
-            Button(L("关闭 Wi-Fi"), role: .destructive) { controller.setPower(false) { store.refresh() } }
-        }
+        .onDisappear { confirmPowerOff = false; clearSelection(); if !preview { controller.invalidate() } }
     }
 
     private var networkList: some View {
