@@ -604,3 +604,12 @@ Added Applications launcher and Mission Control buttons to the status panel. Ver
 
 - `project.yml` 与生成的 Xcode 工程更新为 1.5.1 (12)，发布说明聚焦 Issue #2；未扩大产品范围或改变签名配置。
 - 版本更新后标准 `zsh Scripts/build.sh`、`zsh Scripts/test.sh` 均通过（95 项 XCTest + 28 项 Swift Testing，共 123 项，零失败），日志分别为 `/tmp/fusebar-1.5.1-build.log`、`/tmp/fusebar-1.5.1-tests.log`。构建产物 Info.plist 确认为 1.5.1 (12)。签名公证及 GitHub 公开发布结果另行记录。
+
+
+### 1.5.1 (12) 已在 GitHub 发布
+
+- 发布提交 `c166e21` 推送到 `main` 后，从独立干净工作区 `/tmp/fusebar-release-v1.5.1` 运行 `zsh Scripts/release.sh v1.5.1`。脚本内 123 项测试、Release 通用架构归档、Developer ID 签名、公证上传、已公证应用导出及本地校验通过；公证在第二次轮询完成。导出构建号为 12，架构为 x86_64 + arm64。
+- `gh release create` 遇到账号 GraphQL 配额限制，脚本在推送 tag 后停止。使用 GitHub REST API 创建同一 tag 的草稿并上传原 ZIP，未重新打包或跳过校验。ZIP 大小 3,054,801 字节，SHA-256 为 `81afa3f7e6c468b58ecf834476ecdf58a2f9de086b4a5b55b326a5ce3d6721f4`；公开资产的 GitHub digest 与本地一致。
+- GitHub「Verify and publish release」run `42474853022` 首次在访问 Apple 公证票据服务时发生 `NSURLError -1005` 网络断连；重跑同一 job 后所有检查通过，并于 2026-11-08 19:16:27（Asia/Singapore）公开发布 [1.5.1](https://github.com/huanglizhuo/FuseBar/releases/tag/v1.5.1)，附签名 ZIP 和 `SHA256SUMS.txt`。API 确认 `draft=false`。
+- 按维护者要求，在 [Issue #2 评论](https://github.com/huanglizhuo/FuseBar/issues/2#issuecomment-6720810193) 中 @SwanTane，附新版下载链接并请其在 M1 / macOS 15.8.1 上验证确认、取消和重新打开操作。Issue 保持打开等待反馈；Issue #1 未处理。连接器缺少重跑与评论权限，相关操作使用本机 GitHub CLI 的 REST 接口完成。
+- 本次未替换 `/Applications/FuseBar.app`，未提交 App Store；真实断网及反馈者环境的交互验证仍待完成。发布前已有的本机安装记录和两份未跟踪草稿保持原样。
